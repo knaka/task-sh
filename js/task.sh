@@ -157,7 +157,6 @@ case "$subcmd" in
     original_wokrking_dir_path="$PWD"
     cd "$script_dir_path"
     node_cmd_path=$("$cmd_path" which node)
-    echo exec "$node_cmd_path" lib/run-node.mjs "$original_wokrking_dir_path" "$@"
     exec "$node_cmd_path" lib/run-node.mjs "$original_wokrking_dir_path" "$@"
     ;;
   *)
