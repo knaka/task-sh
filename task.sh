@@ -3,19 +3,19 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
-opt="$(getopt "vhd:" "$@")"
+args="$(getopt "vhd:" "$@")"
 
 # shellcheck disable=SC2086
-set -- $opt
+set -- $args
 
 verbose=false
-should_show_help=false
+shows_help=false
 directory=""
 while test $# -gt 0
 do
   case "$1" in
     -v) verbose=true;;
-    -h) should_show_help=true;;
+    -h) shows_help=true;;
     -d) directory="$2"; shift;;
     --) shift; break;;
   esac
@@ -142,7 +142,7 @@ task_git() { # [args...] Run git command.
   exec git "$@"
 }
 
-if test ${#} -eq 0 || $should_show_help
+if test ${#} -eq 0 || $shows_help
 then
   task_help
   exit 0
