@@ -61,6 +61,17 @@ case "$subcmd" in
     fi
     exec git "$@"
     ;;
+  copy-task-cmd)
+    cd "$script_dir_path"
+    for dir in *
+    do
+      if ! test -d "$dir"
+      then
+        continue
+      fi
+      cp -f task.cmd "$dir"/task.cmd
+    done
+    ;;
   nop)
     echo NOP
     ;;
