@@ -1,8 +1,8 @@
-@REM id: 7403c4a
+@REM id: 7403c4a hogehoge
 
 @echo off
 setlocal enabledelayedexpansion
-if not "%UPDATE_ME%" == "" (
+if "%1" == "update-me" (
   curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd
   exit /b 0
 )
@@ -30,4 +30,5 @@ set toolbox_file=toolbox.lib.cmd
 :end
 cd /d !original_dir_path!
 !toolbox_cmd_path! sh !sh_dir_path!\!script_name!.sh %*
+exit /b %ERRORLEVEL%
 endlocal
