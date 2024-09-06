@@ -52,6 +52,7 @@ case "$subcmd" in
       git init
       set_path_sync_ignored .git/
       git remote add origin git@github.com:knaka/scr.git
+      git branch --set-upstream-to=origin/main main
       git fetch origin
     fi
     exec git "$@"
