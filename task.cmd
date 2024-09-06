@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 if "%1" == "update-me" (
-  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd
+  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd || exit /b 1
   exit /b 0
 )
 set original_dir_path=%cd%

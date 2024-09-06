@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 set ver=FRP-5398-g89ae34445
 
 if "%1" == "update-me" (
-  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd
+  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd || exit /b 1
   exit /b 0
 )
 set bin_dir_path=%USERPROFILE%\.bin
