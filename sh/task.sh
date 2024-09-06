@@ -1,64 +1,89 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# Scripts not to be installed.
-excluded_scripts=",task.sh,"
+script_dir_path="$(dirname "$0")"
 
-_install() {
-  _is_windows=$1
-  sh_bin_dir_path="$HOME"/sh-bin
-  mkdir -p "$sh_bin_dir_path"
-  rm -f "$sh_bin_dir_path"/*
-  for sh_file in *.sh
-  do
-    if echo "$excluded_scripts" | grep -q ",$sh_file,"
-    then
-      continue
-    fi
-    sh_name="${sh_file%.sh}"
-    if $_is_windows
-    then
-      cat task.cmd > "$sh_bin_dir_path"/"$sh_name".cmd
-    else 
-      ln -s "$PWD/task" "$sh_bin_dir_path"/"$sh_name"
-    fi
-  done
-  if $_is_windows
-  then
-    cat <<EOF > "$sh_bin_dir_path"/.env.sh.cmd
-set sh_dir_path=$PWD
-EOF
-  else
-    cat <<EOF > "$sh_bin_dir_path"/.env.sh
-sh_dir_path="$PWD"
-EOF
-  fi
-}
+verbose=false
+shows_help=false
+directory=""
 
-install_unix() {
-  _install false
-}
+args="$(getopt "vhd:" "$@")"
+# shellcheck disable=SC2086
+set -- $args
+while test $# -gt 0
+do
+  case "$1" in
+    -v) verbose=true;;
+    -h) shows_help=true;;
+    -d) directory="$2"; shift;;
+    --) shift; break;;
+  esac
+  shift
+done
 
-install_windows() {
-  _install true
-}
-
-if ! test "${1+SET}" = SET
+if $verbose
 then
-  exit 1
+  # set -o xtrace
+  echo "script_dir_path: $script_dir_path"
 fi
-subcmd="$1"
-is_windows=$(test "$(uname -s)" = Windows_NT && echo true || echo false)
-case "$subcmd" in
-  install|link)
-    if $is_windows
-    then
-      install_windows
-    else
-      install_unix
-    fi
-    ;;
-  *)
+
+if test -n "$directory"
+then
+  cd "$directory"
+fi
+
+task_file_paths="$0"
+cwd="$(pwd)"
+cd "$script_dir_path"
+for file in task_*.sh
+do
+  if ! test -r "$file"
+  then
+    continue
+  fi
+  task_file_paths="$task_file_paths $file"
+  # shellcheck disable=SC1090
+  . "$file"
+done
+cd "$cwd"
+
+task_help() { # Show help message.
+  _cwd="$(pwd)"
+  cd "$script_dir_path"
+  cat <<EOF
+Usage: $0 <task[arg1,arg2,...]> [other_tasks...]
+
+Tasks:
+EOF
+  # shellcheck disable=SC2086
+  max_len="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  # shellcheck disable=SC2086
+  grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+  cd "$_cwd"
+}
+
+if test ${#} -eq 0 || $shows_help
+then
+  task_help
+  exit 0
+fi
+
+for task_with_args in "$@"
+do
+  task="$task_with_args"
+  args=""
+  case "$task_with_args" in
+    *\[*)
+      task="${task_with_args%%\[*}"
+      args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
+      ;;
+  esac
+  task="$(echo "$task" | sed -r -e 's/:/__/g')"
+  if ! type task_"$task" > /dev/null 2>&1
+  then
+    echo "Unknown task: $task" >&2
     exit 1
-    ;;
-esac
+  fi
+  # shellcheck disable=SC2086
+  task_"$task" $args
+done
