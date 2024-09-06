@@ -1,5 +1,3 @@
-@REM id: 45f05e6
-
 setlocal enabledelayedexpansion
 
 @REM Available commands // BusyBox - The Swiss Army Knife of Embedded Linux https://busybox.net/downloads/BusyBox.html
@@ -8,6 +6,10 @@ setlocal enabledelayedexpansion
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
 set ver=FRP-5398-g89ae34445
 
+if "%1" == "update-me" (
+  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd
+  exit /b 0
+)
 set bin_dir_path=%USERPROFILE%\.bin
 if not exist !bin_dir_path! (
   mkdir "!bin_dir_path!"

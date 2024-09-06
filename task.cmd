@@ -1,5 +1,3 @@
-@REM id: 7403c4a hogehoge
-
 @echo off
 setlocal enabledelayedexpansion
 if "%1" == "update-me" (
