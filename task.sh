@@ -2,21 +2,20 @@
 set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
-cd "$script_dir_path"
 
 _set_path_attr() {
-  _979089b_path="$1"
-  _5d3b4b2_attribute="$2"
-  _5367958_value="$3"
+  __path="$1"
+  __attribute="$2"
+  __value="$3"
   if which xattr > /dev/null 2>&1
   then
-    xattr -w "$_5d3b4b2_attribute" "$_5367958_value" "$_979089b_path"
+    xattr -w "$__attribute" "$__value" "$__path"
   elif which attr > /dev/null 2>&1
   then
-    attr -s "$_5d3b4b2_attribute" -V "$_5367958_value" "$_979089b_path"
+    attr -s "$__attribute" -V "$__value" "$__path"
   elif which PowerShell > /dev/null 2>&1
   then
-    PowerShell -Command "Set-Content -Path '$_979089b_path' -Stream '$_5d3b4b2_attribute' -Value '$_5367958_value'"
+    PowerShell -Command "Set-Content -Path '$__path' -Stream '$__attribute' -Value '$__value'"
   fi
 }
 
@@ -32,50 +31,105 @@ set_path_sync_ignored() {
   done
 }
 
-script_dir_path="$(dirname "$0")"
-if test "${1+SET}" != "SET"
-then
-  exit 1
-fi
-subcmd="$1"
-shift
-case "$subcmd" in
-  install)
-    for dir in "$script_dir_path"/*
-    do
-      if test -d "$dir"
-      then
-        (cd "$dir" && sh ./task.sh install)
-      fi
-    done
-    ;;
-  git)
-    cd "$script_dir_path"
-    if ! test -d .git
+task_install() { # Install in each directory.
+  cd "$script_dir_path"
+  for dir in "$script_dir_path"/*
+  do
+    if test -d "$dir"
     then
-      git init
-      set_path_sync_ignored .git/
-      git remote add origin git@github.com:knaka/scr.git
-      git branch --set-upstream-to=origin/main main
-      git fetch origin
+      (cd "$dir" && sh ./task.sh install)
     fi
-    exec git "$@"
-    ;;
-  copy-task-cmd)
-    cd "$script_dir_path"
-    for dir in *
-    do
-      if ! test -d "$dir"
-      then
-        continue
-      fi
-      cp -f task.cmd "$dir"/task.cmd
-    done
-    ;;
-  nop)
-    echo NOP
-    ;;
-  *)
+  done
+}
+
+task_task_cmd__copy() { # Copy task.cmd to each directory.
+  cd "$script_dir_path"
+  for dir in *
+  do
+    if ! test -d "$dir"
+    then
+      continue
+    fi
+    cp -f task.cmd "$dir"/task.cmd
+  done
+}
+
+task_help() { # Show help message.
+  cat <<EOF
+Usage: $0 <task[arg1,arg2,...]> [other_tasks...]
+
+Tasks:
+EOF
+  max_len="$(grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *# */ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+}
+
+task_nop() { # Do nothing.
+  echo NOP
+}
+
+task_client__build() { # [args...] Build client.
+  printf "Building client: "
+  delim=""
+  for arg in "$@"
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim=", "
+  done
+  echo
+}
+
+task_client__deploy() { # [args...] Deploy client.
+  printf "Deploying client: "
+  delim=""
+  for arg in "$@"
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim=", "
+  done
+  echo
+}
+
+task_fail() { # Fails.
+  echo FAIL
+  exit 1
+}
+
+task_git() { # [args...] Run git command.
+  cd "$script_dir_path"
+  if ! test -d .git
+  then
+    git init
+    set_path_sync_ignored .git/
+    git remote add origin git@github.com:knaka/scr.git
+    git branch --set-upstream-to=origin/main main
+    git fetch origin
+  fi
+  exec git "$@"
+}
+
+if test ${#} -eq 0
+then
+  task_help
+  exit 0
+fi
+
+for task_with_args in "$@"
+do
+  task="$task_with_args"
+  args=""
+  case "$task_with_args" in
+    *\[*)
+      task="${task_with_args%%\[*}"
+      args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
+      ;;
+  esac
+  task="$(echo "$task" | sed -r -e 's/:/__/g')"
+  if ! type task_"$task" > /dev/null 2>&1
+  then
+    echo "Unknown task: $task" >&2
     exit 1
-    ;;
-esac
+  fi
+  # shellcheck disable=SC2086
+  task_"$task" $args
+done
