@@ -9,8 +9,8 @@ set ver=FRP-5398-g89ae34445
 if "%1" == "update-me" (
   set "temp_dir=%TEMP%\tempdir_%RANDOM%"
   mkdir "!temp_dir!"
-  curl.exe --location --output !temp_dir!\%~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd
-  move /y !temp_dir!\%~f0 %~f0
+  curl.exe --location --output !temp_dir!\%~nx0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd
+  move /y !temp_dir!\%~nx0 %~f0
   rmdir /s /q !temp_dir!
   exit /b 0
 )
