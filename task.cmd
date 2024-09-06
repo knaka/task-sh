@@ -1,7 +1,11 @@
 @echo off
 setlocal enabledelayedexpansion
 if "%1" == "update-me" (
-  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd || exit /b 1
+  set "temp_dir=%TEMP%\tempdir_%RANDOM%"
+  mkdir "!temp_dir!"
+  curl.exe --location --output !temp_dir!\%~f0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd
+  move /y !temp_dir!\%~f0 %~f0
+  rmdir /s /q !temp_dir!
   exit /b 0
 )
 set original_dir_path=%cd%

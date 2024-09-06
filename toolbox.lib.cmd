@@ -7,7 +7,11 @@ setlocal enabledelayedexpansion
 set ver=FRP-5398-g89ae34445
 
 if "%1" == "update-me" (
-  curl.exe --location --output %~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd || exit /b 1
+  set "temp_dir=%TEMP%\tempdir_%RANDOM%"
+  mkdir "!temp_dir!"
+  curl.exe --location --output !temp_dir!\%~f0 https://raw.githubusercontent.com/knaka/scr/main/toolbox.lib.cmd
+  move /y !temp_dir!\%~f0 %~f0
+  rmdir /s /q !temp_dir!
   exit /b 0
 )
 set bin_dir_path=%USERPROFILE%\.bin
