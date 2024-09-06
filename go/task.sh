@@ -4,6 +4,8 @@ set -o nounset -o errexit
 # All releases - The Go Programming Language https://go.dev/dl/
 ver=1.23.0
 
+is_windows=$(test "$(uname -s)" = Windows_NT && echo true || echo false)
+
 # get_gobin returns the path to the Go bin directory.
 gobin() {
   if test "${GOBIN+SET}" = "SET"
@@ -53,7 +55,16 @@ gobin() {
     *) exit 1;;
   esac
   mkdir -p "$_sdk_dir_path"
-  curl --location -o - "https://go.dev/dl/go$ver.$_goos-$_goarch.tar.gz" | (cd "$_sdk_dir_path"; tar -xzf -)
+  if $is_windows
+  then
+    _temp_dir_path=$(mktemp -d)
+    zip_path="$_temp_dir_path"/temp.zip
+    curl --location -o "$zip_path" "https://go.dev/dl/go$ver.$_goos-$_goarch.zip"
+    (cd "$_sdk_dir_path"; unzip -q "$zip_path" >&2)
+    rm -fr "$_temp_dir_path"
+  else
+    curl --location -o - "https://go.dev/dl/go$ver.$_goos-$_goarch.tar.gz" | (cd "$_sdk_dir_path"; tar -xzf -)
+  fi
   mv "$_sdk_dir_path"/go "$_goroot"
   echo "$_goroot"/bin
 }

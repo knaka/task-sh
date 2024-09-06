@@ -46,8 +46,12 @@ then
     curl --location "$url" | tar -xz --directory="$bin_dir_path" $cmd_base
     mv "$bin_dir_path/$cmd_base" "$cmd_path"
   else
-    curl --location "$url" | (cd "$bin_dir_path"; unzip -)
-    mv "$bin_dir_path/$cmd_base$exe_ext" "$cmd_path"
+    temp_dir_path=$(mktemp -d)
+    zip_path="$temp_dir_path"/temp.zip
+    curl --location "$url" -o "$zip_path"
+    (cd "$temp_dir_path"; unzip -q "$zip_path")
+    mv "$temp_dir_path/$cmd_base$exe_ext" "$cmd_path"
+    rm -fr "$temp_dir_path"
   fi
   chmod +x "$cmd_path"
 fi
