@@ -3,6 +3,35 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
+opt="$(getopt "vhd:" "$@")"
+
+# shellcheck disable=SC2086
+set -- $opt
+
+verbose=false
+should_show_help=false
+directory=""
+while test $# -gt 0
+do
+  case "$1" in
+    -v) verbose=true;;
+    -h) should_show_help=true;;
+    -d) directory="$2"; shift;;
+    --) shift; break;;
+  esac
+  shift
+done
+
+if $verbose
+then
+  set -o xtrace
+fi
+
+if test -n "$directory"
+then
+  cd "$directory"
+fi
+
 _set_path_attr() {
   __path="$1"
   __attribute="$2"
@@ -60,12 +89,17 @@ Usage: $0 <task[arg1,arg2,...]> [other_tasks...]
 
 Tasks:
 EOF
-  max_len="$(grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *# */ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+  max_len="$(grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
 }
 
 task_nop() { # Do nothing.
   echo NOP
+}
+
+task_pwd() {
+  echo "pwd: $(pwd)"
+  exit 0
 }
 
 task_client__build() { # [args...] Build client.
@@ -108,7 +142,7 @@ task_git() { # [args...] Run git command.
   exec git "$@"
 }
 
-if test ${#} -eq 0
+if test ${#} -eq 0 || $should_show_help
 then
   task_help
   exit 0
