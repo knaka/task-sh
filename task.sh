@@ -61,6 +61,9 @@ case "$subcmd" in
     fi
     exec git "$@"
     ;;
+  nop)
+    echo NOP
+    ;;
   *)
     exit 1
     ;;
