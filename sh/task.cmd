@@ -2,6 +2,10 @@
 
 @echo off
 setlocal enabledelayedexpansion
+if not %UPDATE_ME% == "" (
+  curl --location --output - https://raw.githubusercontent.com/knaka/scr/main/task > %~f0
+  exit /b
+)
 set original_dir_path=%cd%
 set script_dir_path=%~dp0
 set script_name=%~n0

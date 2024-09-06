@@ -33,6 +33,10 @@ set_path_sync_ignored() {
 }
 
 script_dir_path="$(dirname "$0")"
+if test "${1+SET}" != "SET"
+then
+  exit 1
+fi
 subcmd="$1"
 shift
 case "$subcmd" in
