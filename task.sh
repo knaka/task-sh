@@ -3,14 +3,13 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
-args="$(getopt "vhd:" "$@")"
-
-# shellcheck disable=SC2086
-set -- $args
-
 verbose=false
 shows_help=false
 directory=""
+
+args="$(getopt "vhd:" "$@")"
+# shellcheck disable=SC2086
+set -- $args
 while test $# -gt 0
 do
   case "$1" in
@@ -24,7 +23,8 @@ done
 
 if $verbose
 then
-  set -o xtrace
+  # set -o xtrace
+  echo "script_dir_path: $script_dir_path"
 fi
 
 if test -n "$directory"
@@ -32,114 +32,34 @@ then
   cd "$directory"
 fi
 
-_set_path_attr() {
-  __path="$1"
-  __attribute="$2"
-  __value="$3"
-  if which xattr > /dev/null 2>&1
+task_file_paths="$0"
+cwd="$(pwd)"
+cd "$script_dir_path"
+for file in task_*.sh
+do
+  if ! test -r "$file"
   then
-    xattr -w "$__attribute" "$__value" "$__path"
-  elif which attr > /dev/null 2>&1
-  then
-    attr -s "$__attribute" -V "$__value" "$__path"
-  elif which PowerShell > /dev/null 2>&1
-  then
-    PowerShell -Command "Set-Content -Path '$__path' -Stream '$__attribute' -Value '$__value'"
+    continue
   fi
-}
-
-attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
-
-set_path_sync_ignored() {
-  for _path in "$@"
-  do
-    for _attribute in $attributes
-    do
-      _set_path_attr "$_path" "$_attribute" 1
-    done
-  done
-}
-
-task_install() { # Install in each directory.
-  cd "$script_dir_path"
-  for dir in "$script_dir_path"/*
-  do
-    if test -d "$dir"
-    then
-      (cd "$dir" && sh ./task.sh install)
-    fi
-  done
-}
-
-task_task_cmd__copy() { # Copy task.cmd to each directory.
-  cd "$script_dir_path"
-  for dir in *
-  do
-    if ! test -d "$dir"
-    then
-      continue
-    fi
-    cp -f task.cmd "$dir"/task.cmd
-  done
-}
+  task_file_paths="$task_file_paths $file"
+  # shellcheck disable=SC1090
+  . "$file"
+done
+cd "$cwd"
 
 task_help() { # Show help message.
+  _cwd="$(pwd)"
+  cd "$script_dir_path"
   cat <<EOF
 Usage: $0 <task[arg1,arg2,...]> [other_tasks...]
 
 Tasks:
 EOF
-  max_len="$(grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  grep -E -e "^task_" "$0" | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
-}
-
-task_nop() { # Do nothing.
-  echo NOP
-}
-
-task_pwd() {
-  echo "pwd: $(pwd)"
-  exit 0
-}
-
-task_client__build() { # [args...] Build client.
-  printf "Building client: "
-  delim=""
-  for arg in "$@"
-  do
-    printf "%s%s" "$delim" "$arg"
-    delim=", "
-  done
-  echo
-}
-
-task_client__deploy() { # [args...] Deploy client.
-  printf "Deploying client: "
-  delim=""
-  for arg in "$@"
-  do
-    printf "%s%s" "$delim" "$arg"
-    delim=", "
-  done
-  echo
-}
-
-task_fail() { # Fails.
-  echo FAIL
-  exit 1
-}
-
-task_git() { # [args...] Run git command.
-  cd "$script_dir_path"
-  if ! test -d .git
-  then
-    git init
-    set_path_sync_ignored .git/
-    git remote add origin git@github.com:knaka/scr.git
-    git branch --set-upstream-to=origin/main main
-    git fetch origin
-  fi
-  exec git "$@"
+  # shellcheck disable=SC2086
+  max_len="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  # shellcheck disable=SC2086
+  grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+  cd "$_cwd"
 }
 
 if test ${#} -eq 0 || $shows_help
