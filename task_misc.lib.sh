@@ -8,6 +8,7 @@ task_install() { # Install in each directory.
   do
     if test -d "$dir"
     then
+      echo "Installing in $dir" >&2
       (cd "$dir" && sh ./task.sh install)
     fi
   done

@@ -107,3 +107,11 @@ task_install() { # Install updated Go tools.
     echo Built "$target_bin_path" >&2
   done
 }
+
+for path in .idea .git
+do
+  if test -d "$(dirname "$0")""$path"
+  then
+    set_path_sync_ignored "$(dirname "$0")""$path"
+  fi
+done
