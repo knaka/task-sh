@@ -32,6 +32,7 @@ fi
 task_file_paths="$0"
 cwd="$(pwd)"
 cd "$script_dir_path"
+if $verbose; then echo "script_dir_path: $script_dir_path" >&2; fi
 for file in task_*.sh
 do
   if ! test -r "$file"
@@ -40,7 +41,8 @@ do
   fi
   task_file_paths="$task_file_paths $file"
   # shellcheck disable=SC1090
-  . "$file"
+  . ./"$file"
+  if $verbose; then echo "Loaded $file" >&2; fi
 done
 cd "$cwd"
 

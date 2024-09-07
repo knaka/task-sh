@@ -90,6 +90,11 @@ task_install() { # Install updated Go tools.
   cd "$(dirname "$0")" || exit 1
   go_bin_dir_path="$HOME"/go-bin
   mkdir -p "$go_bin_dir_path"
+  ext=
+  if is_windows
+  then
+    ext=.exe
+  fi
   for go_file in *.go
   do
     if ! test -r "$go_file"
@@ -97,7 +102,7 @@ task_install() { # Install updated Go tools.
       continue
     fi
     name=$(basename "$go_file" .go)
-    target_bin_path="$go_bin_dir_path"/"$name"
+    target_bin_path="$go_bin_dir_path"/"$name$ext"
     if type "$target_bin_path" > /dev/null 2>&1 &&
       test -n "$(find "$target_bin_path" -newer "$go_file" 2>/dev/null)"
     then

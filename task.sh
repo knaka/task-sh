@@ -41,7 +41,7 @@ do
   fi
   task_file_paths="$task_file_paths $file"
   # shellcheck disable=SC1090
-  . "$file"
+  . ./"$file"
   if $verbose; then echo "Loaded $file" >&2; fi
 done
 cd "$cwd"

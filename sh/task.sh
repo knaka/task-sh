@@ -43,7 +43,7 @@ do
   fi
   task_file_paths="$task_file_paths $file"
   # shellcheck disable=SC1090
-  . "$file"
+  . ./"$file"
 done
 cd "$cwd"
 
