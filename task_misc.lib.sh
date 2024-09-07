@@ -63,7 +63,7 @@ task_client__deploy() { # [args...] Deploy client.
   echo
 }
 
-task_git() { # [args...] Run git command.
+subcmd_git() { # Run git command.
   cd "$script_dir_path" || exit 1
   if ! test -d .git
   then
@@ -86,18 +86,4 @@ task_task_cmd__copy() { # Copy task.cmd to each directory.
     fi
     cp -f task.cmd "$dir"/task.cmd
   done
-}
-
-task_pwd() {
-  echo "pwd: $(pwd)"
-  exit 0
-}
-
-task_fail() { # Fails.
-  echo FAIL
-  exit 1
-}
-
-task_nop() { # Do nothing.
-  echo NOP
 }
