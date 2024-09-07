@@ -117,6 +117,7 @@ task_install() { # Install updated Go tools.
   mkdir -p "$bin_dir_path"
   repos_dir_path="$HOME"/repos
   mkdir -p "$repos_dir_path"
+  echo d: "$(git_cmd)"
   # shellcheck disable=SC2043
   for repo_path in \
     "https://github.com/knaka/peco.git cmd/peco"
@@ -139,7 +140,7 @@ task_install() { # Install updated Go tools.
     repo_dir_path="$repos_dir_path"/"$repo_dir_name"
     if ! test -d "$repo_dir_path"
     then
-      git clone "$repo" "$repo_dir_path"
+      "$(go_cmd)" run ./go-git-clone.go "$repo" "$repo_dir_path"
     fi
     (
       cd "$repo_dir_path" || exit 1
