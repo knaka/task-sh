@@ -1,102 +1,118 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# All releases - The Go Programming Language https://go.dev/dl/
-ver=1.23.0
+script_dir_path="$(dirname "$0")"
 
-is_windows=$(test "$(uname -s)" = Windows_NT && echo true || echo false)
+verbose=false
+shows_help=false
+directory=""
 
-# get_gobin returns the path to the Go bin directory.
-gobin() {
-  if test "${GOBIN+SET}" = "SET"
-  then
-    echo "$GOBIN"
-    return
-  fi
-  if test "${GOROOT+SET}" = "SET"
-  then
-    echo "$GOROOT"/bin
-    return
-  fi
-  if test "${GOPATH+SET}" = "SET"
-  then
-    echo "$GOPATH"/bin
-    return
-  fi
-  if which go > /dev/null 2>&1
-  then
-    echo "$(go env GOROOT)"/bin
-    return
-  fi
-  for dir_path in \
-    "$HOME"/sdk/go${ver} \
-    /usr/local/go \
-    /usr/local/Cellar/go/* \
-    "/Program Files"/Go \
-    "$HOME"/go
-  do
-    if type "$dir_path"/bin/go > /dev/null 2>&1
-    then
-      echo "$dir_path"/bin
-      return
-    fi
-  done
-  _sdk_dir_path="$HOME"/sdk
-  _goroot="$_sdk_dir_path"/go${ver}
-  case "$(uname -s)" in
-    Linux) _goos=linux;;
-    Darwin) _goos=darwin;;
-    Windows_NT) _goos=windows;;
+while getopts "vhd:" opt
+do
+  case "$opt" in
+    v) verbose=true;;
+    h) shows_help=true;;
+    d) directory="$OPTARG";;
     *) exit 1;;
   esac
-  case "$(uname -m)" in
-    arm64) _goarch=arm64;;
-    x86_64) _goarch=amd64;;
-    *) exit 1;;
-  esac
-  mkdir -p "$_sdk_dir_path"
-  if $is_windows
+done
+shift $((OPTIND-1))
+
+if $verbose
+then
+  # set -o xtrace
+  echo "script_dir_path: $script_dir_path"
+fi
+
+if test -n "$directory"
+then
+  cd "$directory"
+fi
+
+task_file_paths="$0"
+cwd="$(pwd)"
+cd "$script_dir_path"
+for file in task_*.sh
+do
+  if ! test -r "$file"
   then
-    _temp_dir_path=$(mktemp -d)
-    zip_path="$_temp_dir_path"/temp.zip
-    curl --location -o "$zip_path" "https://go.dev/dl/go$ver.$_goos-$_goarch.zip"
-    (cd "$_sdk_dir_path"; unzip -q "$zip_path" >&2)
-    rm -fr "$_temp_dir_path"
-  else
-    curl --location -o - "https://go.dev/dl/go$ver.$_goos-$_goarch.tar.gz" | (cd "$_sdk_dir_path"; tar -xzf -)
+    continue
   fi
-  mv "$_sdk_dir_path"/go "$_goroot"
-  echo "$_goroot"/bin
+  task_file_paths="$task_file_paths $file"
+  # shellcheck disable=SC1090
+  . "$file"
+done
+cd "$cwd"
+
+task_help() { # Show help message.
+  _cwd="$(pwd)"
+  cd "$script_dir_path"
+  cat <<EOF
+Usage:
+  $0 <subcommand> [args...]
+  $0 <task[arg1,arg2,...]> [tasks...]
+
+Subcommands:
+EOF
+
+  # shellcheck disable=SC2086
+  max_len="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  # shellcheck disable=SC2086
+  grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+
+cat <<EOF
+
+Tasks:
+EOF
+  # shellcheck disable=SC2086
+  max_len="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  # shellcheck disable=SC2086
+  grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+  cd "$_cwd"
 }
 
-script_dir_path="$(dirname "$0")"
-if test "${1+SET}" != "SET"
+subcmd_pwd() {
+  pwd "$@"
+}
+
+subcmd_false() { # Always fail.
+  false "$@"
+}
+
+task_nop() { # Do nothing.
+  echo NOP
+}
+
+if test ${#} -eq 0 || $shows_help
 then
-  exit 1
+  task_help
+  exit 0
 fi
+
 subcmd="$1"
-shift
-cmd_path="$(gobin)"/go
-case "$subcmd" in
-  go)
-    exec "$cmd_path" "$@"
-    ;;
-  install)
-    go_bin_dir_path="$HOME"/go-bin
-    mkdir -p "$go_bin_dir_path"
-    rm -f "$go_bin_dir_path"/*
-    cd "$script_dir_path"
-    for go_file in *.go
-    do
-      if ! test -r "$go_file"
-      then
-        continue
-      fi
-      name=$(basename "$go_file" .go)
-      "$cmd_path" build -o "$go_bin_dir_path"/"$name" ./"$go_file"
-    done
-    ;;
-  *)
+if type subcmd_"$subcmd" > /dev/null 2>&1
+then
+  shift
+  subcmd_"$subcmd" "$@"
+  exit 0
+fi
+
+for task_with_args in "$@"
+do
+  task="$task_with_args"
+  args=""
+  case "$task_with_args" in
+    *\[*)
+      task="${task_with_args%%\[*}"
+      args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
+      ;;
+  esac
+  task="$(echo "$task" | sed -r -e 's/:/__/g')"
+  if ! type task_"$task" > /dev/null 2>&1
+  then
+    echo "Unknown task: $task" >&2
     exit 1
-    ;;
-esac
+  fi
+  # shellcheck disable=SC2086
+  task_"$task" $args
+done
