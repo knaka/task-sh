@@ -111,6 +111,41 @@ task_install() { # Install updated Go tools.
     "$(go_cmd)" build -o "$target_bin_path" ./"$go_file"
     echo Built "$target_bin_path" >&2
   done
+
+  gopath="$HOME"/go
+  bin_dir_path="$gopath"/bin
+  mkdir -p "$bin_dir_path"
+  repos_dir_path="$HOME"/repos
+  mkdir -p "$repos_dir_path"
+  # shellcheck disable=SC2043
+  for repo_path in \
+    "https://github.com/knaka/peco.git cmd/peco"
+  do
+    repo=${repo_path%% *}
+    path=${repo_path#* }
+    cmd_name="$(basename "$path")"
+    if test -z "$cmd_name"
+    then
+      cmd_name=$(basename "$repo" .git)
+    fi
+    if type "$bin_dir_path"/"$cmd_name" > /dev/null 2>&1
+    then
+      continue
+    fi
+    # repo_dir_path="$repos_dir_path"/
+    repo_dir_name="$repo"
+    repo_dir_name=${repo_dir_name%%.git}
+    repo_dir_name=${repo_dir_name##https://}
+    repo_dir_path="$repos_dir_path"/"$repo_dir_name"
+    if ! test -d "$repo_dir_path"
+    then
+      git clone "$repo" "$repo_dir_path"
+    fi
+    (
+      cd "$repo_dir_path" || exit 1
+      "$(go_cmd)" build -o "$bin_dir_path"/"$cmd_name" ./"$path"
+    )
+  done
 }
 
 for path in .idea .git
