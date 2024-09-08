@@ -153,10 +153,15 @@ task_install() { # Install updated Go tools.
   done
 }
 
+# shellcheck disable=SC1091
+. "$(dirname "$0")"/attributes.lib.sh
+
 for path in .idea .git
 do
-  if test -d "$(dirname "$0")""$path"
+  # echo "debug2:" "$path" >&2
+  if test -d "$(dirname "$0")"/"$path"
   then
-    set_path_sync_ignored "$(dirname "$0")""$path"
+    # echo "debug1:" "$path" >&2
+    set_path_sync_ignored "$(dirname "$0")"/"$path"
   fi
 done

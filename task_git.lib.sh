@@ -10,10 +10,10 @@ subcmd_git() { # Run git command.
   if ! test -d .git
   then
     git init
-    set_path_sync_ignored .git/
     git remote add origin git@github.com:knaka/scr.git
     git branch --set-upstream-to=origin/main main
     git fetch origin
   fi
+  set_path_sync_ignored .git/
   exec git "$@"
 }
