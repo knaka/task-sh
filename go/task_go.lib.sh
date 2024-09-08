@@ -117,7 +117,11 @@ task_install() { # Install updated Go tools.
   mkdir -p "$bin_dir_path"
   repos_dir_path="$HOME"/repos
   mkdir -p "$repos_dir_path"
-  echo d: "$(git_cmd)"
+  exe_ext=
+  if is_windows
+  then
+    exe_ext=.exe
+  fi
   # shellcheck disable=SC2043
   for repo_path in \
     "https://github.com/knaka/peco.git cmd/peco"
@@ -144,7 +148,7 @@ task_install() { # Install updated Go tools.
     fi
     (
       cd "$repo_dir_path" || exit 1
-      "$(go_cmd)" build -o "$bin_dir_path"/"$cmd_name" ./"$path"
+      "$(go_cmd)" build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
     )
   done
 }
