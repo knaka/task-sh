@@ -47,3 +47,9 @@ task_task_cmd__copy() { # Copy task.cmd to each directory.
     cp -f task.cmd "$dir"/task.cmd
   done
 }
+
+task_home_link() { # Link this directory to home.
+  _script_dir_path="$(realpath "$(dirname "$0")")"
+  _script_dir_name="$(basename "$_script_dir_path")"
+  ln -sf "$_script_dir_path" "$HOME"/"$_script_dir_name"
+}

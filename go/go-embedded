@@ -1,0 +1,52 @@
+#!/bin/sh
+set -o nounset -o errexit
+
+temp_dir=$(mktemp -d)
+trap 'rm -rf $temp_dir' EXIT
+
+name="go-embedded"
+file_path="$temp_dir/main.go"
+cat <<EOF > "$file_path"
+package main
+
+func main() {
+    println("Hello, World!")
+}
+EOF
+
+while true
+do
+  if type go >/dev/null 2>&1
+  then
+    cmd_path=$(which go)
+    break
+  fi
+  for dir in \
+    "$HOME"/go/go*/bin \
+    "$HOME"/sdk/go*/bin \
+    /usr/local/go/bin
+  do
+    if type "$dir"/go >/dev/null 2>&1
+    then
+      cmd_path="$dir/go"
+      break
+    fi
+  done
+  case "$(uname -s)" in
+    Linux) goos=linux;;
+    Darwin) goos=darwin;;
+    *) exit 1;;
+  esac
+  case "$(uname -m)" in
+    arm64) _goarch=arm64;;
+    x86_64) _goarch=amd64;;
+    *) exit 1;;
+  esac
+  sdk_dir_path="$HOME/sdk"
+  mkdir -p "$sdk_dir_path"
+  curl --location -o - "https://go.dev/dl/go$ver.$goos-$goarch.tar.gz" | (cd "$sdk_dir_path" || exit 1; tar -xzf -; mv go go"$ver")
+  cmd_path="$sdk_dir_path/go$ver/bin/go"
+  break
+done
+
+"$cmd_path" build -o "$HOME"/bin/"$name" "$file_path"
