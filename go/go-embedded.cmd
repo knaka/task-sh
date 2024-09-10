@@ -53,8 +53,8 @@ if not exist "!GOPATH!\bin" (
     mkdir !%GOPATH!\bin"
 )
 set "name=%~n0"
-if exist "!GOPATH!\bin\!name!.exe" (
-    xcopy /l /d /y "!GOPATH!\bin\!name!.exe" "%~f0" | findstr /b /c:"1 " >nul 2>&1
+if exist "!GOPATH!\bin\embedded-!name!.exe" (
+    xcopy /l /d /y "!GOPATH!\bin\embedded-!name!.exe" "%~f0" | findstr /b /c:"1 " >nul 2>&1
     if !ERRORLEVEL! == 0 (
         goto :execute
     )
@@ -65,12 +65,12 @@ for /f "usebackq tokens=1 delims=:" %%i in (`findstr /n /b :embed_53c8fd5 "%~f0"
 set "tempfile=!temp_dir_path!\!name!.go"
 more +%n% "%~f0" > "!tempfile!"
 
-!go_cmd_path! build -o !GOPATH!\bin\!name!.exe "!tempfile!" || goto :exit
+!go_cmd_path! build -o !GOPATH!\bin\embedded-!name!.exe "!tempfile!" || goto :exit
 del /q "!temp_dir_path!"
 goto :execute
 
 :execute
-!GOPATH!\bin\!name!.exe %* || goto :exit
+!GOPATH!\bin\embedded-!name!.exe %* || goto :exit
 set "exit_code=0"
 
 :exit

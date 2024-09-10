@@ -30,21 +30,21 @@ then
 fi
 
 task_file_paths="$0"
-cwd="$(pwd)"
-cd "$script_dir_path"
+# cwd="$(pwd)"
+# cd "$script_dir_path"
 if $verbose; then echo "script_dir_path: $script_dir_path" >&2; fi
-for file in task_*.sh task-*.sh
+for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
 do
-  if ! test -r "$file"
+  if ! test -r "$file_path"
   then
     continue
   fi
-  task_file_paths="$task_file_paths $file"
+  task_file_paths="$task_file_paths $file_path"
   # shellcheck disable=SC1090
-  . ./"$file"
-  if $verbose; then echo "Loaded $file" >&2; fi
+  . "$file_path"
+  if $verbose; then echo "Loaded $file_path" >&2; fi
 done
-cd "$cwd"
+# cd "$cwd"
 
 task_help() { # Show help message.
   _cwd="$(pwd)"
