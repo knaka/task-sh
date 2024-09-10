@@ -1,6 +1,7 @@
 module app
 
-go 1.23.0
+go 1.23
+toolchain go1.23.1
 
 require (
 	github.com/go-git/go-git/v5 v5.12.0
