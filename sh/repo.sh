@@ -1,9 +1,7 @@
-#!/bin/bash
-set -o nounset -o errexit -o pipefail
+#!/bin/sh
+set -o nounset -o errexit
 
 cmd=ghq
-
-# サブコマンド
 
 if test "${1+SET}" = "SET"
 then
@@ -11,20 +9,13 @@ then
     st|stat)
       exec "$cmd" root
       ;;
+    *)
+      exec $cmd "$@"
+      ;;
   esac
-  # repo-～ のコマンドがあればそっちへ
-  if which "$0"-"$1" > /dev/null 2>&1
-  then
-    sub_cmd="$0"-"$1"
-    shift
-    exec "${sub_cmd}" "$@"
-  fi
-
-  exec $cmd "$@"
 fi
 
-# サブコマンドの指定がなければ、レポジトリ一覧
-
+# If not subcommand is specified, list repositories.
 repo=$("$cmd" list | peco)
 if test -z "${repo}"
 then

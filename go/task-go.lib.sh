@@ -120,80 +120,64 @@ task_install() { # Install Go tools.
     target_sim_path="$go_sim_dir_path"/"$name"
     if is_windows
     then
-      echo Not implemented yet.
+      pwd_backslash=$(echo "$PWD" | sed 's|/|\\|g')
+      go_sim_dir_path_backslash=$(echo "$go_sim_dir_path" | sed 's|/|\\|g')
+      cat <<EOF > "$target_sim_path".cmd
+@echo off
+call $pwd_backslash\task build $name
+$go_sim_dir_path_backslash\.bin\\$name.exe %*
+EOF
     else
       cat <<EOF > "$target_sim_path"
 #!/bin/sh
-"$PWD"/task build "$name"
+$PWD/task build "$name"
 exec "$go_sim_dir_path"/.bin/"$name" "\$@"
 EOF
       chmod +x "$target_sim_path"
     fi
   done
+}
 
-  # go_bin_dir_path="$HOME"/go-bin
-  # mkdir -p "$go_bin_dir_path"
-  # ext=
-  # if is_windows
-  # then
-  #   ext=.exe
-  # fi
-  # for go_file in *.go
-  # do
-  #   if ! test -r "$go_file"
-  #   then
-  #     continue
-  #   fi
-  #   name=$(basename "$go_file" .go)
-  #   target_bin_path="$go_bin_dir_path"/"$name$ext"
-  #   if type "$target_bin_path" > /dev/null 2>&1 &&
-  #     test -n "$(find "$target_bin_path" -newer "$go_file" 2>/dev/null)"
-  #   then
-  #     continue
-  #   fi
-  #   "$(go_cmd)" build -o "$target_bin_path" ./"$go_file"
-  #   echo Built "$target_bin_path" >&2
-  # done
-
-  # gopath="$HOME"/go
-  # bin_dir_path="$gopath"/bin
-  # mkdir -p "$bin_dir_path"
-  # repos_dir_path="$HOME"/repos
-  # mkdir -p "$repos_dir_path"
-  # exe_ext=
-  # if is_windows
-  # then
-  #   exe_ext=.exe
-  # fi
-  # # shellcheck disable=SC2043
-  # for repo_path in \
-  #   "https://github.com/knaka/peco.git cmd/peco"
-  # do
-  #   repo=${repo_path%% *}
-  #   path=${repo_path#* }
-  #   cmd_name="$(basename "$path")"
-  #   if test -z "$cmd_name"
-  #   then
-  #     cmd_name=$(basename "$repo" .git)
-  #   fi
-  #   if type "$bin_dir_path"/"$cmd_name" > /dev/null 2>&1
-  #   then
-  #     continue
-  #   fi
-  #   # repo_dir_path="$repos_dir_path"/
-  #   repo_dir_name="$repo"
-  #   repo_dir_name=${repo_dir_name%%.git}
-  #   repo_dir_name=${repo_dir_name##https://}
-  #   repo_dir_path="$repos_dir_path"/"$repo_dir_name"
-  #   if ! test -d "$repo_dir_path"
-  #   then
-  #     "$(go_cmd)" run ./go-git-clone.go "$repo" "$repo_dir_path"
-  #   fi
-  #   (
-  #     cd "$repo_dir_path" || exit 1
-  #     "$(go_cmd)" build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
-  #   )
-  # done
+task_install_bin() {
+  gopath="$HOME"/go
+  bin_dir_path="$gopath"/bin
+  mkdir -p "$bin_dir_path"
+  repos_dir_path="$HOME"/repos
+  mkdir -p "$repos_dir_path"
+  exe_ext=
+  if is_windows
+  then
+    exe_ext=.exe
+  fi
+  # shellcheck disable=SC2043
+  for repo_path in \
+    "https://github.com/knaka/peco.git cmd/peco"
+  do
+    repo=${repo_path%% *}
+    path=${repo_path#* }
+    cmd_name="$(basename "$path")"
+    if test -z "$cmd_name"
+    then
+      cmd_name=$(basename "$repo" .git)
+    fi
+    if type "$bin_dir_path"/"$cmd_name" > /dev/null 2>&1
+    then
+      continue
+    fi
+    # repo_dir_path="$repos_dir_path"/
+    repo_dir_name="$repo"
+    repo_dir_name=${repo_dir_name%%.git}
+    repo_dir_name=${repo_dir_name##https://}
+    repo_dir_path="$repos_dir_path"/"$repo_dir_name"
+    if ! test -d "$repo_dir_path"
+    then
+      "$(go_cmd)" run ./go-git-clone.go "$repo" "$repo_dir_path"
+    fi
+    (
+      cd "$repo_dir_path" || exit 1
+      "$(go_cmd)" build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
+    )
+  done
 }
 
 # shellcheck disable=SC1091

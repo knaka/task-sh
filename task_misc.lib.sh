@@ -53,3 +53,26 @@ task_home_link() { # Link this directory to home.
   _script_dir_name="$(basename "$_script_dir_path")"
   ln -sf "$_script_dir_path" "$HOME"/"$_script_dir_name"
 }
+
+delegate_tasks() {
+  (
+    cd "$script_dir_path" || exit 1
+    case "$1" in
+      tasks)
+        echo "extra:install Install extra commands."
+        echo "extra:uninstall Uninstall extra commands."
+        ;;
+      subcmds)
+        echo "exclient:build Build client."
+        echo "exclient:deploy Deploy client."
+        ;;
+      extra:install)
+        echo Installing extra commands...
+        echo Done
+        ;;
+      *)
+        return 1
+        ;;
+    esac
+  )
+}

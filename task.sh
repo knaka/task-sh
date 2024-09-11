@@ -47,30 +47,44 @@ done
 # cd "$cwd"
 
 task_help() { # Show help message.
-  _cwd="$(pwd)"
-  cd "$script_dir_path"
-  cat <<EOF
+  (
+    cd "$script_dir_path"
+    cat <<EOF
 Usage:
   $0 <subcommand> [args...]
   $0 <task[arg1,arg2,...]> [tasks...]
 
 Subcommands:
 EOF
-
-  # shellcheck disable=SC2086
-  max_len="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  # shellcheck disable=SC2086
-  grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
-
-cat <<EOF
+    delim=" delim_2ed1065 "
+    # shellcheck disable=SC2086
+    cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
+    if type delegate_tasks > /dev/null 2>&1
+    then
+      if delegate_tasks subcmds > /dev/null 2>&1
+      then
+        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) /\1$delim/")")"
+      fi
+    fi
+    max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+    echo "$cnt" | sort | awk -F"$delim" "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+    cat <<EOF
 
 Tasks:
 EOF
-  # shellcheck disable=SC2086
-  max_len="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(.*//' | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  # shellcheck disable=SC2086
-  grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e 's/\(\) *\{ *(# *)?/ e8d2cce /' | sort | awk -F' e8d2cce ' "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
-  cd "$_cwd"
+    delim=" delim_d3984dd "
+    # shellcheck disable=SC2086
+    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
+    if type delegate_tasks > /dev/null 2>&1
+    then
+      if delegate_tasks tasks > /dev/null 2>&1
+      then
+        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) /\1$delim/")")"
+      fi
+    fi
+    max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+    echo "$cnt" | sort | awk -F"$delim" "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+  )
 }
 
 subcmd_pwd() {
@@ -112,6 +126,11 @@ do
   task="$(echo "$task" | sed -r -e 's/:/__/g')"
   if ! type task_"$task" > /dev/null 2>&1
   then
+    if type delegate_tasks > /dev/null 2>&1
+    then  
+      delegate_tasks "$@"
+      exit 0
+    fi
     echo "Unknown task: $task" >&2
     exit 1
   fi
