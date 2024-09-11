@@ -56,7 +56,7 @@ task_subcmds() { # List subcommands.
     then
       if delegate_tasks subcmds > /dev/null 2>&1
       then
-        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) /\1$delim/")")"
+        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
       fi
     fi
     max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
@@ -73,7 +73,7 @@ task_tasks() { # List tasks.
     then
       if delegate_tasks tasks > /dev/null 2>&1
       then
-        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) /\1$delim/")")"
+        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
       fi
     fi
     max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"

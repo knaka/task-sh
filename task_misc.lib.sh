@@ -55,16 +55,17 @@ task_home_link() { # Link this directory to home.
 }
 
 delegate_tasks() {
+  # Mock for test of hekp.
   (
     cd "$script_dir_path" || exit 1
     case "$1" in
       tasks)
-        echo "exclient:build Build client."
-        echo "exclient:deploy Deploy client."
+        echo "exclient:build     Build client."
+        echo "exclient:deploy    Deploy client."
         ;;
       subcmds)
-        echo "exgit Run git command."
-        echo "exdocker Run docker command."
+        echo "exgit       Run git command."
+        echo "exdocker    Run docker command."
         ;;
       extra:install)
         echo Installing extra commands...
