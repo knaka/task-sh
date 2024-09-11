@@ -59,12 +59,12 @@ delegate_tasks() {
     cd "$script_dir_path" || exit 1
     case "$1" in
       tasks)
-        echo "extra:install Install extra commands."
-        echo "extra:uninstall Uninstall extra commands."
-        ;;
-      subcmds)
         echo "exclient:build Build client."
         echo "exclient:deploy Deploy client."
+        ;;
+      subcmds)
+        echo "exgit Run git command."
+        echo "exdocker Run docker command."
         ;;
       extra:install)
         echo Installing extra commands...

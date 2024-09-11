@@ -46,16 +46,9 @@ do
 done
 # cd "$cwd"
 
-task_help() { # Show help message.
+task_subcmds() { # List subcommands.
   (
-    cd "$script_dir_path"
-    cat <<EOF
-Usage:
-  $0 <subcommand> [args...]
-  $0 <task[arg1,arg2,...]> [tasks...]
-
-Subcommands:
-EOF
+    cd "$(dirname "$0")"
     delim=" delim_2ed1065 "
     # shellcheck disable=SC2086
     cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
@@ -67,11 +60,12 @@ EOF
       fi
     fi
     max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-    echo "$cnt" | sort | awk -F"$delim" "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
-    cat <<EOF
+    echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
+  )
+}
 
-Tasks:
-EOF
+task_tasks() { # List tasks.
+  (
     delim=" delim_d3984dd "
     # shellcheck disable=SC2086
     cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
@@ -83,7 +77,26 @@ EOF
       fi
     fi
     max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-    echo "$cnt" | sort | awk -F"$delim" "{ printf \"  %-${max_len}s  %s\n\", \$1, \$2 }"
+    echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
+  )
+}
+
+task_help() { # Show help message.
+  (
+    cd "$script_dir_path"
+    cat <<EOF
+Usage:
+  $0 <subcommand> [args...]
+  $0 <task[arg1,arg2,...]> [tasks...]
+
+Subcommands:
+EOF
+    task_subcmds | sed -r -e 's/^/  /'
+    cat <<EOF
+
+Tasks:
+EOF
+    task_tasks | sed -r -e 's/^/  /'
   )
 }
 
