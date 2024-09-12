@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-volta() {
+volta_cmd() {
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
   cmd_base=volta
   ver=2.0.1
@@ -141,9 +141,9 @@ task_install() { # Install JS scripts.
 }
 
 subcmd_volta() { # Run Volta.
-  volta "$@"
+  volta_cmd "$@"
 }
 
 subcmd_npm() { # Run npm.
-  volta run npm -- "$@"
+  volta_cmd run npm -- "$@"
 }
