@@ -1,60 +1,61 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
-cmd_base=volta
-ver=2.0.1
+volta() {
+  # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
+  cmd_base=volta
+  ver=2.0.1
 
-# --------------------------------------------------------------------------
+  exe_ext=
+  arc_ext=".tar.gz"
+  case "$(uname -s)" in
+    Linux)
+      case "$(uname -m)" in
+        x86_64) os_arch="linux" ;;
+        arm64) os_arch="linux-arm" ;;
+        *) exit 1;;
+      esac
+      ;;
+    Darwin)
+      os_arch="macos"
+      ;;
+    Windows_NT)
+      exe_ext=".exe"
+      arc_ext=".zip"
+      case "$(uname -m)" in
+        i386 | i486 | i586 | i686) os_arch="windows" ;;
+        x86_64) os_arch="windows" ;;
+        arm64) os_arch="windows-arm64" ;;
+        *) exit 1;;
+      esac
+      ;;
+    *)
+      echo "Unsupported platform" >&2
+      exit 1
+      ;;
+  esac
 
-exe_ext=
-arc_ext=".tar.gz"
-case "$(uname -s)" in
-  Linux)
-    case "$(uname -m)" in
-      x86_64) os_arch="linux" ;;
-      arm64) os_arch="linux-arm" ;;
-      *) exit 1;;
-    esac
-    ;;
-  Darwin)
-    os_arch="macos"
-    ;;
-  Windows_NT)
-    exe_ext=".exe"
-    arc_ext=".zip"
-    case "$(uname -m)" in
-      i386 | i486 | i586 | i686) os_arch="windows" ;;
-      x86_64) os_arch="windows" ;;
-      arm64) os_arch="windows-arm64" ;;
-      *) exit 1;;
-    esac
-    ;;
-  *)
-    echo "Unsupported platform" >&2
-    exit 1
-    ;;
-esac
-
-bin_dir_path="$HOME"/.bin
-volta_cmd_path="$bin_dir_path/${cmd_base}@${ver}${exe_ext}"
-if ! test -x "$volta_cmd_path"
-then
-  url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
-  if test "$arc_ext" = ".tar.gz"
+  bin_dir_path="$HOME"/.bin
+  volta_path="$bin_dir_path/${cmd_base}@${ver}"
+  mkdir -p "$volta_path"
+  volta_cmd_path="$volta_path/$cmd_base$exe_ext"
+  if ! test -x "$volta_cmd_path"
   then
-    curl --location "$url" | tar -xz --directory="$bin_dir_path" $cmd_base
-    mv "$bin_dir_path/$cmd_base" "$volta_cmd_path"
-  else
-    temp_dir_path=$(mktemp -d)
-    zip_path="$temp_dir_path"/temp.zip
-    curl --location "$url" -o "$zip_path"
-    (cd "$temp_dir_path"; unzip -q "$zip_path")
-    mv "$temp_dir_path/$cmd_base$exe_ext" "$volta_cmd_path"
-    rm -fr "$temp_dir_path"
+    url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
+    if test "$arc_ext" = ".tar.gz"
+    then
+      curl --fail --location "$url" | tar -xz --directory="$volta_path"
+      chmod +x "$volta_path"/*
+    else
+      temp_dir_path=$(mktemp -d)
+      zip_path="$temp_dir_path"/temp.zip
+      curl --fail --location "$url" -o "$zip_path"
+      (cd "$volta_path"; unzip -q "$zip_path")
+      rm -fr "$temp_dir_path"
+    fi
   fi
-  chmod +x "$volta_cmd_path"
-fi
+  PATH="$volta_path:$PATH" "$volta_cmd_path" "$@" || return $?
+}
 
 # --------------------------------------------------------------------------
 
@@ -140,17 +141,9 @@ task_install() { # Install JS scripts.
 }
 
 subcmd_volta() { # Run Volta.
-  exec "$volta_cmd_path" "$@"
+  volta "$@"
 }
 
 subcmd_npm() { # Run npm.
-  exec "$volta_cmd_path" run npm -- "$@"
-}
-
-subcmd_run() { # Run JS script.
-  original_wokrking_dir_path="$PWD"
-  cd "$(dirname "$0")"
-  # node_volta_cmd_path=$("$volta_cmd_path" which node)
-  # exec "$node_volta_cmd_path" lib/run-node.mjs "$original_wokrking_dir_path" "$@"
-  exec "$volta_cmd_path" run node lib/run-node.mjs "$original_wokrking_dir_path" "$@"
+  volta run npm -- "$@"
 }

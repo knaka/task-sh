@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 if "%1" == "update-me" (
-  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/src/main/task.cmd || exit /b %ERRORLEVEL%
+  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd || exit /b %ERRORLEVEL%
   move /y %TEMP%\task_cmd-%~nx0 %~f0
   exit /b 0
 )
@@ -28,6 +28,8 @@ if not exist !cmd_path! (
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b %ERRORLEVEL%
 )
 
+set "ARGV0=%~f0"
+set "BASENAME=%~n0"
 set script_dir_path=%~dp0
 set script_name=%~n0
 set sh_dir_path=!script_dir_path!
