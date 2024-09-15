@@ -7,8 +7,19 @@ if test "${BASENAME+set}" = "set"
 then
   case "$BASENAME" in
     task-*)
-      APP_ENV="${BASENAME#task-}"
-      export APP_ENV
+      env="${BASENAME#task-}"
+      case "$env" in
+        dev|development)
+          APP_ENV=development
+          APP_SENV=dev
+          ;;
+        prd|production)
+          APP_ENV=production
+          APP_SENV=prd
+          ;;
+        *) echo "Unknown environment: $env" >&2; exit 1;;
+      esac
+      export APP_ENV APP_SENV
       ;;
     *)
       ;;
@@ -51,6 +62,9 @@ do
   then
     continue
   fi
+  case "$(basename "$file_path")" in
+    task-dev.sh|task-prd.sh) continue;;
+  esac
   task_file_paths="$task_file_paths $file_path"
   # shellcheck disable=SC1090
   . "$file_path"

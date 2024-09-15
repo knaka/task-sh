@@ -54,6 +54,11 @@ task_home_link() { # Link this directory to home.
   ln -sf "$_script_dir_path" "$HOME"/"$_script_dir_name"
 }
 
+subcmd_env() { # Show environment.
+  echo "APP_SENV:" "${APP_SENV:-}"
+  echo "APP_ENV:" "${APP_ENV:-}"
+}
+
 delegate_tasks() {
   # Mock for test of hekp.
   (
