@@ -3,6 +3,18 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
+if test "${BASENAME+set}" = "set"
+then
+  case "$BASENAME" in
+    task-*)
+      APP_ENV="${BASENAME#task-}"
+      export APP_ENV
+      ;;
+    *)
+      ;;
+  esac
+fi
+
 verbose=false
 shows_help=false
 directory=""

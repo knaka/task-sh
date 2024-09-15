@@ -17,50 +17,46 @@ volta_cmd() {
       esac
       ;;
     Darwin)
+      # Mach-O universal binarries.
       os_arch="macos"
       ;;
     Windows_NT)
       exe_ext=".exe"
       arc_ext=".zip"
       case "$(uname -m)" in
-        i386 | i486 | i586 | i686) os_arch="windows" ;;
         x86_64) os_arch="windows" ;;
         arm64) os_arch="windows-arm64" ;;
         *) exit 1;;
       esac
       ;;
     *)
-      echo "Unsupported platform" >&2
       exit 1
       ;;
   esac
-
   bin_dir_path="$HOME"/.bin
-  volta_path="$bin_dir_path/${cmd_base}@${ver}"
-  mkdir -p "$volta_path"
-  volta_cmd_path="$volta_path/$cmd_base$exe_ext"
+  volta_dir_path="$bin_dir_path/${cmd_base}@${ver}"
+  mkdir -p "$volta_dir_path"
+  volta_cmd_path="$volta_dir_path/$cmd_base$exe_ext"
   if ! test -x "$volta_cmd_path"
   then
     url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
-    if test "$arc_ext" = ".tar.gz"
-    then
-      curl --fail --location "$url" | tar -xz --directory="$volta_path"
-      chmod +x "$volta_path"/*
-    else
-      temp_dir_path=$(mktemp -d)
-      zip_path="$temp_dir_path"/temp.zip
-      curl --fail --location "$url" -o "$zip_path"
-      (cd "$volta_path"; unzip -q "$zip_path")
-      rm -fr "$temp_dir_path"
-    fi
+    curl$exe_ext --fail --location "$url" -o - | (cd "$volta_dir_path"; tar$exe_ext -xf -)
+    chmod +x "$volta_dir_path"/*
   fi
-  PATH="$volta_path:$PATH" "$volta_cmd_path" "$@" || return $?
+  PATH="$volta_dir_path:$PATH" "$cmd_base" "$@" || return $?
+}
+
+subcmd_volta() { # Run Volta.
+  volta_cmd "$@"
+}
+
+subcmd_npm() { # Run npm.
+  volta_cmd run npm -- "$@"
 }
 
 # --------------------------------------------------------------------------
 
-script_dir_path="$(dirname "$0")"
-node_modules_dir_path="$script_dir_path"/node_modules
+node_modules_dir_path="$(dirname "$0")"/node_modules
 if ! test -d "$node_modules_dir_path"
 then
   mkdir -p "$node_modules_dir_path"
@@ -77,10 +73,6 @@ then
     PowerShell -Command "Set-Content -Path '$node_modules_dir_path' -Stream 'com.dropbox.ignored' -Value 1"
     PowerShell -Command "Set-Content -Path '$node_modules_dir_path' -Stream 'com.apple.fileprovider.ignore#P' -Value 1"
   fi
-  (
-    cd "$script_dir_path"
-    "$volta_cmd_path" run npm install
-  )
 fi
 
 # --------------------------------------------------------------------------
@@ -138,12 +130,4 @@ task_install() { # Install JS scripts.
   else
     install_unix
   fi
-}
-
-subcmd_volta() { # Run Volta.
-  volta_cmd "$@"
-}
-
-subcmd_npm() { # Run npm.
-  volta_cmd run npm -- "$@"
 }

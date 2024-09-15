@@ -1,16 +1,26 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-cmd_name=$(basename "$0")
 should_block=false
-if test "$cmd_name" = "edw"
+
+while getopts "bt:" opt
+do
+  case "$opt" in
+    b) should_block=true;;
+    *) exit 1;;
+  esac
+done
+shift $((OPTIND-1))
+
+if test "$BASENAME" = "edw"
 then
   should_block=true
 fi
+
 if which code > /dev/null
 then
   opts=
-  if "$should_block"
+  if $should_block
   then
     opts="--wait $opts"
   fi
@@ -24,5 +34,6 @@ then
       *) exit 0 ;;
     esac
   fi
-  exec code "$@"
+  # shellcheck disable=SC2086
+  exec code $opts "$@"
 fi
