@@ -28,8 +28,8 @@ if not exist !cmd_path! (
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b %ERRORLEVEL%
 )
 
-set "ARGV0=%~f0"
-set "BASENAME=%~n0"
+set "ARG0=%~f0"
+set "ARG0BASE=%~n0"
 set script_dir_path=%~dp0
 set script_name=%~n0
 set sh_dir_path=!script_dir_path!

@@ -3,6 +3,29 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
+if test "${ARG0BASE+set}" = "set"
+then
+  case "$ARG0BASE" in
+    task-*)
+      env="${ARG0BASE#task-}"
+      case "$env" in
+        dev|development)
+          APP_ENV=development
+          APP_SENV=dev
+          ;;
+        prd|production)
+          APP_ENV=production
+          APP_SENV=prd
+          ;;
+        *) echo "Unknown environment: $env" >&2; exit 1;;
+      esac
+      export APP_ENV APP_SENV
+      ;;
+    *)
+      ;;
+  esac
+fi
+
 verbose=false
 shows_help=false
 directory=""
@@ -39,6 +62,9 @@ do
   then
     continue
   fi
+  case "$(basename "$file_path")" in
+    task-dev.sh|task-prd.sh) continue;;
+  esac
   task_file_paths="$task_file_paths $file_path"
   # shellcheck disable=SC1090
   . "$file_path"

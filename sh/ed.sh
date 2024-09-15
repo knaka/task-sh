@@ -12,7 +12,7 @@ do
 done
 shift $((OPTIND-1))
 
-if test "$BASENAME" = "edw"
+if test "$ARG0BASE" = "edw"
 then
   should_block=true
 fi

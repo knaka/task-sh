@@ -3,11 +3,11 @@ set -o nounset -o errexit
 
 script_dir_path="$(dirname "$0")"
 
-if test "${BASENAME+set}" = "set"
+if test "${ARG0BASE+set}" = "set"
 then
-  case "$BASENAME" in
+  case "$ARG0BASE" in
     task-*)
-      env="${BASENAME#task-}"
+      env="${ARG0BASE#task-}"
       case "$env" in
         dev|development)
           APP_ENV=development

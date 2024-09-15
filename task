@@ -10,10 +10,10 @@ then
   cat "$temp_dir_path"/task > "$0"
   exit 0
 fi
-ARGV0="$0"
-export ARGV0
-BASENAME="${0##*/}"
-export BASENAME
+ARG0="$0"
+export ARG0
+ARG0BASE="${0##*/}"
+export ARG0BASE
 script_dir_path=$(dirname "$0")
 script_name=$(basename "$0")
 sh_dir_path="$script_dir_path"
