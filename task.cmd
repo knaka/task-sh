@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 if "%1" == "update-me" (
-  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd || exit /b %ERRORLEVEL%
+  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/src/main/task.cmd || exit /b %ERRORLEVEL%
   move /y %TEMP%\task_cmd-%~nx0 %~f0
   exit /b 0
 )
