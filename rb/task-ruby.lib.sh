@@ -1,6 +1,26 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+is_windows=false
+if test "$(uname -s)" = Windows_NT
+then
+  is_windows=true
+  # # todo: Fix
+  # # shellcheck disable=SC2125
+  # for path in "$HOME"/.bin/msys*
+  # do
+  #   if ! test -d "$path"
+  #   then
+  #     continue
+  #   fi
+  #   PATH="$path:$PATH"
+  #   PATH="$path/usr/bin/:$PATH"
+  #   MSYS2_PATH="$path"
+  # done
+  # export PATH
+  # export MSYS2_PATH
+fi
+
 subcmd_irb() { # Launches an interactive Ruby shell.
   exec "$(dirname "$0")"/rb-cmds run irb "$@"
 }
@@ -20,11 +40,6 @@ subcmd_gem() { # Runs the `gem` command.
 excluded_scrs=",invalid.rb,"
 
 task_install() { # Installs Ruby scripts.
-  is_windows=false
-  if test "$(uname -s)" = Windows_NT
-  then
-    is_windows=true
-  fi
   bin_dir_path="$HOME/rb-bin"
   mkdir -p "$bin_dir_path"
   rm -f "$bin_dir_path"/*
@@ -44,7 +59,7 @@ task_install() { # Installs Ruby scripts.
       bin_file_path="$bin_dir_path"/"$name".cmd
       cat <<EOF > "$bin_file_path"
 @echo off
-"$PWD"\task.cmd run "$PWD"\${script} %*
+"$PWD"\task.cmd run "$PWD"\\${script} %*
 EOF
     else 
       bin_file_path="$bin_dir_path"/"$name"
