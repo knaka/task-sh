@@ -5,6 +5,8 @@ set -o nounset -o errexit
 ver=3.3.4
 release=1
 
+cd "$(dirname "$0")" || exit 1
+
 cleanup() {
   if test "${temp_dir_path+set}" = set
   then
