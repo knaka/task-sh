@@ -9,11 +9,6 @@ is_windows() {
 
 # gobin returns the path to the Go bin directory.
 gobin() {
-  if test "${GOBIN+SET}" = "SET"
-  then
-    echo "$GOBIN"
-    return
-  fi
   if test "${GOROOT+SET}" = "SET"
   then
     echo "$GOROOT"/bin
@@ -138,7 +133,7 @@ EOF
   done
 }
 
-task_install_bin() {
+task_install_bin() { # Install the tools implemented in Go.
   gopath="$HOME"/go
   bin_dir_path="$gopath"/bin
   mkdir -p "$bin_dir_path"
