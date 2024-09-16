@@ -56,3 +56,7 @@ EOF
     fi
   done
 }
+
+task_dep() { # Shows the dependency tree of gem packages.
+  exec "$(dirname "$0")"/rb-cmds run bundle exec gem dependency
+}
