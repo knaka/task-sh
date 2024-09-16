@@ -30,7 +30,7 @@ set_path_sync_ignored() {
 
 : "${script_dir_path:=}"
 
-subcmd_setignored() { # Set sync ignored attribute.
+subcmd_setignored() { # [paths...] Set sync ignored attribute to paths.
   for path in "$@"
   do
     set_path_sync_ignored "$path"
