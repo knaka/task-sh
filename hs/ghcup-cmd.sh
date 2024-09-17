@@ -1,17 +1,31 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-ghcup_cmd_path="$HOME"/.ghcup/bin/ghcup
+# shellcheck disable=SC1091
+. "$(dirname "$0")"/../utils.lib.sh
 
-if ! test -x "$ghcup_cmd_path"
+if is_windows
 then
-  # Installation - GHCup https://www.haskell.org/ghcup/install/
-  if test "$(uname -s)" = Windows_NT
+  ghcup_cmd_path="$HOME"/scoop/shims/ghcup
+  # Installation - Scoop https://scoop.sh/
+  if ! type scoop > /dev/null 2>&1
   then
-    echo "Not implemented yet." >&2
-    exit 1
-    # Set-ExecutionPolicy Bypass -Scope Process -Force;[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; try { & ([ScriptBlock]::Create((Invoke-WebRequest https://www.haskell.org/ghcup/sh/bootstrap-haskell.ps1 -UseBasicParsing))) -Interactive=0 -DisableCurl } catch { Write-Error $_ }
-  else
+    printf "Scoop is not installed. Install? (y/N): "
+    read -r yn
+    case "$yn" in
+      [yY]*) ;;
+      *) exit 0 ;;
+    esac
+    powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression"
+  fi
+  if ! type "$ghcup_cmd_path" > /dev/null 2>&1
+  then
+    scoop install ghcup
+  fi
+else
+  ghcup_cmd_path="$HOME"/.ghcup/bin/ghcup
+  if ! test -x "$ghcup_cmd_path"
+  then
     curl -sSf https://get-ghcup.haskell.org | BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh
   fi
 fi

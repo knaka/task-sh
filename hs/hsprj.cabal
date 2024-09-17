@@ -48,6 +48,7 @@ executable main-exe
   build-depends:
       base >=4.7 && <5
     , hsprj
+    , optparse-applicative
   default-language: Haskell2010
 
 test-suite hs-test

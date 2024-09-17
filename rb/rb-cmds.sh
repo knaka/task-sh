@@ -1,9 +1,12 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# Downloads https://rubyinstaller.org/downloads/
-ver=3.2.5
-release=1
+# Winget // Search results | winget.run https://winget.run/search?query=ruby
+# RubyInstaller for Windows // Downloads https://rubyinstaller.org/downloads/
+# rbenv (ruby-build) // ruby-build/share/ruby-build at master · rbenv/ruby-build https://github.com/rbenv/ruby-build/tree/master/share/ruby-build
+ver=3.2.4
+major_minor="$(echo "$ver" | cut -d. -f1-2)"
+major_minor_abbrev="$(echo "$major_minor" | tr -d .)"
 
 cd "$(dirname "$0")" || exit 1
 
@@ -26,7 +29,7 @@ in
     ;;
 esac
 
-bin_dir_path="$HOME/.bin"
+# bin_dir_path="$HOME/.bin"
 
 is_windows=false
 if test "$(uname -s)" = Windows_NT
@@ -61,35 +64,36 @@ exec2() {
   fi
 }
 
-case "$(uname -s)"
-in
-  Windows_NT)
-    rb_lib_dir_path="$bin_dir_path/ruby-$ver-$release-$arch"
-    if ! type "$rb_lib_dir_path/bin/ruby" >/dev/null 2>&1; then
-      # url="https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$ver-$release/rubyinstaller-$ver-$release-$arch.7z"
-      # mkdir -p "$bin_dir_path"
-      # temp_dir_path="$(mktemp -d)"
-      # curl.exe --fail --location --output "$temp_dir_path"/tmp.7z "$url"
-      # (
-      #   cd "$bin_dir_path" || exit 1
-      #   tar.exe -xf "$temp_dir_path"/tmp.7z
-      # )
-      url="https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$ver-$release/rubyinstaller-devkit-$ver-$release-$arch.exe"
-      mkdir -p "$bin_dir_path"
-      temp_dir_path="$(mktemp -d)"
-      curl.exe --fail --location --output "$temp_dir_path"/tmp.exe "$url"
-      powershell.exe -Command "Start-Process -Wait -NoNewWindow -FilePath $temp_dir_path/tmp.exe -ArgumentList '/silent /currentuser /dir=$rb_lib_dir_path /tasks=noassocfiles,nomodpath,noridkinstall'"
-    fi
-    ;;
-  *)
-    if ! type rbenv >/dev/null 2>&1
-    then
-      echo "rbenv is not installed." >&2
-      exit 1
-    fi
-    rbenv version | grep -q "$ver" || rbenv local "$ver"
-    ;;
-esac
+# shellcheck disable=SC1091
+. "$(dirname "$0")"/../utils.lib.sh
+
+if is_windows
+then
+  rb_lib_dir_path="c:/Ruby$major_minor_abbrev-$arch"
+  if ! type "$rb_lib_dir_path/bin/ruby" >/dev/null 2>&1; then
+    # url="https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$ver-$release/rubyinstaller-$ver-$release-$arch.7z"
+    # mkdir -p "$bin_dir_path"
+    # temp_dir_path="$(mktemp -d)"
+    # curl.exe --fail --location --output "$temp_dir_path"/tmp.7z "$url"
+    # (
+    #   cd "$bin_dir_path" || exit 1
+    #   tar.exe -xf "$temp_dir_path"/tmp.7z
+    # )
+    # url="https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$ver-$rubyinstaller_release/rubyinstaller-devkit-$ver-$rubyinstaller_release-$arch.exe"
+    # mkdir -p "$bin_dir_path"
+    # temp_dir_path="$(mktemp -d)"
+    # curl.exe --fail --location --output "$temp_dir_path"/tmp.exe "$url"
+    # powershell.exe -Command "Start-Process -Wait -NoNewWindow -FilePath $temp_dir_path/tmp.exe -ArgumentList '/silent /currentuser /dir=$rb_lib_dir_path /tasks=noassocfiles,nomodpath,noridkinstall'"
+    winget.exe install "Ruby $major_minor with MSYS2"
+  fi
+else
+  if ! type rbenv >/dev/null 2>&1
+  then
+    echo "rbenv is not installed." >&2
+    exit 1
+  fi
+  rbenv version | grep -q "$ver" || rbenv local "$ver"
+fi
 
 if ! test "${1+set}" = set
 then

@@ -138,7 +138,7 @@ task_nop() { # Do nothing.
   echo NOP
 }
 
-if test ${#} -eq 0 || $shows_help
+if test "${1+set}" != "set"
 then
   task_help
   exit 0

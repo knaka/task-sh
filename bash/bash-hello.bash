@@ -7,4 +7,4 @@ do
   echo Arg: "$arg"
 done
 
-perl -e 'printf("Hello, %s\n", "MSYS")'
+perl -e 'printf("Hello, %s from Perl.\n", "MSYS")'

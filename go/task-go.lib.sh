@@ -3,20 +3,14 @@
 # All releases - The Go Programming Language https://go.dev/dl/
 ver=1.23.0
 
-is_windows() {
-  test "$(uname -s)" = "Windows_NT" && return 0 || return 1
-}
+# shellcheck disable=SC1091
+. "$(dirname "$0")"/../utils.lib.sh
 
 # gobin returns the path to the Go bin directory.
 gobin() {
   if test "${GOROOT+SET}" = "SET"
   then
     echo "$GOROOT"/bin
-    return
-  fi
-  if test "${GOPATH+SET}" = "SET"
-  then
-    echo "$GOPATH"/bin
     return
   fi
   if which go > /dev/null 2>&1
@@ -83,21 +77,31 @@ subcmd_go() { # Run go command.
 
 subcmd_build() { # Build Go source files incrementally.
   cd "$(dirname "$0")" || exit 1
-  go_bin_dir_path="$HOME"/go-bin/.bin
+  go_bin_dir_path=./build
   mkdir -p "$go_bin_dir_path"
-  name="$1"
-  shift
+  if test "${1+set}" != "set"
+  then
+    set -- *.go
+  fi
   ext=
   if is_windows
   then
     ext=.exe
   fi
-  target_bin_path="$go_bin_dir_path"/"$name$ext"
-  if ! test -x "$target_bin_path" || test -n "$(find "$name.go" -newer "$target_bin_path"  2>/dev/null)"
-  then
-    # echo building >&2
-    "$(go_cmd)" build -o "$target_bin_path" "$name.go"
-  fi
+  for go_file in "$@"
+  do
+    if ! test -r "$go_file"
+    then
+      continue
+    fi
+    name=$(basename "$go_file" .go)
+    target_bin_path="$go_bin_dir_path"/"$name$ext"
+    if ! test -x "$target_bin_path" || is_newer_than "$go_file" "$target_bin_path"
+    then
+      # echo building >&2
+      "$(go_cmd)" build -o "$target_bin_path" "$name.go"
+    fi
+  done
 }
 
 task_install() { # Install Go tools.
@@ -116,17 +120,17 @@ task_install() { # Install Go tools.
     if is_windows
     then
       pwd_backslash=$(echo "$PWD" | sed 's|/|\\|g')
-      go_sim_dir_path_backslash=$(echo "$go_sim_dir_path" | sed 's|/|\\|g')
+      go_sim_dir_path_backslash=$(echo "$(realpath .)"/build | sed 's|/|\\|g')
       cat <<EOF > "$target_sim_path".cmd
 @echo off
-call $pwd_backslash\task build $name
-$go_sim_dir_path_backslash\.bin\\$name.exe %*
+call $pwd_backslash\task build $name.go
+$go_sim_dir_path_backslash\\$name.exe %*
 EOF
     else
       cat <<EOF > "$target_sim_path"
 #!/bin/sh
-$PWD/task build "$name"
-exec "$go_sim_dir_path"/.bin/"$name" "\$@"
+$PWD/task build "$name".go
+exec $PWD/build/$name "\$@"
 EOF
       chmod +x "$target_sim_path"
     fi
@@ -175,15 +179,16 @@ task_install_bin() { # Install the tools implemented in Go.
   done
 }
 
-# shellcheck disable=SC1091
-. "$(dirname "$0")"/attributes.lib.sh
-
-for path in .idea .git
-do
-  # echo "debug2:" "$path" >&2
-  if test -d "$(dirname "$0")"/"$path"
-  then
-    # echo "debug1:" "$path" >&2
-    set_path_sync_ignored "$(dirname "$0")"/"$path"
-  fi
-done
+(
+  cd "$(dirname "$0")" || exit 1
+  mkdir -p build
+  for path in .idea .git build
+  do
+    # echo "debug2:" "$path" >&2
+    if test -d "$(dirname "$0")"/"$path"
+    then
+      # echo "debug1:" "$path" >&2
+      set_path_sync_ignored "$(dirname "$0")"/"$path"
+    fi
+  done
+)
