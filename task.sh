@@ -206,6 +206,7 @@ main() {
   done
 }
 
+# To make this file can be sourced to provide functions.
 if test "$(basename "$0")" = "task.sh"
 then
   main "$@"
