@@ -1,6 +1,8 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+# TODO: Remove this file.
+
 is_windows() {
   case "$(uname -s)" in
     Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
