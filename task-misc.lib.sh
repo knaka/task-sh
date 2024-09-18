@@ -2,7 +2,7 @@
 
 task_install() ( # Install in each directory.
   cd "$(dirname "$0")" || exit 1
-  for dir in "$script_dir_path"/*
+  for dir in *
   do
     if test -d "$dir"
     then

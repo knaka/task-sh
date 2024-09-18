@@ -1,4 +1,7 @@
 #!/bin/sh
+set -o errexit -o nounset
+
+set_dir_sync_ignored "$(dirname "$0")"/node_modules
 
 subcmd_run() { # Run JS script.
   original_wokrking_dir_path="$PWD"
@@ -13,29 +16,6 @@ subcmd_volta() { # Run Volta.
 subcmd_npm() { # Run npm.
   exec "$(dirname "$0")"/volta-cmd run npm -- "$@"
 }
-
-# --------------------------------------------------------------------------
-
-node_modules_dir_path="$(dirname "$0")"/node_modules
-if ! test -d "$node_modules_dir_path"
-then
-  mkdir -p "$node_modules_dir_path"
-  if which attr > /dev/null 2>&1
-  then
-    attr -s 'com.dropbox.ignored' -V 1 "$node_modules_dir_path"
-    attr -s 'com.apple.fileprovider.ignore#P' -V 1 "$node_modules_dir_path"
-  elif which xattr > /dev/null 2>&1
-  then
-    xattr -w 'com.dropbox.ignored' 1 "$node_modules_dir_path"
-    xattr -w 'com.apple.fileprovider.ignore#P' 1 "$node_modules_dir_path"
-  elif which PowerShell > /dev/null 2>&1
-  then
-    PowerShell -Command "Set-Content -Path '$node_modules_dir_path' -Stream 'com.dropbox.ignored' -Value 1"
-    PowerShell -Command "Set-Content -Path '$node_modules_dir_path' -Stream 'com.apple.fileprovider.ignore#P' -Value 1"
-  fi
-fi
-
-# --------------------------------------------------------------------------
 
 excluded_scrs=",invalid.py,"
 
@@ -81,10 +61,8 @@ install_windows() {
   _install true
 }
 
-is_windows=$(test "$(uname -s)" = Windows_NT && echo true || echo false)
-
 task_install() { # Install JS scripts.
-    if $is_windows
+  if is_windows
   then
     install_windows
   else

@@ -1,9 +1,6 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# ToDo: Remove
-script_dir_path="$(dirname "$0")"
-
 # --------------------------------------------------------------------------
 
 is_windows() {
@@ -81,24 +78,22 @@ task_tasks() { # List tasks.
   )
 }
 
-task_help() { # Show help message.
-  (
-    cd "$script_dir_path"
-    cat <<EOF
+task_help() ( # Show help message.
+  cd "$(dirname "$0")" || exit 1
+  cat <<EOF
 Usage:
   $0 <subcommand> [args...]
   $0 <task[arg1,arg2,...]> [tasks...]
 
 Subcommands:
 EOF
-    task_subcmds | sed -r -e 's/^/  /'
-    cat <<EOF
+  task_subcmds | sed -r -e 's/^/  /'
+  cat <<EOF
 
 Tasks:
 EOF
-    task_tasks | sed -r -e 's/^/  /'
-  )
-}
+  task_tasks | sed -r -e 's/^/  /'
+)
 
 subcmd_pwd() {
   pwd "$@"
@@ -139,7 +134,6 @@ main() {
   verbose=false
   shows_help=false
   directory=""
-
   while getopts "vhd:" opt
   do
     case "$opt" in
@@ -151,21 +145,12 @@ main() {
   done
   shift $((OPTIND-1))
 
-  if $verbose
-  then
-    # set -o xtrace
-    echo "script_dir_path: $script_dir_path"
-  fi
-
   if test -n "$directory"
   then
     cd "$directory"
   fi
 
   task_file_paths="$0"
-  # cwd="$(pwd)"
-  # cd "$script_dir_path"
-  if $verbose; then echo "script_dir_path: $script_dir_path" >&2; fi
   for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
   do
     if ! test -r "$file_path"
@@ -180,10 +165,8 @@ main() {
     . "$file_path"
     if $verbose; then echo "Loaded $file_path" >&2; fi
   done
-  # cd "$cwd"
 
-
-  if test "${1+set}" != "set"
+  if $shows_help || test "${1+set}" != "set"
   then
     task_help
     exit 0
