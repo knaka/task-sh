@@ -1,76 +1,52 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+# ToDo: Remove
 script_dir_path="$(dirname "$0")"
 
-if test "${ARG0BASE+set}" = "set"
-then
-  case "$ARG0BASE" in
-    task-*)
-      env="${ARG0BASE#task-}"
-      case "$env" in
-        dev|development)
-          APP_ENV=development
-          APP_SENV=dev
-          ;;
-        prd|production)
-          APP_ENV=production
-          APP_SENV=prd
-          ;;
-        *) echo "Unknown environment: $env" >&2; exit 1;;
-      esac
-      export APP_ENV APP_SENV
-      ;;
-    *)
-      ;;
+# --------------------------------------------------------------------------
+
+is_windows() {
+  case "$(uname -s)" in
+    Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
+    *) return 1 ;;
   esac
-fi
+}
 
-verbose=false
-shows_help=false
-directory=""
-
-while getopts "vhd:" opt
-do
-  case "$opt" in
-    v) verbose=true;;
-    h) shows_help=true;;
-    d) directory="$OPTARG";;
-    *) exit 1;;
-  esac
-done
-shift $((OPTIND-1))
-
-if $verbose
-then
-  # set -o xtrace
-  echo "script_dir_path: $script_dir_path"
-fi
-
-if test -n "$directory"
-then
-  cd "$directory"
-fi
-
-task_file_paths="$0"
-# cwd="$(pwd)"
-# cd "$script_dir_path"
-if $verbose; then echo "script_dir_path: $script_dir_path" >&2; fi
-for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
-do
-  if ! test -r "$file_path"
+set_path_attr() (
+  path="$1"
+  attribute="$2"
+  value="$3"
+  if which xattr > /dev/null 2>&1
   then
-    continue
+    xattr -w "$attribute" "$value" "$path"
+  elif which PowerShell > /dev/null 2>&1
+  then
+    PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'"
+  elif which attr > /dev/null 2>&1
+  then
+    attr -s "$attribute" -V "$value" "$path"
   fi
-  case "$(basename "$file_path")" in
-    task-dev.sh|task-prd.sh) continue;;
-  esac
-  task_file_paths="$task_file_paths $file_path"
-  # shellcheck disable=SC1090
-  . "$file_path"
-  if $verbose; then echo "Loaded $file_path" >&2; fi
-done
-# cd "$cwd"
+)
+
+sync_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
+
+set_dir_sync_ignored() (
+  for path in "$@"
+  do
+    mkdir -p "$path"
+    for attribute in $sync_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
+is_newer_than() {
+  test -n "$(find "$1" -newer "$2"  2>/dev/null)" || return 1
+}
+
+# --------------------------------------------------------------------------
 
 task_subcmds() { # List subcommands.
   (
@@ -138,41 +114,118 @@ task_nop() { # Do nothing.
   echo NOP
 }
 
-if test "${1+set}" != "set"
-then
-  task_help
-  exit 0
-fi
-
-subcmd="$1"
-if type subcmd_"$subcmd" > /dev/null 2>&1
-then
-  shift
-  subcmd_"$subcmd" "$@"
-  exit 0
-fi
-
-for task_with_args in "$@"
-do
-  task="$task_with_args"
-  args=""
-  case "$task_with_args" in
-    *\[*)
-      task="${task_with_args%%\[*}"
-      args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
-      ;;
-  esac
-  task="$(echo "$task" | sed -r -e 's/:/__/g')"
-  if ! type task_"$task" > /dev/null 2>&1
+main() {
+  if test "${ARG0BASE+set}" = "set"
   then
-    if type delegate_tasks > /dev/null 2>&1
-    then  
-      delegate_tasks "$@"
-      exit 0
-    fi
-    echo "Unknown task: $task" >&2
-    exit 1
+    case "$ARG0BASE" in
+      task-*)
+        env="${ARG0BASE#task-}"
+        case "$env" in
+          dev|development)
+            APP_ENV=development
+            APP_SENV=dev
+            ;;
+          prd|production)
+            APP_ENV=production
+            APP_SENV=prd
+            ;;
+          *) echo "Unknown environment: $env" >&2; exit 1;;
+        esac
+        export APP_ENV APP_SENV
+        ;;
+      *)
+        ;;
+    esac
   fi
-  # shellcheck disable=SC2086
-  task_"$task" $args
-done
+
+  verbose=false
+  shows_help=false
+  directory=""
+
+  while getopts "vhd:" opt
+  do
+    case "$opt" in
+      v) verbose=true;;
+      h) shows_help=true;;
+      d) directory="$OPTARG";;
+      *) exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if $verbose
+  then
+    # set -o xtrace
+    echo "script_dir_path: $script_dir_path"
+  fi
+
+  if test -n "$directory"
+  then
+    cd "$directory"
+  fi
+
+  task_file_paths="$0"
+  # cwd="$(pwd)"
+  # cd "$script_dir_path"
+  if $verbose; then echo "script_dir_path: $script_dir_path" >&2; fi
+  for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
+  do
+    if ! test -r "$file_path"
+    then
+      continue
+    fi
+    case "$(basename "$file_path")" in
+      task-dev.sh|task-prd.sh) continue;;
+    esac
+    task_file_paths="$task_file_paths $file_path"
+    # shellcheck disable=SC1090
+    . "$file_path"
+    if $verbose; then echo "Loaded $file_path" >&2; fi
+  done
+  # cd "$cwd"
+
+
+  if test "${1+set}" != "set"
+  then
+    task_help
+    exit 0
+  fi
+
+  subcmd="$1"
+  if type subcmd_"$subcmd" > /dev/null 2>&1
+  then
+    shift
+    subcmd_"$subcmd" "$@"
+    exit 0
+  fi
+
+  for task_with_args in "$@"
+  do
+    task="$task_with_args"
+    args=""
+    case "$task_with_args" in
+      *\[*)
+        task="${task_with_args%%\[*}"
+        args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
+        ;;
+    esac
+    task="$(echo "$task" | sed -r -e 's/:/__/g')"
+    if ! type task_"$task" > /dev/null 2>&1
+    then
+      if type delegate_tasks > /dev/null 2>&1
+      then  
+        delegate_tasks "$@"
+        exit 0
+      fi
+      echo "Unknown task: $task" >&2
+      exit 1
+    fi
+    # shellcheck disable=SC2086
+    task_"$task" $args
+  done
+}
+
+if test "$(basename "$0")" = "task.sh"
+then
+  main "$@"
+fi

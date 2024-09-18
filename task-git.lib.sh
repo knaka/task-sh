@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# shellcheck disable=SC1091
-. "$(dirname "$0")"/task-sync-ignored.lib.sh
+set_dir_sync_ignored "$(dirname "$0")"/.git
 
 subcmd_git() { # Run git command.
   cd "$(dirname "$0")" || exit 1
@@ -12,6 +11,5 @@ subcmd_git() { # Run git command.
     git branch --set-upstream-to=origin/main main
     git fetch origin
   fi
-  set_path_sync_ignored .git/
   exec git "$@"
 }
