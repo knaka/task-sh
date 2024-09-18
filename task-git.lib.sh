@@ -10,6 +10,7 @@ subcmd_git() { # Run git command.
     git remote add origin git@github.com:knaka/src.git
     git fetch origin main
     git reset --hard origin/main
+    git branch --set-upstream-to=origin/main main
   fi
   exec git "$@"
 }
