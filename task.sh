@@ -48,29 +48,27 @@ is_newer_than() {
 
 # --------------------------------------------------------------------------
 
-task_subcmds() { # List subcommands.
-  (
-    cd "$(dirname "$0")"
-    delim=" delim_2ed1065 "
-    # shellcheck disable=SC2086
-    cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
-    if type delegate_tasks > /dev/null 2>&1
+task_subcmds() ( # List subcommands.
+  cd "$(dirname "$0")"
+  delim=" delim_2ed1065 "
+  # shellcheck disable=SC2086
+  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+  if type delegate_tasks > /dev/null 2>&1
+  then
+    if delegate_tasks subcmds > /dev/null 2>&1
     then
-      if delegate_tasks subcmds > /dev/null 2>&1
-      then
-        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
-      fi
+      cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
     fi
-    max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-    echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
-  )
-}
+  fi
+  max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
+)
 
 task_tasks() { # List tasks.
   (
     delim=" delim_d3984dd "
     # shellcheck disable=SC2086
-    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *\{ *(# *)?/$delim/")"
+    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
     if type delegate_tasks > /dev/null 2>&1
     then
       if delegate_tasks tasks > /dev/null 2>&1
