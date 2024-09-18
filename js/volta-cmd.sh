@@ -5,6 +5,8 @@ set -o nounset -o errexit
 cmd_base=volta
 ver=2.0.1
 
+. "$(dirname "$0")"/task.sh
+
 exe_ext=
 arc_ext=".tar.gz"
 case "$(uname -s)" in
@@ -42,4 +44,4 @@ then
   curl$exe_ext --fail --location "$url" -o - | (cd "$volta_dir_path"; tar$exe_ext -xf -)
   chmod +x "$volta_dir_path"/*
 fi
-PATH="$volta_dir_path:$PATH" exec "$cmd_base" "$@"
+PATH="$volta_dir_path:$PATH" cross_exec "$cmd_base" "$@"

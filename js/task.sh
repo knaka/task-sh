@@ -43,6 +43,33 @@ is_newer_than() {
   test -n "$(find "$1" -newer "$2"  2>/dev/null)" || return 1
 }
 
+# Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
+cross_exec() {
+  if ! is_windows
+  then
+    exec "$@"
+  fi
+  if ! test "${1+set}" = set
+  then
+    exit 1
+  fi
+  cmd_path="$1"
+  shift
+  if type "$cmd_path.exe" >/dev/null 2>&1
+  then
+    exec "$cmd_path.exe" "$@"
+  fi
+  if type "$cmd_path.cmd" >/dev/null 2>&1
+  then
+    exec "$cmd_path.cmd" "$@"
+  fi
+  if type "$cmd_path.bat" >/dev/null 2>&1
+  then
+    exec "$cmd_path.bat" "$@"
+  fi
+  exec "$cmd_path" "$@"s
+}
+
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
@@ -206,6 +233,7 @@ main() {
   done
 }
 
+# To make this file can be sourced to provide functions.
 if test "$(basename "$0")" = "task.sh"
 then
   main "$@"
