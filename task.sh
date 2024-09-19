@@ -26,13 +26,11 @@ set_path_attr() (
   fi
 )
 
-sync_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
-
 set_dir_sync_ignored() (
   for path in "$@"
   do
     mkdir -p "$path"
-    for attribute in $sync_ignorance_attributes
+    for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"
     do
       set_path_attr "$path" "$attribute" 1
     done
@@ -45,6 +43,10 @@ is_newer_than() {
 
 # Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
 cross_exec() {
+  if type cleanup > /dev/null 2>&1
+  then
+    cleanup
+  fi
   if ! is_windows
   then
     exec "$@"
@@ -67,7 +69,7 @@ cross_exec() {
   then
     exec "$cmd_path.bat" "$@"
   fi
-  exec "$cmd_path" "$@"s
+  exec "$cmd_path" "$@"
 }
 
 # --------------------------------------------------------------------------

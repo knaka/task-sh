@@ -31,41 +31,8 @@ esac
 
 # bin_dir_path="$HOME/.bin"
 
-is_windows=false
-if test "$(uname -s)" = Windows_NT
-then
-  is_windows=true
-fi
-
-# Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
-exec2() {
-  if ! test "${1+set}" = set
-  then
-    echo "Usage: exec2 command [args...]" >&2
-    exit 1
-  fi
-  if ! $is_windows
-  then
-    exec "$@"
-  fi
-  cmd="$1"
-  shift
-  if type "$cmd.exe" >/dev/null 2>&1
-  then
-    exec "$cmd.exe" "$@"
-  fi
-  if type "$cmd.cmd" >/dev/null 2>&1
-  then
-    exec "$cmd.cmd" "$@"
-  fi
-  if type "$cmd.bat" >/dev/null 2>&1
-  then
-    exec "$cmd.bat" "$@"
-  fi
-}
-
 # shellcheck disable=SC1091
-. "$(dirname "$0")"/../utils.lib.sh
+. "$(dirname "$0")"/task.sh
 
 if is_windows
 then
@@ -117,7 +84,7 @@ in
   which)
     if type rbenv >/dev/null 2>&1
     then
-      exec2 rbenv which "$@"
+      cross_exec rbenv which "$@"
     fi
     PATH="$rb_lib_dir_path/bin:$PATH"
     export PATH
@@ -126,11 +93,11 @@ in
   run)
     if type rbenv >/dev/null 2>&1
     then
-      exec2 rbenv exec "$@"
+      cross_exec rbenv exec "$@"
     fi
     PATH="$rb_lib_dir_path/bin:$PATH"
     export PATH
-    exec2 "$@"
+    cross_exec "$@"
     ;;
   *)
     echo "Unknown subcommand: $subcmd" >&2

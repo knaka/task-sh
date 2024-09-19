@@ -1,6 +1,8 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+GHQ_ROOT="$HOME"/repos
+export GHQ_ROOT
 cmd=ghq
 
 if test "${1+SET}" = "SET"
