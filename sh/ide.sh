@@ -1,6 +1,8 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+. "$(dirname "$0")"/task.sh
+
 # `idea.bat` launches the IDE with java.exe, not idea64.exe. Which confuses AHK.
 ide_cmd_path() {
   find \
@@ -15,4 +17,9 @@ ide_cmd_path() {
   exit 1
 }
 
-exec "$(ide_cmd_path)" "$@" &
+if is_windows
+then
+  exec "$(ide_cmd_path)" "$@" &
+fi
+
+exec idea "$@"
