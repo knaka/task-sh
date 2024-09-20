@@ -7,13 +7,13 @@ ver="0.39.0"
 
 # --------------------------------------------------------------------------
 
-if test "$(realpath "$(dirname "$0")")" != "$(realpath "$(pwd)")"
+if ! realpath "$(pwd)" | grep -q "^$(realpath "$(dirname "$0")")"
 then
-  echo "Please run this script in the same directory as the script."
+  echo "Please run this script in the same directory as the script." >&2
   exit 1
 fi
 
-. ./task.sh
+. "$(dirname "$0")"/task.sh
 
 arc_ext=".gz"
 case "$(uname -s)" in
