@@ -1,13 +1,10 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# shellcheck disable=SC1091
-. "$(dirname "$0")"/../utils.lib.sh
-
 subcmd_run() {
-  if ! is_windows
+  if is_windows
   then
-    exec /bin/bash "$@"
+    cross_exec /bin/bash "$@"
   fi
   msys_dir_path=C:/msys64
   msys_bin_dir_path="$msys_dir_path"/usr/bin
@@ -16,5 +13,5 @@ subcmd_run() {
   then
     winget.exe install --exact --id=MSYS2.MSYS2
   fi
-  PATH="$msys_bin_dir_path:$PATH" exec "$bash_cmd_path" "$@"
+  PATH="$msys_bin_dir_path:$PATH" cross_exec "$bash_cmd_path" "$@"
 }
