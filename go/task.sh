@@ -10,6 +10,13 @@ is_windows() {
   esac
 }
 
+exe_ext() {
+  if is_windows
+  then
+    echo ".exe"
+  fi
+}
+
 set_path_attr() (
   path="$1"
   attribute="$2"
