@@ -10,7 +10,7 @@ subcmd_stack() { # Run the `stack` command.
 }
 
 # shellcheck disable=SC1091
-. "$(dirname "$0")"/../utils.lib.sh
+. "$(dirname "$0")"/task.sh
 
 # shellcheck disable=SC2120
 subcmd_build() { # Build the project.

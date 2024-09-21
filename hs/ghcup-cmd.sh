@@ -2,7 +2,7 @@
 set -o nounset -o errexit
 
 # shellcheck disable=SC1091
-. "$(dirname "$0")"/../utils.lib.sh
+. "$(dirname "$0")"/task.sh
 
 if is_windows
 then
