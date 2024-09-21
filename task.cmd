@@ -37,5 +37,6 @@ set env_file_path=!script_dir_path!\.env.sh.cmd
 if exist !env_file_path! (
   call !env_file_path!
 )
+set BB_GLOBBING=0
 !cmd_path! sh !sh_dir_path!\!script_name!.sh %* || exit /b %ERRORLEVEL%
 endlocal

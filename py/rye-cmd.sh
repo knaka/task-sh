@@ -49,4 +49,4 @@ then
   fi
 fi
 
-PATH="$bin_dir_path:$PATH" cross_exec "$cmd_base" "$@"
+cross_exec "$cmd_path" "$@"

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+set_dir_sync_ignored "$(dirname "$0")"/.venv
+
 task_install() ( # Install scripts.
   py_bin_dir_path="$HOME"/py-bin
   mkdir -p "$py_bin_dir_path"

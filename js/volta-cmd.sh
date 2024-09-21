@@ -7,6 +7,15 @@ ver=2.0.1
 
 # --------------------------------------------------------------------------
 
+cleanup() {
+  if test "${temp_dir_path+set}" = set
+  then
+    rm -rf "$temp_dir_path"
+  fi
+}
+
+trap cleanup EXIT
+
 if ! realpath "$(pwd)" | grep -q "^$(realpath "$(dirname "$0")")"
 then
   echo "Please run this script in the same directory as the script." >&2
@@ -47,7 +56,9 @@ volta_cmd_path="$volta_dir_path/$cmd_base$(exe_ext)"
 if ! test -x "$volta_cmd_path"
 then
   url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
-  curl"$(exe_ext)" --fail --location "$url" -o - | (cd "$volta_dir_path"; tar"$(exe_ext)" -xf -)
+  temp_dir_path="$(mktemp -d)"
+  curl"$(exe_ext)" --fail --location "$url" -o "$temp_dir_path"/tmp"$(arc_ext)"
+  (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$(arc_ext)")
   chmod +x "$volta_dir_path"/*
 fi
 PATH="$volta_dir_path:$PATH" cross_exec "$cmd_base" "$@"
