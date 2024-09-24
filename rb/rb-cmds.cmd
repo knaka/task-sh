@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
-if "%1" == "update-me" (
-  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/scr/main/task.cmd || exit /b %ERRORLEVEL%
+if "%~1" == "update-me" (
+  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/src/main/task.cmd || exit /b %ERRORLEVEL%
   move /y %TEMP%\task_cmd-%~nx0 %~f0
   exit /b 0
 )
@@ -37,5 +37,6 @@ set env_file_path=!script_dir_path!\.env.sh.cmd
 if exist !env_file_path! (
   call !env_file_path!
 )
+set BB_GLOBBING=0
 !cmd_path! sh !sh_dir_path!\!script_name!.sh %* || exit /b %ERRORLEVEL%
 endlocal

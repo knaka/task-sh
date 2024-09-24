@@ -1,12 +1,4 @@
 import spawn from "cross-spawn";
 
-// console.error("PATH", process.env.PATH);
-await new Promise(resolve =>
-  spawn("npx", [
-    "--help",
-    // ...quiet_options,
-    // "--jakefile", join("jakelib", "scr", "bootstrap.cjs"),
-    // ...tasks
-  ], {stdio: "inherit"}).on("exit", resolve)
-);
-;
+process.exit(await new Promise(resolve => spawn("false", [], {stdio: "inherit", cwd: "."}).on("close", resolve)));
+// process.exit(await new Promise((resolve, reject) => spawn("false", [], {stdio: "inherit"}).on("close", resolve).on("error", () =>reject)));

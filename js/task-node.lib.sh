@@ -6,15 +6,17 @@ set_dir_sync_ignored "$(dirname "$0")"/node_modules
 subcmd_run() { # Run JS script.
   original_wokrking_dir_path="$PWD"
   cd "$(dirname "$0")" || exit 1
-  exec "$(dirname "$0")"/volta-cmd run node lib/run-node.mjs "$original_wokrking_dir_path" "$@"
+  cross_exec sh volta-cmd.sh run node lib/run-node.mjs "$original_wokrking_dir_path" "$@"
 }
 
 subcmd_volta() { # Run Volta.
-  exec "$(dirname "$0")"/volta-cmd "$@"
+  cd "$(dirname "$0")" || exit 1
+  cross_exec sh volta-cmd.sh "$@"
 }
 
 subcmd_npm() { # Run npm.
-  exec "$(dirname "$0")"/volta-cmd run npm -- "$@"
+  cd "$(dirname "$0")" || exit 1
+  cross_exec sh volta-cmd.sh run npm "$@"
 }
 
 excluded_scrs=",invalid.py,"
@@ -40,7 +42,7 @@ _install() {
       _js_bin_file_path="$_js_bin_dir_path"/"$_js_name".cmd
       cat <<EOF > "$_js_bin_file_path"
 @echo off
-"$PWD"\task.cmd run "$PWD\\${_js_file}" %*
+"$PWD"\task.cmd run "$PWD\\${_js_file}" %* || exit /b !ERRORLEVEL!
 EOF
     else 
       _js_bin_file_path="$_js_bin_dir_path"/"$_js_name"

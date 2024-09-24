@@ -57,8 +57,8 @@ if ! test -x "$volta_cmd_path"
 then
   url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
   temp_dir_path="$(mktemp -d)"
-  curl"$(exe_ext)" --fail --location "$url" -o "$temp_dir_path"/tmp"$(arc_ext)"
-  (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$(arc_ext)")
+  curl"$(exe_ext)" --fail --location "$url" -o "$temp_dir_path"/tmp"$arc_ext"
+  (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$arc_ext")
   chmod +x "$volta_dir_path"/*
 fi
 PATH="$volta_dir_path:$PATH" cross_exec "$cmd_base" "$@"

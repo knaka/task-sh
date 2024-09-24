@@ -3,7 +3,7 @@
 set_dir_sync_ignored .idea build
 
 subcmd_go() { # Run go command.
-  exec sh "$(dirnae "$0")"/go-cmd.sh "$@"
+  exec sh "$(dirnae "$0")"/cmd-go.sh "$@"
 }
 
 subcmd_build() { # Build Go source files incrementally.
@@ -30,7 +30,7 @@ subcmd_build() { # Build Go source files incrementally.
     if ! test -x "$target_bin_path" || is_newer_than "$go_file" "$target_bin_path"
     then
       # echo building >&2
-      sh go-cmd.sh build -o "$target_bin_path" "$name.go"
+      sh cmd-go.sh build -o "$target_bin_path" "$name.go"
     fi
   done
 }
@@ -101,11 +101,11 @@ task_install_bin() { # Install the tools implemented in Go.
     repo_dir_path="$repos_dir_path"/"$repo_dir_name"
     if ! test -d "$repo_dir_path"
     then
-      sh go-cmd.sh run ./go-git-clone.go "$repo" "$repo_dir_path"
+      sh cmd-go.sh run ./go-git-clone.go "$repo" "$repo_dir_path"
     fi
     (
       cd "$repo_dir_path" || exit 1
-      sh go-cmd.sh build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
+      sh cmd-go.sh build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
     )
   done
 }
