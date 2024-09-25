@@ -1,6 +1,7 @@
 
 FROM golang:1.23-bookworm AS builder
-RUN go install github.com/sqldef/sqldef/cmd/psqldef@v0.17.19
+ARG version=v0.0.0
+RUN go install github.com/sqldef/sqldef/cmd/psqldef@$version
 
 FROM debian:bookworm-slim
 COPY --from=builder /go/bin/psqldef /usr/bin/psqldef
