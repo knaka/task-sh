@@ -6,17 +6,17 @@ set_dir_sync_ignored "$(dirname "$0")"/node_modules
 subcmd_run() { # Run JS script.
   original_wokrking_dir_path="$PWD"
   cd "$(dirname "$0")" || exit 1
-  cross_exec sh volta-cmd.sh run node lib/run-node.mjs "$original_wokrking_dir_path" "$@"
+  cross_exec sh cmd-volta.sh run node lib/run-node.mjs "$original_wokrking_dir_path" "$@"
 }
 
 subcmd_volta() { # Run Volta.
   cd "$(dirname "$0")" || exit 1
-  cross_exec sh volta-cmd.sh "$@"
+  cross_exec sh cmd-volta.sh "$@"
 }
 
 subcmd_npm() { # Run npm.
   cd "$(dirname "$0")" || exit 1
-  cross_exec sh volta-cmd.sh run npm "$@"
+  cross_exec sh cmd-volta.sh run npm "$@"
 }
 
 excluded_scrs=",invalid.py,"
