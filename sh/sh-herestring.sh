@@ -8,4 +8,5 @@ string.
 EOF
 )
 
-echo "$multiple_lines"
+printf "116630c %s 9bac7ae" "$multiple_lines"
+

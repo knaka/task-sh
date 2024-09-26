@@ -60,19 +60,5 @@ task_install() { # Install JS scripts.
 subcmd_run() { # Run JS script in the original working directory.
   original_wokrking_dir_path="$PWD"
   cd "$(dirname "$0")" || exit 1
-  subcmd_volta run node - "$original_wokrking_dir_path" "$@" <<EOF
-require("cross-spawn").spawn(
-  process.execPath,
-  process.argv.slice(3),
-  {
-    stdio: "inherit",
-    cwd: process.argv[2],
-  }
-).on("close", (code) => {
-  process.exit(code);
-}).on("error", (err) => {
-  console.error(err);
-  process.exit(1);
-});
-EOF
+  subcmd_volta run node -e 'require("cross-spawn").spawn(process.execPath, process.argv.slice(2), { stdio: "inherit", cwd: process.argv[1] }).on("close", (code) => process.exit(code));' "$original_wokrking_dir_path" "$@"
 }

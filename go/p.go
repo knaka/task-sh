@@ -22,7 +22,7 @@ func main() {
 		var args []string
 		for _, arg := range os.Args[1:] {
 			switch arg {
-			case "|", ",":
+			case ".", "|", ",", "--":
 				argsList = append(argsList, args)
 				args = nil
 			default:

@@ -18,6 +18,7 @@ delegate_tasks() (
   done
   if ! test -x "$cmd"
   then
+    # echo Building >&2
     # shellcheck disable=SC2086
     sh task.sh go build -o "$cmd" $files
   fi
@@ -25,6 +26,7 @@ delegate_tasks() (
   do 
     if is_newer_than "$file" "$cmd"
     then
+      # echo Building >&2
       # shellcheck disable=SC2086
       sh task.sh go build -o "$cmd" $files
       break

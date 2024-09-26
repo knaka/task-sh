@@ -26,7 +26,7 @@ subcmd_build() { # Build Go source files incrementally.
     target_bin_path="$go_bin_dir_path"/"$name$ext"
     if ! test -x "$target_bin_path" || is_newer_than "$go_file" "$target_bin_path"
     then
-      # echo building >&2
+      # echo Building >&2
       sh task.sh go build -o "$target_bin_path" "$name.go"
     fi
   done
