@@ -27,7 +27,7 @@ subcmd_build() { # Build Go source files incrementally.
     if ! test -x "$target_bin_path" || is_newer_than "$go_file" "$target_bin_path"
     then
       # echo building >&2
-      ./task go build -o "$target_bin_path" "$name.go"
+      sh task.sh go build -o "$target_bin_path" "$name.go"
     fi
   done
 }
@@ -43,6 +43,9 @@ task_install() { # Install Go tools.
     then
       continue
     fi
+    case "$go_file" in
+      task.go,task-*.go) continue;;
+    esac
     name=$(basename "$go_file" .go)
     target_sim_path="$go_sim_dir_path"/"$name"
     if is_windows
@@ -98,11 +101,11 @@ task_install_bin() { # Install the tools implemented in Go.
     repo_dir_path="$repos_dir_path"/"$repo_dir_name"
     if ! test -d "$repo_dir_path"
     then
-      ./task go run ./go-git-clone.go "$repo" "$repo_dir_path"
+      sh task.sh go run ./go-git-clone.go "$repo" "$repo_dir_path"
     fi
     (
       cd "$repo_dir_path" || exit 1
-      ./task go build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
+      sh task.sh go build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
     )
   done
 }

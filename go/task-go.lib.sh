@@ -34,12 +34,16 @@ gobin() (
     Linux) _goos=linux;;
     Darwin) _goos=darwin;;
     Windows_NT) _goos=windows;;
-    *) exit 1;;
+    *)
+      echo "Unsupported OS: $(uname -s)" >&2
+      exit 1;;
   esac
   case "$(uname -m)" in
     arm64) goarch=arm64;;
     x86_64) goarch=amd64;;
-    *) exit 1;;
+    *)
+      echo "Unsupported architecture: $(uname -m)" >&2
+      exit 1;;
   esac
   mkdir -p "$sdk_dir_path"
   if is_windows
