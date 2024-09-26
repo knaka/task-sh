@@ -1,8 +1,19 @@
 let tasks = {};
 
+if (process.env.ORIGINAL_PWD) {
+  process.chdir(process.env.ORIGINAL_PWD);
+}
+
 const task = exports.task = (name, help, fn) => {
   tasks[name] = fn;
   tasks[name].help = help;
+}
+
+let subcmds = {};
+
+const subcmd = exports.subcmd = (name, help, fn) => {
+  subcmds[name] = fn;
+  subcmds[name].help = help;
 }
 
 // --------------------------------------------------------------------------
@@ -27,12 +38,29 @@ task("tasks", "List all tasks", () => {
 
 function main(...args) {
   const fs = require("fs");
-  const files = fs.readdirSync(".").filter(file => file.startsWith("task-") && file.endsWith(".cjs"));
+  const files = fs.readdirSync(".").filter(file =>
+    file.startsWith("task-") &&
+    (
+      file.endsWith(".cjs") ||
+      file.endsWith(".mjs") ||
+      file.endsWith(".js")
+    )
+  );
   files.forEach(file => {
     const new_tasks = require(`./${file}`);
     tasks = {...tasks, ...new_tasks};
   });
-  tasks[args[0]](...args.slice(1));
+  const subcmd = args[0];
+  if (subcmds[subcmd]) {
+    return subcmds[subcmd](...args.slice(1));
+  }
+  args.forEach(arg => {
+    if (!tasks[arg]) {
+      console.error(`Task ${arg} not found`);
+      process.exit(1);
+    }
+    tasks[arg]();
+  });
 }
 
 if (! module.parent) {
