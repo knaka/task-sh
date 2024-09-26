@@ -1,7 +1,7 @@
 let tasks = {};
 
-if (process.env.ORIGINAL_PWD) {
-  process.chdir(process.env.ORIGINAL_PWD);
+if (process.env.ORIGINAL_WD) {
+  process.chdir(process.env.ORIGINAL_WD);
 }
 
 const task = exports.task = (name, help, fn) => {
