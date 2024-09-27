@@ -1,21 +1,20 @@
 #!/bin/bash
 set -o nounset -o errexit -o pipefail
 
-set_dir_sync_ignored "$(dirname "$0")"/gradle/wrapper
-set_dir_sync_ignored "$(dirname "$0")"/.gradle
-set_dir_sync_ignored "$(dirname "$0")"/app/build
-set_dir_sync_ignored "$(dirname "$0")"/.kotlin
+test "${guard_7917aa0+set}" = set && return 0; guard_7917aa0=-
 
-# set_file_sync_ignored "$(dirname "$0")"/gradlew
-# set_file_sync_ignored "$(dirname "$0")"/gradlew.bat
+. task.sh
+
+set_dir_sync_ignored "$script_dir_path"/gradle/wrapper
+set_dir_sync_ignored "$script_dir_path"/.gradle
+set_dir_sync_ignored "$script_dir_path"/app/build
+set_dir_sync_ignored "$script_dir_path"/.kotlin
 
 gradle_home() (
   # Gradle | Releases https://gradle.org/releases/
   ver="8.10"
 
-  cd "$(dirname "$0")"
   bin_dir_path="$HOME/.bin"
-
   GRADLE_HOME=${GRADLE_HOME:-$bin_dir_path/gradle-${ver}}
   if ! test -d "$GRADLE_HOME"
   then
@@ -29,7 +28,6 @@ gradle_home() (
     )
     chmod +x "$GRADLE_HOME"/bin/gradle"$(exe_ext)"
   fi
-
   echo "$GRADLE_HOME"
 )
 
@@ -41,11 +39,14 @@ set_gradle_env() {
   export PATH
 }
 
-subcmd_gradle() { # Runs gradle command.
+subcmd_gradle() ( # Runs gradle command.
+  cd "$script_dir_path" || exit 1
   set_gradle_env
-  cross_exec "$GRADLE_HOME"/bin/gradle "$@"
-}
+  "$GRADLE_HOME"/bin/gradle "$@"
+)
 
-subcmd_build() {
+subcmd_build() (
+  cd "$script_dir_path" || exit 1
   subcmd_gradle build "$@"
-}
+)
+

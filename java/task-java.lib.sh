@@ -1,6 +1,10 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=-
+
+. task.sh
+
 java_arch() {
   case "$(uname -m)" in
     arm64) echo "aarch64" ;;

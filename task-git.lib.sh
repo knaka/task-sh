@@ -1,9 +1,14 @@
 #!/bin/sh
+set -o nounset -o errexit
 
-set_dir_sync_ignored "$(dirname "$0")"/.git
+test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
-subcmd_git() { # Run git command.
-  cd "$(dirname "$0")" || exit 1
+. task.sh
+
+set_dir_sync_ignored "$script_dir_path"/.git
+
+subcmd_git() ( # Run git command.
+  cd "$script_dir_path" || exit 1
   if ! test -r .git/HEAD
   then
     git init
@@ -12,5 +17,5 @@ subcmd_git() { # Run git command.
     git reset --hard origin/main
     git branch --set-upstream-to=origin/main main
   fi
-  exec git "$@"
-}
+  git "$@"
+)

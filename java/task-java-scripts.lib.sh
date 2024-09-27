@@ -1,7 +1,11 @@
 #!/bin/bash
 set -o nounset -o errexit -o pipefail
 
-set_dir_sync_ignored "$(dirname "$0")"/.cds
+test "${guard_ecc3b3b+set}" = set && return 0; guard_ecc3b3b=-
+
+. task-java.lib.sh
+
+set_dir_sync_ignored "$script_dir_path"/.cds
 
 subcmd_run() {
   main_class=org.example.AppKt

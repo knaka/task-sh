@@ -1,16 +1,20 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
+
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then
   temp_dir_path="$(mktemp -d)"
   # shellcheck disable=SC2064
   trap "rm -fr \"$temp_dir_path\"" EXIT
-  curl --fail --location --output "$temp_dir_path"/task https://raw.githubusercontent.com/knaka/src/main/task.sh
-  cat "$temp_dir_path"/task > "$0"
+  curl --fail --location --output "$temp_dir_path"/task_sh https://raw.githubusercontent.com/knaka/src/main/task.sh
+  cat "$temp_dir_path"/task_sh > "$0"
   rm -fr "$temp_dir_path"
   exit 0
 fi
+
+script_dir_path="$(realpath "$(dirname "$0")")"
 
 # --------------------------------------------------------------------------
 
@@ -26,6 +30,18 @@ exe_ext() {
   then
     echo ".exe"
   fi
+}
+
+is_bsd() {
+  if stat -f "%z" . > /dev/null 2>&1
+  then
+    return 0
+  fi
+  return 1
+  # case "$(uname -s)" in
+  #   Darwin|FreeBSD|NetBSD|OpenBSD) return 0 ;;
+  #   *) return 1 ;;
+  # esac
 }
 
 set_path_attr() (
@@ -47,13 +63,10 @@ set_path_attr() (
 set_dir_sync_ignored() (
   for path in "$@"
   do
-    # Invocation of PowerShell is too heavy. Only the first time on Windows.
-    # if is_windows && test -d "$path"
     if test -d "$path"
     then
       continue
     fi
-    # On the other platforms, do it every time.
     mkdir -p "$path"
     for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"
     do
@@ -141,7 +154,7 @@ cross_exec() {
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
-  cd "$(dirname "$0")"
+  cd "$script_dir_path" || exit 1
   delim=" delim_2ed1065 "
   # shellcheck disable=SC2086
   cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
@@ -174,7 +187,7 @@ task_tasks() { # List tasks.
 }
 
 usage() ( # Show help message.
-  cd "$(dirname "$0")" || exit 1
+  cd "$script_dir_path" || exit 1
   cat <<EOF
 Usage:
   $0 [options] <subcommand> [args...]
@@ -240,8 +253,9 @@ main() {
     esac
   fi
 
-  task_file_paths="$0"
-  for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
+  task_file_paths="$(realpath "$0")"
+  set -- "$PWD" "$@"; cd "$script_dir_path" || exit 1
+  for file_path in "$script_dir_path"/task_*.sh "$script_dir_path"/task-*.sh
   do
     if ! test -r "$file_path"
     then
@@ -254,6 +268,7 @@ main() {
     # shellcheck disable=SC1090
     . "$file_path"
   done
+  cd "$1"; shift
 
   verbose=false
   shows_help=false
