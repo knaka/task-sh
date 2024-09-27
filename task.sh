@@ -1,6 +1,17 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+if test "${1+SET}" = SET && test "$1" = "update-me"
+then
+  temp_dir_path="$(mktemp -d)"
+  # shellcheck disable=SC2064
+  trap "rm -fr \"$temp_dir_path\"" EXIT
+  curl --fail --location --output "$temp_dir_path"/task https://raw.githubusercontent.com/knaka/src/main/task.sh
+  cat "$temp_dir_path"/task > "$0"
+  rm -fr "$temp_dir_path"
+  exit 0
+fi
+
 # --------------------------------------------------------------------------
 
 is_windows() {
@@ -121,12 +132,17 @@ task_tasks() { # List tasks.
   )
 }
 
-task_help() ( # Show help message.
+usage() ( # Show help message.
   cd "$(dirname "$0")" || exit 1
   cat <<EOF
 Usage:
-  $0 <subcommand> [args...]
-  $0 <task[arg1,arg2,...]> [tasks...]
+  $0 [options] <subcommand> [args...]
+  $0 [opttions] <task[arg1,arg2,...]> [tasks...]
+
+Options:
+  -d, --directory  Change directory before running tasks.
+  -h, --help       Display this help and exit.
+  -v, --verbose    Verbose mode.
 
 Subcommands:
 EOF
@@ -148,6 +164,15 @@ subcmd_false() { # Always fail.
 
 task_nop() { # Do nothing.
   echo NOP
+}
+
+needs_arg() {
+  if test -z "$OPTARG"
+  then
+    echo "No argument for --$OPT option" >&2
+    usage
+    exit 2
+  fi
 }
 
 main() {
@@ -174,25 +199,6 @@ main() {
     esac
   fi
 
-  verbose=false
-  shows_help=false
-  directory=""
-  while getopts "vhd:" opt
-  do
-    case "$opt" in
-      v) verbose=true;;
-      h) shows_help=true;;
-      d) directory="$OPTARG";;
-      *) exit 1;;
-    esac
-  done
-  shift $((OPTIND-1))
-
-  if test -n "$directory"
-  then
-    cd "$directory"
-  fi
-
   task_file_paths="$0"
   for file_path in "$(dirname "$0")"/task_*.sh "$(dirname "$0")"/task-*.sh
   do
@@ -206,12 +212,38 @@ main() {
     task_file_paths="$task_file_paths $file_path"
     # shellcheck disable=SC1090
     . "$file_path"
-    if $verbose; then echo "Loaded $file_path" >&2; fi
   done
+
+  verbose=false
+  shows_help=false
+  directory=""
+  while getopts d:hv-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      d|directory) needs_arg; directory="$OPTARG";;
+      h|help) shows_help=true;;
+      v|verbose) verbose=true;;
+      \?) usage; exit 2;;
+      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if test -n "$directory"
+  then
+    if $verbose; then echo "cd $directory" >&2; fi
+    cd "$directory"
+  fi
 
   if $shows_help || test "${1+set}" != "set"
   then
-    task_help
+    usage
     exit 0
   fi
 
