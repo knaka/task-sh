@@ -48,8 +48,8 @@ set_dir_sync_ignored() (
   for path in "$@"
   do
     # Invocation of PowerShell is too heavy. Only the first time on Windows.
-    if is_windows && test -d "$path"
-    # if test -d "$path"
+    # if is_windows && test -d "$path"
+    if test -d "$path"
     then
       continue
     fi
