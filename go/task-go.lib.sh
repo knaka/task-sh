@@ -1,5 +1,9 @@
 #!/bin/sh
 
+test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
+
+. task.sh
+
 # gobin returns the path to the Go bin directory.
 gobin() (
   # All releases - The Go Programming Language https://go.dev/dl/
@@ -62,5 +66,5 @@ gobin() (
 
 subcmd_go() { # Run go command.
   go_cmd_path="$(gobin)"/go
-  exec "$go_cmd_path" "$@"
+  "$go_cmd_path" "$@"
 }

@@ -1,20 +1,20 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-set_dir_sync_ignored .idea build
+test "${guard_bcd6f78+set}" = set && return 0; guard_bcd6f78=-
 
-subcmd_build() { # Build Go source files incrementally.
-  cd "$(dirname "$0")" || exit 1
+. task.sh
+. task-go.lib.sh
+
+set_dir_sync_ignored "$script_dir_path"/.idea "$script_dir_path"/build
+
+subcmd_build() ( # Build Go source files incrementally.
+  cd "$script_dir_path" || exit 1
   go_bin_dir_path=./build
   mkdir -p "$go_bin_dir_path"
   if test "${1+set}" != "set"
   then
     set -- *.go
-  fi
-  ext=
-  if is_windows
-  then
-    ext=.exe
   fi
   for go_file in "$@"
   do
@@ -23,17 +23,17 @@ subcmd_build() { # Build Go source files incrementally.
       continue
     fi
     name=$(basename "$go_file" .go)
-    target_bin_path="$go_bin_dir_path"/"$name$ext"
-    if ! test -x "$target_bin_path" || is_newer_than "$go_file" "$target_bin_path"
+    target_bin_path="$go_bin_dir_path"/"$name$(exe_ext)"
+    if ! test -x "$target_bin_path" || newer "$go_file" --than "$target_bin_path"
     then
       # echo Building >&2
-      sh task.sh go build -o "$target_bin_path" "$name.go"
+      subcmd_go build -o "$target_bin_path" "$name.go"
     fi
   done
-}
+)
 
 task_install() { # Install Go tools.
-  cd "$(dirname "$0")" || exit 1
+  cd "$script_dir_path" || exit 1
   go_sim_dir_path="$HOME"/go-bin
   mkdir -p "$go_sim_dir_path"
   rm -f "$go_sim_dir_path"/*
@@ -68,7 +68,7 @@ EOF
   done
 }
 
-task_install_bin() { # Install the tools implemented in Go.
+task_install_bin() ( # Install the tools implemented in Go.
   gopath="$HOME"/go
   bin_dir_path="$gopath"/bin
   mkdir -p "$bin_dir_path"
@@ -101,11 +101,11 @@ task_install_bin() { # Install the tools implemented in Go.
     repo_dir_path="$repos_dir_path"/"$repo_dir_name"
     if ! test -d "$repo_dir_path"
     then
-      sh task.sh go run ./go-git-clone.go "$repo" "$repo_dir_path"
+      subcmd_go run ./go-git-clone.go "$repo" "$repo_dir_path"
     fi
     (
       cd "$repo_dir_path" || exit 1
-      sh task.sh go build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
+      subcmd_go build -o "$bin_dir_path"/"$cmd_name$exe_ext" ./"$path"
     )
   done
-}
+)
