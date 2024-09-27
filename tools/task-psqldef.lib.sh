@@ -11,14 +11,14 @@ test "${guard_c78c581+set}" = set && return 0; guard_c78c581=-
 
 subcmd_psqldef() (
   # sqldef/sqldef: Idempotent schema management for MySQL, PostgreSQL, and more https://github.com/sqldef/sqldef
-  package=github.com/psqldef/psqldef
+  package=github.com/sqldef/sqldef/cmd/psqldef
   name="$(basename "$package")"
   version=v0.17.19
 
   if ! is_windows
   then
     subcmd_go install "$package"@"$version"
-    "$HOME"/go/bin/sqldef "$@"
+    "$HOME"/go/bin/"$name" "$@"
     return $?
   fi
 
