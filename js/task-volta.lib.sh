@@ -1,7 +1,9 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-subcmd_volta() { # Executes volta command.
+test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
+
+subcmd_volta() ( # Executes volta command.
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
   cmd_base=volta
   ver=2.0.1
@@ -47,8 +49,8 @@ subcmd_volta() { # Executes volta command.
     chmod +x "$volta_dir_path"/*
     rm -fr "$temp_dir_path"
   fi
-  PATH="$volta_dir_path:$PATH" cross_exec "$cmd_base" "$@"
-}
+  PATH="$volta_dir_path:$PATH" "$cmd_base" "$@"
+)
 
 subcmd_npm() { # Run npm.
   cd "$(dirname "$0")" || exit 1
