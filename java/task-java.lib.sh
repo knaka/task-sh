@@ -1,6 +1,11 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+set_dir_sync_ignored "$(dirname "$0")"/gradle
+set_dir_sync_ignored "$(dirname "$0")"/.gradle
+set_dir_sync_ignored "$(dirname "$0")"/app/build
+set_dir_sync_ignored "$(dirname "$0")"/.kotlin
+
 java_arch() {
   case "$(uname -m)" in
     arm64) echo "aarch64" ;;

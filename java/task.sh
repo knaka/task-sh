@@ -49,10 +49,10 @@ set_dir_sync_ignored() (
   do
     # Invocation of PowerShell is too heavy. Only the first time on Windows.
     # if is_windows && test -d "$path"
-    if test -d "$path"
-    then
-      continue
-    fi
+    # if test -d "$path"
+    # then
+    #   continue
+    # fi
     # On the other platforms, do it every time.
     mkdir -p "$path"
     for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"
