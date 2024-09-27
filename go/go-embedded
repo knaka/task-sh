@@ -4,6 +4,17 @@ set -o nounset -o errexit
 temp_dir=$(mktemp -d)
 trap 'rm -rf $temp_dir' EXIT
 
+if test "${1+SET}" = SET && test "$1" = "update-me"
+then
+  temp_dir_path="$(mktemp -d)"
+  # shellcheck disable=SC2064
+  trap "rm -fr \"$temp_dir_path\"" EXIT
+  curl --fail --location --output "$temp_dir_path"/2e1b35b https://raw.githubusercontent.com/knaka/src/go/go-embedded
+  cat "$temp_dir_path"/2e1b35b > "$0"
+  rm -fr "$temp_dir_path"
+  exit 0
+fi
+
 name=$(realpath "$0" | tr / _)
 file_path="$temp_dir/main.go"
 cat <<'EOF' > "$file_path"

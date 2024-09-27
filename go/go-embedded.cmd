@@ -1,6 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
+if "%~1" == "update-me" (
+  curl.exe --fail --location --output %TEMP%\cmd-%~nx0 https://raw.githubusercontent.com/knaka/src/go/go-embedded.cmd || exit /b !ERRORLEVEL!
+  move /y %TEMP%\cmd-%~nx0 %~f0
+  exit /b 0
+)
+
 @REM All releases - The Go Programming Language https://go.dev/dl/
 set "ver=1.23.1"
 
