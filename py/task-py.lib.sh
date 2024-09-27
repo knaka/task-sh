@@ -1,48 +1,51 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-set_dir_sync_ignored "$(dirname "$0")"/.venv
+test "${guard_6d6de14+set}" = set && return 0; guard_6d6de14=-
 
-task_install() ( # Install scripts.
-  py_bin_dir_path="$HOME"/py-bin
-  mkdir -p "$py_bin_dir_path"
-  rm -f "$py_bin_dir_path"/*
-  for py_file in *.py
-  do
-    if ! test -r "$py_file"
+. task.sh
+
+subcmd_rye() ( # Execute rye.
+  # Releases · astral-sh/rye https://github.com/astral-sh/rye/releases
+  cmd_base="rye"
+  ver="0.39.0"
+
+  if ! realpath "$PWD" | grep -q -e "^$script_dir_path"
+  then
+    echo "Please run this subcommand in the same directory as the script." >&2
+    exit 1
+  fi
+
+  arc_ext=".gz"
+  case "$(uname -s)" in
+    Linux) rust_os="linux" ;;
+    Darwin) rust_os="macos" ;;
+    Windows_NT)
+      arc_ext=".exe"
+      rust_os="windows"
+      ;;
+    *) echo "Unsupported platform: $(uname -s)" >&2; exit 1 ;;
+  esac
+  bin_dir_path="$HOME/.bin"
+  cmd_path="${bin_dir_path}/${cmd_base}@${ver}$(exe_ext)"
+  if ! test -x "$cmd_path"
+  then
+    mkdir -p "$bin_dir_path"
+    case "$(uname -m)" in
+      i386 | i486 | i586 | i686) rust_arch="x86" ;;
+      x86_64) rust_arch="x86_64" ;;
+      arm64) rust_arch="aarch64" ;;
+      *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+    esac
+    if test "$arc_ext" = ".exe"
     then
-      continue
-    fi
-    if echo ",invalid.py," | grep -q ",$py_file,"
-    then
-      continue
-    fi
-    py_name="${py_file%.py}"
-    if is_windows
-    then
-      py_bin_file_path="$py_bin_dir_path"/"$py_name.cmd"
-      cat <<EOF > "$py_bin_file_path"
-@echo off
-"$PWD"/task.cmd run "$py_file" %*
-EOF
+      curl --location -o "$cmd_path" \
+        "https://github.com/astral-sh/rye/releases/download/${ver}/rye-${rust_arch}-${rust_os}${arc_ext}"
     else
-      py_bin_file_path="$py_bin_dir_path"/"$py_name"
-      cat <<EOF > "$py_bin_file_path"
-#!/bin/sh
-exec "$PWD/task" run "$py_file" "\$@"
-EOF
-      chmod +x "$py_bin_file_path"
+      curl --location -o - "https://github.com/astral-sh/rye/releases/download/${ver}/rye-$rust_arch-$rust_os$arc_ext" |
+        gunzip --stdout - > "$cmd_path"
+      chmod +x "$cmd_path"
     fi
-  done
+  fi
+  "$cmd_path" "$@"
 )
-
-subcmd_run() ( # Run a script.
-  original_wokrking_dir_path="$PWD"
-  cd "$(dirname "$0")"
-  cross_exec sh rye-cmd.sh run python lib/run-py.py "$original_wokrking_dir_path" "$@"
-)
-
-subcmd_sync() { # Updates the Rye virtualenv.
-  cd "$(dirname "$0")"
-  cross_exec sh rye-cmd.sh sync "$@"
-}
