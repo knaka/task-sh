@@ -9,7 +9,7 @@ then
   temp_dir_path="$(mktemp -d)"
   # shellcheck disable=SC2064
   trap "rm -fr \"$temp_dir_path\"" EXIT
-  curl --fail --location --output "$temp_dir_path"/2e1b35b https://raw.githubusercontent.com/knaka/src/go/main/go-embedded
+  curl --fail --location --output "$temp_dir_path"/2e1b35b https://raw.githubusercontent.com/knaka/src/main/go/go-embedded
   cat "$temp_dir_path"/2e1b35b > "$0"
   rm -fr "$temp_dir_path"
   exit 0
