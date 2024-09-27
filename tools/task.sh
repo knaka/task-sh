@@ -307,7 +307,7 @@ main() {
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
-    subcmd_"$subcmd" "$@"
+    subcmd_"$subcmd" "$@" || exit $?
     exit 0
   fi
 
