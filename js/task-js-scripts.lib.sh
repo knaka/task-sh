@@ -45,8 +45,8 @@ EOF
   done
 )
 
-subcmd_run() { # Run JS script in the original working directory.
+subcmd_run() ( # Run JS script in the original working directory.
   original_wokrking_dir_path="$PWD"
   cd "$script_dir_path" || exit 1
   subcmd_volta run node -e 'require("cross-spawn").spawn(process.execPath, process.argv.slice(2), { stdio: "inherit", cwd: process.argv[1] }).on("close", (code) => process.exit(code));' "$original_wokrking_dir_path" "$@"
-}
+)
