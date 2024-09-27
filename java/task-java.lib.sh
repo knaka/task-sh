@@ -98,10 +98,10 @@ set_java_env() {
 
 subcmd_java() { # Runs java command.
   set_java_env
-  exec "$JAVA_HOME"/bin/java "$@"
+  "$JAVA_HOME"/bin/java "$@"
 }
 
 subcmd_javac() { # Runs javac command.
   set_java_env
-  exec "$JAVA_HOME"/bin/javac "$@"
+  "$JAVA_HOME"/bin/javac "$@"
 }

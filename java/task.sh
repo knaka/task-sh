@@ -66,6 +66,47 @@ is_newer_than() {
   test -n "$(find "$1" -newer "$2"  2>/dev/null)" || return 1
 }
 
+newer() (
+  found_than=false
+  dest=
+  for arg in "$@"
+  do
+    shift
+    if test "$arg" = "--than"
+    then
+      found_than=true
+    elif $found_than
+    then
+      dest="$arg"
+    else
+      set -- "$@" "$arg"
+    fi
+  done
+  if test -z "$dest"
+  then
+    echo "No --than option" >&2
+    exit 1
+  fi
+  if test "$#" -eq 0
+  then
+    echo "No source files" >&2
+    exit 1
+  fi
+  # If the destination does not exist, it is considered newer than the destination.
+  if ! test -e "$dest"
+  then
+    return 0
+  fi
+  # If the destination is a directory, the newest file in the directory is used.
+  if test -d "$dest"
+  then
+    # %F is equivalent to “%Y-%m-%d”, %T is equivalent to “%H:%M:%S”. Refer to strftime(3).
+    # todo: `stat` コマンドのオプションやフォーマットはシステムによって異なる場合があります。例えば、Linux の `stat` は `-c` オプションでフォーマットを指定しますが、BSD 系（macOS など）では `-f` オプションになります。もしスクリプトを移植性高くしたい場合は、`stat` の互換性を確認する必要があります。
+    dest="$(find "$dest" -type f -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3)"
+  fi
+  test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
+)
+
 # Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
 cross_exec() {
   if type cleanup > /dev/null 2>&1

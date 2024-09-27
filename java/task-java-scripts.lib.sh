@@ -12,10 +12,10 @@ subcmd_run() {
   shared_archive_path="$cds_dir_path"/appcds.jsa
   shared_class_list_path="$cds_dir_path"/classes.lst
 
-  if ! test -e "$shared_archive_path" || is_newer_than "$class_path" "$shared_archive_path"
+  if ! test -e "$shared_archive_path" || newer "$class_path" --than "$shared_archive_path"
   then
-    sh "$(dirname "$0")"/task.sh java -XX:DumpLoadedClassList="$shared_class_list_path" -Duser.language=en -cp "$class_path" "$main_class" nop
-    sh "$(dirname "$0")"/task.sh java -Xshare:dump -XX:SharedClassListFile="$shared_class_list_path" -XX:SharedArchiveFile="$shared_archive_path" -cp "$class_path" "$main_class" nop
+    subcmd_java -XX:DumpLoadedClassList="$shared_class_list_path" -Duser.language=en -cp "$class_path" "$main_class" nop
+    subcmd_java -Xshare:dump -XX:SharedClassListFile="$shared_class_list_path" -XX:SharedArchiveFile="$shared_archive_path" -cp "$class_path" "$main_class" nop
   fi
 
   subcmd_java \
