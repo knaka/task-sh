@@ -44,15 +44,29 @@ set_path_attr() (
   fi
 )
 
+set_file_sync_ignored() (
+  for path in "$@"
+  do
+    if ! test -r "$path"
+    then
+      continue
+    fi
+    for attribute in "com.dropbox.ignored" "com.apple.metadata:com_apple_backup_excludeItem"
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
 set_dir_sync_ignored() (
   for path in "$@"
   do
     # Invocation of PowerShell is too heavy. Only the first time on Windows.
-    # if is_windows && test -d "$path"
+    if is_windows && test -d "$path"
     # if test -d "$path"
-    # then
-    #   continue
-    # fi
+    then
+      continue
+    fi
     # On the other platforms, do it every time.
     mkdir -p "$path"
     for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"

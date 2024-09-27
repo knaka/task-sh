@@ -6,6 +6,9 @@ set_dir_sync_ignored "$(dirname "$0")"/.gradle
 set_dir_sync_ignored "$(dirname "$0")"/app/build
 set_dir_sync_ignored "$(dirname "$0")"/.kotlin
 
+set_file_sync_ignored "$(dirname "$0")"/gradlew
+set_file_sync_ignored "$(dirname "$0")"/gradlew.bat
+
 java_arch() {
   case "$(uname -m)" in
     arm64) echo "aarch64" ;;
@@ -126,4 +129,8 @@ set_gradle_env() {
 subcmd_gradle() { # Runs gradle command.
   set_gradle_env
   exec "$GRADLE_HOME"/bin/gradle"$(exe_ext)" "$@"
+}
+
+subcmd_run() {
+  sh "$(dirname "$0")"/task.sh java -cp ./app/build/libs/app.jar org.example.AppKt
 }
