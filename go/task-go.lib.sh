@@ -3,7 +3,7 @@
 # gobin returns the path to the Go bin directory.
 gobin() (
   # All releases - The Go Programming Language https://go.dev/dl/
-  ver=1.23.0
+  ver=1.22.7
 
   if test "${GOROOT+SET}" = "SET"
   then

@@ -120,6 +120,5 @@ set_gradle_env() {
 
 subcmd_gradle() { # Runs gradle command.
   set_gradle_env
-  echo d: "$GRADLE_HOME" >&2
   exec "$GRADLE_HOME"/bin/gradle"$(exe_ext)" "$@"
 }
