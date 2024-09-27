@@ -44,20 +44,6 @@ set_path_attr() (
   fi
 )
 
-set_file_sync_ignored() (
-  for path in "$@"
-  do
-    if ! test -r "$path"
-    then
-      continue
-    fi
-    for attribute in "com.dropbox.ignored" "com.apple.metadata:com_apple_backup_excludeItem"
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
-)
-
 set_dir_sync_ignored() (
   for path in "$@"
   do
