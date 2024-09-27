@@ -7,11 +7,11 @@ test "${guard_ecc3b3b+set}" = set && return 0; guard_ecc3b3b=-
 
 set_dir_sync_ignored "$script_dir_path"/.cds
 
-subcmd_run() {
+subcmd_run() (
   main_class=org.example.AppKt
-  class_path="$(dirname "$0")"/app/build/libs/app.jar
+  class_path="$script_dir_path"/app/build/libs/app.jar
   class_path="$(realpath "$class_path")"
-  cds_dir_path="$(dirname "$0")"/.cds
+  cds_dir_path="$script_dir_path"/.cds
   cds_dir_path="$(realpath "$cds_dir_path")"
   shared_archive_path="$cds_dir_path"/appcds.jsa
   shared_class_list_path="$cds_dir_path"/classes.lst
@@ -31,4 +31,4 @@ subcmd_run() {
     -cp "$class_path" \
     "$main_class" \
     "$@"
-}
+)

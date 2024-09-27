@@ -9,17 +9,21 @@ task_install() ( # Install in each directory.
   cd "$script_dir_path" || exit 1
   for dir in *
   do
-    if test -d "$dir"
+    if ! test -d "$dir"
     then
-      echo "Installing in $dir" >&2
-      (cd "$dir" && sh ./task.sh install)
+      continue
     fi
+    echo "Installing in $dir" >&2
+    (
+      cd "$dir" || exit 1
+      sh ./task.sh install
+    )
   done
 )
 
 task_client__build() ( # [args...] Build client.
   printf "Building client: "
-  delim=""
+  delim=
   for arg in "$@"
   do
     printf "%s%s" "$delim" "$arg"
