@@ -17,8 +17,15 @@ subcmd_psqldef() (
 
   if ! is_windows
   then
-    subcmd_go install "$package"@"$version"
-    "$HOME"/go/bin/"$name" "$@"
+    gopath="$(subcmd_go env GOPATH)"
+    bin_dir_path="$gopath"/bin
+    bin_path="$bin_dir_path"/"$name"@"$version""$(exe_ext)"
+    if ! type "$bin_path" > /dev/null 2>&1
+    then
+      subcmd_go install "$package"@"$version"
+      mv "$bin_dir_path"/"$name""$(exe_ext)" "$bin_path"
+    fi
+    "$bin_path" "$@"
     return $?
   fi
 
