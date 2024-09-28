@@ -63,8 +63,7 @@ java_home() (
     fi
     if test -d "$JAVA_HOME"
     then
-      echo "$JAVA_HOME"
-      return
+      break
     fi
   done
   if ! test -d "$JAVA_HOME"
@@ -90,7 +89,12 @@ java_home() (
     )
     rm -fr "$temp_dir_path"
   fi
-  echo "$JAVA_HOME"
+  if is_windows
+  then
+    echo "$JAVA_HOME" |  sed -e 's|/|\\|g'
+  else
+    echo "$JAVA_HOME"
+  fi
 )
 
 set_java_env() {

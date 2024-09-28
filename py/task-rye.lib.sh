@@ -49,3 +49,12 @@ subcmd_rye() ( # Execute rye.
   fi
   "$cmd_path" "$@"
 )
+
+subcmd_python() ( # Execute Python.
+  subcmd_rye run python "$@"
+)
+
+subcmd_python3() ( # Execute Python 3.
+  # On Windows, “python3” shim seems not to be available.
+  subcmd_rye run python "$@"
+)

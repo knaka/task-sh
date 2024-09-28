@@ -1,5 +1,5 @@
-#!/bin/bash
-set -o nounset -o errexit -o pipefail
+#!/bin/sh
+set -o nounset -o errexit
 
 test "${guard_7917aa0+set}" = set && return 0; guard_7917aa0=-
 
@@ -42,11 +42,10 @@ set_gradle_env() {
 subcmd_gradle() ( # Runs gradle command.
   cd "$script_dir_path" || exit 1
   set_gradle_env
-  "$GRADLE_HOME"/bin/gradle "$@"
+  cross_run "$GRADLE_HOME"/bin/gradle "$@"
 )
 
 subcmd_build() (
   cd "$script_dir_path" || exit 1
   subcmd_gradle build "$@"
 )
-

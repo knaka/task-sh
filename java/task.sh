@@ -151,6 +151,25 @@ cross_exec() {
   exec "$cmd_path" "$@"
 }
 
+cross_run() (
+  if ! is_windows
+  then
+    "$@"
+    return $?
+  fi
+  cmd="$1"
+  shift
+  for ext in .exe .cmd .bat
+  do
+    if test -x "$cmd$ext"
+    then
+      "$cmd$ext" "$@"
+      return $?
+    fi
+  done
+  "$cmd" "$@"
+)
+
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.

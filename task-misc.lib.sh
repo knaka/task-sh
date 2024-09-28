@@ -7,7 +7,7 @@ test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=-
 
 task_install() ( # Install in each directory.
   cd "$script_dir_path" || exit 1
-  for dir in *
+  for dir in sh go py js
   do
     if ! test -d "$dir"
     then
@@ -87,3 +87,7 @@ delegate_tasks() (
       ;;
   esac
 )
+
+subcmd_newer() {
+  newer "$@"
+}

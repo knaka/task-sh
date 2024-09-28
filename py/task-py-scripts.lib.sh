@@ -4,7 +4,7 @@ set -o nounset -o errexit
 test "${guard_9ac5215+set}" = set && return 0; guard_9ac5215=-
 
 . task.sh
-. task-py.lib.sh
+. task-rye.lib.sh
 
 set_dir_sync_ignored "$script_dir_path"/.venv
 
