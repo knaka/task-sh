@@ -1,6 +1,8 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+test "${guard_723152a+set}" = set && return 0; guard_723152a=-
+
 if test -r "$1"
 then
   echo "File $1 already exists. Only touching it." >&2
