@@ -3,13 +3,14 @@ set -o nounset -o errexit
 
 # bash - Using getopts to process long and short command line options - Stack Overflow https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
 
-needs_arg() {
-  if test -z "$OPTARG"
+ensure_opt_arg() {
+  if test -z "$2"
   then
-    echo "No argument for --$OPT option" >&2
+    echo "No argument for option --$1." >&2
     usage
     exit 2
   fi
+  echo "$2"
 }
 
 alpha=false
@@ -41,12 +42,12 @@ do
     OPTARG="${OPTARG#=}"
   fi
   case "$OPT" in
-    a | alpha) alpha=true ;;
-    b | bravo) needs_arg; bravo="$OPTARG" ;;
-    c | charlie) charlie="${OPTARG:-$charlie_default}" ;;
+    a | alpha) alpha=true;;
+    b | bravo) bravo="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+    c | charlie) charlie="${OPTARG:-$charlie_default}";;
     h | help) usage; exit 0;;
-    \?) usage; exit 2 ;;
-    *) echo "Unexpected option: $OPT" >&2; usage; exit 2 ;;
+    \?) usage; exit 2;;
+    *) echo "Unexpected option: $OPT" >&2; usage; exit 2;;
   esac
 done
 shift $((OPTIND-1))

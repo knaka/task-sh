@@ -177,6 +177,56 @@ cross_run() (
   "$cmd" "$@"
 )
 
+ensure_opt_arg() (
+  if test -z "$2"
+  then
+    echo "No argument for option --$1." >&2
+    usage
+    exit 2
+  fi
+  echo "$2"
+)
+
+run_installed() (
+  name=
+  id=
+  path=
+  while getopts n:i:p:-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      n|name) name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      i|winget-id) id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      p|winget-path) path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      \?) usage; exit 2;;
+      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if is_windows
+  then
+    if ! type "$path" > /dev/null 2>&1
+    then
+      winget install -e --id "$id"
+    fi
+    "$path" "$@"
+    return $?
+  fi
+  if ! type "$name" > /dev/null 2>&1
+  then
+    echo "Install $name and try again." >&2
+    exit 1
+  fi
+  "$name" "$@"
+)
+
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
@@ -246,15 +296,6 @@ task_nop() { # Do nothing.
   echo NOP
 }
 
-needs_arg() {
-  if test -z "$OPTARG"
-  then
-    echo "No argument for --$OPT option" >&2
-    usage
-    exit 2
-  fi
-}
-
 main() {
   if test "${ARG0BASE+set}" = "set"
   then
@@ -308,7 +349,7 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      d|directory) needs_arg; directory="$OPTARG";;
+      d|directory) directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       h|help) shows_help=true;;
       v|verbose) verbose=true;;
       \?) usage; exit 2;;
@@ -330,6 +371,7 @@ main() {
   fi
 
   subcmd="$1"
+  subcmd="$(echo "$subcmd" | sed -r -e 's/:/__/g')"
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
