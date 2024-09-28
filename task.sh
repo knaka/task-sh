@@ -113,9 +113,16 @@ newer() (
   # If the destination is a directory, the newest file in the directory is used.
   if test -d "$dest"
   then
-    # %F is equivalent to “%Y-%m-%d”, %T is equivalent to “%H:%M:%S”. Refer to strftime(3).
-    # todo: `stat` コマンドのオプションやフォーマットはシステムによって異なる場合があります。例えば、Linux の `stat` は `-c` オプションでフォーマットを指定しますが、BSD 系（macOS など）では `-f` オプションになります。もしスクリプトを移植性高くしたい場合は、`stat` の互換性を確認する必要があります。
-    dest="$(find "$dest" -type f -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3)"
+    if is_bsd
+    then
+      dest="$(find "$dest" -type f -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3)"
+    else
+      dest="$(find "$dest" -type f -exec stat -Lc '%Y %n' {} \+ | sort -n | tail -1 | cut -d' ' -f2)"
+    fi
+  fi
+  if test -z "$dest"
+  then
+    return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 )
@@ -161,7 +168,7 @@ cross_run() (
   shift
   for ext in .exe .cmd .bat
   do
-    if test -x "$cmd$ext"
+    if type "$cmd$ext" > /dev/null 2>&1
     then
       "$cmd$ext" "$@"
       return $?
@@ -326,7 +333,7 @@ main() {
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
-    subcmd_"$subcmd" "$@"
+    subcmd_"$subcmd" "$@" || exit $?
     exit 0
   fi
 
