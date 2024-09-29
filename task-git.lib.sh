@@ -5,10 +5,10 @@ test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
 . task.sh
 
-set_dir_sync_ignored "$script_dir_path"/.git
+set_dir_sync_ignored "$SCRIPT_DIR"/.git
 
 subcmd_git() ( # Run git command.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   if ! test -r .git/HEAD
   then
     git init

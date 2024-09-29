@@ -1,15 +1,13 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_2040902+set}" = set && return 0; guard_2040902=-
+test "${guard_2040902+set}" = set && return 0; guard_2040902=x
 
 . task.sh
 
-set_dir_sync_ignored "$script_dir_path"/node_modules
+set_dir_sync_ignored "$SCRIPT_DIR"/node_modules
 
 delegate_tasks() (
-  ORIGINAL_WD="$PWD"
-  export ORIGINAL_WD
-  cd "$script_dir_path" || exit 1
+  chdir_script
   subcmd_volta run node ./task.cjs "$@"
 )

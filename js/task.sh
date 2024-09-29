@@ -15,6 +15,19 @@ then
 fi
 
 script_dir_path="$(realpath "$(dirname "$0")")"
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+export SCRIPT_DIR
+
+chdir_script() {
+  cd "$SCRIPT_DIR" || exit 1
+}
+
+ORIGINAL_DIR="$PWD"
+export ORIGINAL_DIR
+
+chdir_original() {
+  cd "$ORIGINAL_DIR" || exit 1
+}
 
 # --------------------------------------------------------------------------
 
@@ -309,7 +322,7 @@ main() {
   fi
 
   task_file_paths="$(realpath "$0")"
-  set -- "$PWD" "$@"; cd "$script_dir_path" || exit 1
+  chdir_script
   for file_path in "$script_dir_path"/task_*.sh "$script_dir_path"/task-*.sh
   do
     if ! test -r "$file_path"
@@ -323,7 +336,7 @@ main() {
     # shellcheck disable=SC1090
     . "$file_path"
   done
-  cd "$1"; shift
+  chdir_original
 
   verbose=false
   shows_help=false

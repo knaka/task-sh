@@ -12,7 +12,7 @@ then
 else
   seed=$(date +%N)
 fi
-# 0 <= rand() < 1
+# 0.0 <= rand() < 1.0
 # 268435456 = 0xFFFFFFF + 1.
 # Hexadecimal integer literal is available only on GAwk.
 awk -v seed="$seed" 'BEGIN { srand(seed); printf "%07x\n", int(rand() * 268435456) }'
