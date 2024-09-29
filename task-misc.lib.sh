@@ -21,7 +21,7 @@ task_install() ( # Install in each directory.
   done
 )
 
-task_client__build() ( # [args...] Build client.
+task_client__foo__build() ( # [args...] Build client.
   printf "Building client: "
   delim=
   for arg in "$@"

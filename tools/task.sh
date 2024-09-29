@@ -214,6 +214,7 @@ run_installed() (
   then
     if ! type "$path" > /dev/null 2>&1
     then
+      echo winget install -e --id "$id" >&2
       winget install -e --id "$id"
     fi
     "$path" "$@"

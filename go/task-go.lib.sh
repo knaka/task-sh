@@ -7,7 +7,7 @@ test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
 # gobin returns the path to the Go bin directory.
 gobin() (
   # All releases - The Go Programming Language https://go.dev/dl/
-  ver=1.22.7
+  ver=1.23.1
 
   if test "${GOROOT+SET}" = "SET"
   then

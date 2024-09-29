@@ -233,7 +233,7 @@ task_subcmds() ( # List subcommands.
   cd "$script_dir_path" || exit 1
   delim=" delim_2ed1065 "
   # shellcheck disable=SC2086
-  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
   if type delegate_tasks > /dev/null 2>&1
   then
     if delegate_tasks subcmds > /dev/null 2>&1
@@ -249,7 +249,7 @@ task_tasks() { # List tasks.
   (
     delim=" delim_d3984dd "
     # shellcheck disable=SC2086
-    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
     if type delegate_tasks > /dev/null 2>&1
     then
       if delegate_tasks tasks > /dev/null 2>&1
@@ -283,18 +283,6 @@ Tasks:
 EOF
   task_tasks | sed -r -e 's/^/  /'
 )
-
-subcmd_pwd() {
-  pwd "$@"
-}
-
-subcmd_false() { # Always fail.
-  false "$@"
-}
-
-task_nop() { # Do nothing.
-  echo NOP
-}
 
 main() {
   if test "${ARG0BASE+set}" = "set"

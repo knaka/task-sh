@@ -1,4 +1,4 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-exec "$(dirname "$0")"/../go/task go "$@"
+exec sh "$(dirname "$0")"/../go/task.sh go "$@"

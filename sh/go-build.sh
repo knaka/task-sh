@@ -1,3 +1,4 @@
 #!/bin/sh
 set -o nounset -o errexit
-exec go build -gcflags='all=-N -l' "$@"
+
+exec sh "$(dirname "$0")"/../go/task.sh go build -gcflags='all=-N -l' "$@"
