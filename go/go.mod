@@ -8,6 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/knaka/go-utils v0.1.1
 	github.com/spf13/pflag v1.0.5
+	golang.org/x/term v0.18.0
 )
 
 require (
