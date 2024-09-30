@@ -1,0 +1,17 @@
+[package]
+name = "rsmain"
+version = "0.1.0"
+edition = "2021"
+
+# バージョン指定において、semantic に patch は上げて良いなら `~` で指定する
+[dependencies]
+list_files_macro = "^0.1.0"
+clap = { version = "~4.5.1", features = ["derive"] }
+regex = "~0.1"
+# “This library provides anyhow::Error, a trait object based error type for easy idiomatic error handling in Rust applications.” // anyhow - Rust https://docs.rs/anyhow/latest/anyhow/
+anyhow = { version = "~1.0.66", features = ["backtrace"] }
+subcommand = "~0.1.2"
+
+[[bin]]
+name = "rsmain"
+path = "src/main.rs"
