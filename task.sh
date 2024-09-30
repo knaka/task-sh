@@ -298,9 +298,9 @@ Usage:
   $0 [opttions] <task[arg1,arg2,...]> [tasks...]
 
 Options:
-  -d, --directory  Change directory before running tasks.
-  -h, --help       Display this help and exit.
-  -v, --verbose    Verbose mode.
+  -d, --directory=<dir>  Change directory before running tasks.
+  -h, --help             Display this help and exit.
+  -v, --verbose          Verbose mode.
 
 Subcommands:
 EOF

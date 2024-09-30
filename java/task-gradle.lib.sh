@@ -5,10 +5,10 @@ test "${guard_7917aa0+set}" = set && return 0; guard_7917aa0=-
 
 . task.sh
 
-set_dir_sync_ignored "$script_dir_path"/gradle/wrapper
-set_dir_sync_ignored "$script_dir_path"/.gradle
-set_dir_sync_ignored "$script_dir_path"/app/build
-set_dir_sync_ignored "$script_dir_path"/.kotlin
+set_dir_sync_ignored "$SCRIPT_DIR"/gradle/wrapper
+set_dir_sync_ignored "$SCRIPT_DIR"/.gradle
+set_dir_sync_ignored "$SCRIPT_DIR"/app/build
+set_dir_sync_ignored "$SCRIPT_DIR"/.kotlin
 
 gradle_home() (
   # Gradle | Releases https://gradle.org/releases/
@@ -40,12 +40,16 @@ set_gradle_env() {
 }
 
 subcmd_gradle() ( # Runs gradle command.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   set_gradle_env
   cross_run "$GRADLE_HOME"/bin/gradle "$@"
 )
 
 subcmd_build() (
-  cd "$script_dir_path" || exit 1
+  chdir_script
+  if ! newer ./app/src --than ./app/build
+  then
+    return 0
+  fi
   subcmd_gradle build "$@"
 )

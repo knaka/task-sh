@@ -66,11 +66,12 @@ subcmd_sync() { # Updates the Rye virtualenv.
 
 subcmd_foo() {
   chdir_script
-  # script="print('Hello, World!'); print('This is a Python script.')"
-  script="$(cat <<'EOF'
+  no_indent_script="$(cat <<'EOF'
 print('Hello, World!')
 print('This is a Python script.')
+[print(i) for i in range(10)]
 EOF
 )"
-  subcmd_rye run python -c "$script"
+  no_indent_script="$(echo "$no_indent_script" | tr '\n' ';')"
+  subcmd_rye run python -c "$no_indent_script"
 }

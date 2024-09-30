@@ -8,7 +8,7 @@ test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"
 
-  chdrir_script
+  chdir_script
   js_bin_dir_path="$HOME"/js-bin
   mkdir -p "$js_bin_dir_path"
   rm -f "$js_bin_dir_path"/*

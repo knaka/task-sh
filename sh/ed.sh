@@ -25,9 +25,18 @@ then
     opts="--wait $opts"
   fi
   arg="$1"
-  if test -d "$arg"
+  if ! test -e "$arg"
   then
-    printf "%s is a directory. Open? (y/N): " arg
+    printf "%s does not exist. Create? (y/N): " "$arg"
+    read -r yn
+    case "$yn" in
+      [yY]*) ;;
+      *) exit 0 ;;
+    esac
+    touch "$arg"
+  elif test -d "$arg"
+  then
+    printf "%s is a directory. Open? (y/N): " "$arg"
     read -r yn
     case "$yn" in
       [yY]*) ;;

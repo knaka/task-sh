@@ -1,9 +1,11 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=-
+test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=x
 
 . task.sh
+
+set_dir_sync_ignored "$SCRIPT_DIR"/.idea
 
 java_arch() {
   case "$(uname -m)" in
@@ -40,9 +42,9 @@ java_home() (
     return
   fi
 
-  if test -r "$script_dir_path"/.java-version
+  if test -r "$SCRIPT_DIR"/.java-version
   then
-    ver=$(cat "$script_dir_path"/.java-version)
+    ver=$(cat "$SCRIPT_DIR"/.java-version)
   fi
 
   major="${ver%%.*}"

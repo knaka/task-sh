@@ -12,6 +12,11 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+
+    // Gradle - Plugin: com.github.johnrengelman.shadow https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    // Newer version that supports Gradle 8 will be released soon.
+    // id("com.github.johnrengelman.shadow") version "8.3.0"
 }
 
 repositories {
@@ -22,6 +27,7 @@ repositories {
 dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
+    implementation("info.picocli:picocli:4.7.1")
 }
 
 testing {
