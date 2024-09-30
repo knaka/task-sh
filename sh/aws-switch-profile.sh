@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# Set the output of this script to the AWS_PROFILE environment variable.
+# Set this script output to the AWS_PROFILE environment variable.
 
 if test "${1+SET}" = "SET"
 then

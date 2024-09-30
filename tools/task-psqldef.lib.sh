@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-#  --export -U user -h host.docker.internal -p 52030 --password=password hoge
+# psqldef --export -U user -h host.docker.internal -p 52030 --password=password hoge
 
 test "${guard_c78c581+set}" = set && return 0; guard_c78c581=-
 
@@ -34,7 +34,7 @@ subcmd_psqldef() (
   if test -z "$image_id"
   then
     (
-      cd "$script_dir_path" || exit 1
+      chdir_script_dir
       subcmd_docker build --progress plain -t "$tag" -f "$name".Dockerfile --build-arg "version=$version" .
     )
   fi

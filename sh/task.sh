@@ -28,6 +28,10 @@ chdir_script() {
   cd "$SCRIPT_DIR" || exit 1
 }
 
+inside_script_dir() {
+  echo "$PWD" | grep -q "^$SCRIPT_DIR"
+}
+
 cleanups=
 
 push_cleanup() {
