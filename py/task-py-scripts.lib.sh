@@ -43,21 +43,20 @@ EOF
 
 subcmd_run() ( # Run a script.
   chdir_script
-#   script="$(cat <<'EOF'
-# import sys
-# original_wokrking_dir_path = sys.argv[1]
-# import os
-# import subprocess
-# scr_path = os.path.abspath(sys.argv[2])
-# os.chdir(original_wokrking_dir_path)
-# process = subprocess.Popen([sys.executable, scr_path] + sys.argv[3:])
-# process.wait()
-# sys.exit(process.returncode)
-# EOF
-# )"
-#   script="$(echo "$script" | tr -d '\n')"
-#   subcmd_rye run python -c "$script" "$ORIGINAL_DIR" "$@"
-  subcmd_rye run python lib/run-py.py "$ORIGINAL_DIR" "$@"
+  no_indent_script="$(cat <<'EOF'
+import sys
+original_wokrking_dir_path = sys.argv[1]
+import os
+import subprocess
+scr_path = os.path.abspath(sys.argv[2])
+os.chdir(original_wokrking_dir_path)
+process = subprocess.Popen([sys.executable, scr_path] + sys.argv[3:])
+process.wait()
+sys.exit(process.returncode)
+EOF
+)"
+  no_indent_script="$(echo "$no_indent_script" | tr '\n' ';')"
+  subcmd_rye run python -c "$no_indent_script" "$ORIGINAL_DIR" "$@"
 )
 
 subcmd_sync() { # Updates the Rye virtualenv.
