@@ -1,20 +1,51 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
+test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
 
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then
   temp_dir_path="$(mktemp -d)"
-  # shellcheck disable=SC2064
-  trap "rm -fr \"$temp_dir_path\"" EXIT
+  # shellcheck disable=SC2317
+  cleanup() { rm -fr "$temp_dir_path"; }
+  trap cleanup EXIT
   curl --fail --location --output "$temp_dir_path"/task_sh https://raw.githubusercontent.com/knaka/src/main/task.sh
   cat "$temp_dir_path"/task_sh > "$0"
-  rm -fr "$temp_dir_path"
   exit 0
 fi
 
-script_dir_path="$(realpath "$(dirname "$0")")"
+ORIGINAL_DIR="$PWD"
+export ORIGINAL_DIR
+
+chdir_original() {
+  cd "$ORIGINAL_DIR" || exit 1
+}
+
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+export SCRIPT_DIR
+
+chdir_script() {
+  cd "$SCRIPT_DIR" || exit 1
+}
+
+inside_script_dir() {
+  echo "$PWD" | grep -q "^$SCRIPT_DIR"
+}
+
+cleanups=
+
+push_cleanup() {
+  cleanups="$1 $cleanups"
+}
+
+cleanup() {
+  for cleanup in $cleanups
+  do
+    $cleanup
+  done
+}
+
+trap cleanup EXIT
 
 # --------------------------------------------------------------------------
 
@@ -113,19 +144,23 @@ newer() (
   # If the destination is a directory, the newest file in the directory is used.
   if test -d "$dest"
   then
-    # %F is equivalent to “%Y-%m-%d”, %T is equivalent to “%H:%M:%S”. Refer to strftime(3).
-    # todo: `stat` コマンドのオプションやフォーマットはシステムによって異なる場合があります。例えば、Linux の `stat` は `-c` オプションでフォーマットを指定しますが、BSD 系（macOS など）では `-f` オプションになります。もしスクリプトを移植性高くしたい場合は、`stat` の互換性を確認する必要があります。
-    dest="$(find "$dest" -type f -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3)"
+    if is_bsd
+    then
+      dest="$(find "$dest" -type f -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3)"
+    else
+      dest="$(find "$dest" -type f -exec stat -Lc '%Y %n' {} \+ | sort -n | tail -1 | cut -d' ' -f2)"
+    fi
+  fi
+  if test -z "$dest"
+  then
+    return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 )
 
 # Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
 cross_exec() {
-  if type cleanup > /dev/null 2>&1
-  then
-    cleanup
-  fi
+  cleanup
   if ! is_windows
   then
     exec "$@"
@@ -151,13 +186,82 @@ cross_exec() {
   exec "$cmd_path" "$@"
 }
 
+cross_run() (
+  if ! is_windows
+  then
+    "$@"
+    return $?
+  fi
+  cmd="$1"
+  shift
+  for ext in .exe .cmd .bat
+  do
+    if type "$cmd$ext" > /dev/null 2>&1
+    then
+      "$cmd$ext" "$@"
+      return $?
+    fi
+  done
+  "$cmd" "$@"
+)
+
+ensure_opt_arg() (
+  if test -z "$2"
+  then
+    echo "No argument for option --$1." >&2
+    usage
+    exit 2
+  fi
+  echo "$2"
+)
+
+run_installed() (
+  name=
+  id=
+  path=
+  while getopts n:i:p:-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      n|name) name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      i|winget-id) id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      p|winget-path) path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      \?) usage; exit 2;;
+      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if is_windows
+  then
+    if ! type "$path" > /dev/null 2>&1
+    then
+      winget install -e --id "$id"
+    fi
+    "$path" "$@"
+    return $?
+  fi
+  if ! type "$name" > /dev/null 2>&1
+  then
+    echo "Install $name and try again." >&2
+    exit 1
+  fi
+  "$name" "$@"
+)
+
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   delim=" delim_2ed1065 "
   # shellcheck disable=SC2086
-  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
   if type delegate_tasks > /dev/null 2>&1
   then
     if delegate_tasks subcmds > /dev/null 2>&1
@@ -173,7 +277,7 @@ task_tasks() { # List tasks.
   (
     delim=" delim_d3984dd "
     # shellcheck disable=SC2086
-    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/^([^ ()]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
     if type delegate_tasks > /dev/null 2>&1
     then
       if delegate_tasks tasks > /dev/null 2>&1
@@ -187,7 +291,7 @@ task_tasks() { # List tasks.
 }
 
 usage() ( # Show help message.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   cat <<EOF
 Usage:
   $0 [options] <subcommand> [args...]
@@ -207,27 +311,6 @@ Tasks:
 EOF
   task_tasks | sed -r -e 's/^/  /'
 )
-
-subcmd_pwd() {
-  pwd "$@"
-}
-
-subcmd_false() { # Always fail.
-  false "$@"
-}
-
-task_nop() { # Do nothing.
-  echo NOP
-}
-
-needs_arg() {
-  if test -z "$OPTARG"
-  then
-    echo "No argument for --$OPT option" >&2
-    usage
-    exit 2
-  fi
-}
 
 main() {
   if test "${ARG0BASE+set}" = "set"
@@ -254,8 +337,8 @@ main() {
   fi
 
   task_file_paths="$(realpath "$0")"
-  set -- "$PWD" "$@"; cd "$script_dir_path" || exit 1
-  for file_path in "$script_dir_path"/task_*.sh "$script_dir_path"/task-*.sh
+  chdir_script
+  for file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
     if ! test -r "$file_path"
     then
@@ -268,7 +351,7 @@ main() {
     # shellcheck disable=SC1090
     . "$file_path"
   done
-  cd "$1"; shift
+  chdir_original
 
   verbose=false
   shows_help=false
@@ -282,7 +365,7 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      d|directory) needs_arg; directory="$OPTARG";;
+      d|directory) directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       h|help) shows_help=true;;
       v|verbose) verbose=true;;
       \?) usage; exit 2;;
@@ -304,10 +387,11 @@ main() {
   fi
 
   subcmd="$1"
+  subcmd="$(echo "$subcmd" | sed -r -e 's/:/__/g')"
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
-    subcmd_"$subcmd" "$@"
+    subcmd_"$subcmd" "$@" || exit $?
     exit 0
   fi
 

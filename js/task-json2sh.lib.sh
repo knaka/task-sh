@@ -6,6 +6,6 @@ test "${guard_5c3f500+set}" = set && return 0; guard_5c3f500=-
 . task.sh
 
 subcmd_json2sh() ( # Convert JSON to shell script.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   subcmd_volta run node json2sh.mjs "$@"
 )

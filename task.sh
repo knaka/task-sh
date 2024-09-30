@@ -1,26 +1,18 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
+test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
 
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then
   temp_dir_path="$(mktemp -d)"
-  # shellcheck disable=SC2064
-  trap "rm -fr \"$temp_dir_path\"" EXIT
+  # shellcheck disable=SC2317
+  cleanup() { rm -fr "$temp_dir_path"; }
+  trap cleanup EXIT
   curl --fail --location --output "$temp_dir_path"/task_sh https://raw.githubusercontent.com/knaka/src/main/task.sh
   cat "$temp_dir_path"/task_sh > "$0"
-  rm -fr "$temp_dir_path"
   exit 0
 fi
-
-script_dir_path="$(realpath "$(dirname "$0")")"
-SCRIPT_DIR="$(realpath "$(dirname "$0")")"
-export SCRIPT_DIR
-
-chdir_script() {
-  cd "$SCRIPT_DIR" || exit 1
-}
 
 ORIGINAL_DIR="$PWD"
 export ORIGINAL_DIR
@@ -28,6 +20,32 @@ export ORIGINAL_DIR
 chdir_original() {
   cd "$ORIGINAL_DIR" || exit 1
 }
+
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+export SCRIPT_DIR
+
+chdir_script() {
+  cd "$SCRIPT_DIR" || exit 1
+}
+
+inside_script_dir() {
+  echo "$PWD" | grep -q "^$SCRIPT_DIR"
+}
+
+cleanups=
+
+push_cleanup() {
+  cleanups="$1 $cleanups"
+}
+
+cleanup() {
+  for cleanup in $cleanups
+  do
+    $cleanup
+  done
+}
+
+trap cleanup EXIT
 
 # --------------------------------------------------------------------------
 
@@ -142,10 +160,7 @@ newer() (
 
 # Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
 cross_exec() {
-  if type cleanup > /dev/null 2>&1
-  then
-    cleanup
-  fi
+  cleanup
   if ! is_windows
   then
     exec "$@"
@@ -243,7 +258,7 @@ run_installed() (
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   delim=" delim_2ed1065 "
   # shellcheck disable=SC2086
   cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
@@ -276,7 +291,7 @@ task_tasks() { # List tasks.
 }
 
 usage() ( # Show help message.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   cat <<EOF
 Usage:
   $0 [options] <subcommand> [args...]
@@ -323,7 +338,7 @@ main() {
 
   task_file_paths="$(realpath "$0")"
   chdir_script
-  for file_path in "$script_dir_path"/task_*.sh "$script_dir_path"/task-*.sh
+  for file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
     if ! test -r "$file_path"
     then

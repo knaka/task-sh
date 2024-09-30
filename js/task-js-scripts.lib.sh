@@ -8,7 +8,7 @@ test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"
 
-  cd "$script_dir_path" || exit 1
+  chdrir_script
   js_bin_dir_path="$HOME"/js-bin
   mkdir -p "$js_bin_dir_path"
   rm -f "$js_bin_dir_path"/*
@@ -46,8 +46,7 @@ EOF
 )
 
 subcmd_run() ( # Run JS script in the original working directory.
-  original_wokrking_dir_path="$PWD"
-  cd "$script_dir_path" || exit 1
+  chdrir_script
   script='
 const { spawn } = require("child_process");
 spawn(
@@ -71,5 +70,5 @@ spawn(
 '
   # Node.js on Windows does not recognize multi-line script passed to -e option. ???
   script="$(echo "$script" | tr -d '\n')"
-  subcmd_volta run node -e "$script" "$original_wokrking_dir_path" "$@"
+  subcmd_volta run node -e "$script" "$ORIGINAL_DIR" "$@"
 )

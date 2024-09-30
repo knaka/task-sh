@@ -6,7 +6,7 @@ test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=-
 . task.sh
 
 task_install() ( # Install in each directory.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   for dir in sh go py js
   do
     if ! test -d "$dir"
@@ -44,7 +44,7 @@ task_client__deploy() ( # [args...] Deploy client.
 )
 
 task_task_cmd__copy() ( # Copy task.cmd to each directory.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   for dir in *
   do
     if ! test -d "$dir"
@@ -56,8 +56,8 @@ task_task_cmd__copy() ( # Copy task.cmd to each directory.
 )
 
 task_home_link() ( # Link this directory to home.
-  script_dir_name="$(basename "$script_dir_path")"
-  ln -sf "$script_dir_path" "$HOME"/"$script_dir_name"
+  script_dir_name="$(basename "$SCRIPT_DIR")"
+  ln -sf "$SCRIPT_DIR" "$HOME"/"$script_dir_name"
 )
 
 subcmd_env() ( # Show environment.

@@ -6,7 +6,7 @@ test "${guard_9ac5215+set}" = set && return 0; guard_9ac5215=-
 . task.sh
 . task-rye.lib.sh
 
-set_dir_sync_ignored "$script_dir_path"/.venv
+set_dir_sync_ignored "$SCRIPT_DIR"/.venv
 
 task_install() ( # Install scripts.
   py_bin_dir_path="$HOME"/py-bin
@@ -42,9 +42,7 @@ EOF
 )
 
 subcmd_run() ( # Run a script.
-  original_wokrking_dir_path="$PWD"
-  cd "$script_dir_path" || exit 1
-  subcmd_rye run python lib/run-py.py "$original_wokrking_dir_path" "$@"
+  chdir_script
 #   script="$(cat <<'EOF'
 # import sys
 # original_wokrking_dir_path = sys.argv[1]
@@ -57,16 +55,18 @@ subcmd_run() ( # Run a script.
 # sys.exit(process.returncode)
 # EOF
 # )"
-#   subcmd_rye run python -c "$script" "$original_wokrking_dir_path" "$@"
+#   script="$(echo "$script" | tr -d '\n')"
+#   subcmd_rye run python -c "$script" "$ORIGINAL_DIR" "$@"
+  subcmd_rye run python lib/run-py.py "$ORIGINAL_DIR" "$@"
 )
 
 subcmd_sync() { # Updates the Rye virtualenv.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   subcmd_rye sync "$@"
 }
 
 subcmd_foo() {
-  cd "$script_dir_path" || exit 1
+  chdir_script
   # script="print('Hello, World!'); print('This is a Python script.')"
   script="$(cat <<'EOF'
 print('Hello, World!')

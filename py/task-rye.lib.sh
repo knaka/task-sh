@@ -10,7 +10,7 @@ subcmd_rye() ( # Execute rye.
   cmd_base="rye"
   ver="0.39.0"
 
-  if ! realpath "$PWD" | grep -q -e "^$script_dir_path"
+  if ! inside_script_dir
   then
     echo "Please run this subcommand in the same directory as the script." >&2
     exit 1
