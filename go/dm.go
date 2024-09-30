@@ -26,11 +26,13 @@ const (
 
 const stdinFilename = "-"
 
-func dumpFile(filePath string, colored bool) {
-	var rawReader io.ReadCloser
-	if filePath == stdinFilename {
-		rawReader = os.Stdin
-	} else {
+func dumpFile(filePath string, writer io.Writer) {
+	colored := false
+	if file, ok := writer.(*os.File); ok {
+		colored = term.IsTerminal(int(file.Fd()))
+	}
+	rawReader := os.Stdin
+	if filePath != stdinFilename {
 		rawReader = V(os.Open(filePath))
 		defer (func() { V0(rawReader.Close()) })()
 	}
@@ -60,7 +62,7 @@ func dumpFile(filePath string, colored bool) {
 				readable += " "
 			}
 		}
-		V0(fmt.Fprintf(os.Stdout, "%08X | %s | %s\n",
+		V0(fmt.Fprintf(writer, "%08X | %s | %s\n",
 			addr, strings.Join(hexes, " "), readable))
 	}
 }
@@ -70,8 +72,7 @@ func main() {
 	if len(os.Args) == 1 {
 		os.Args = append(os.Args, stdinFilename)
 	}
-	colored := term.IsTerminal(int(os.Stdout.Fd()))
 	for _, arg := range os.Args[1:] {
-		dumpFile(arg, colored)
+		dumpFile(arg, os.Stdout)
 	}
 }
