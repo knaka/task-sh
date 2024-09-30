@@ -24,15 +24,17 @@ const (
 	escSeqEnd = "\033[0m"
 )
 
+const stdinFilename = "-"
+
 func main() {
 	Debugger()
 	if len(os.Args) == 1 {
-		os.Args = append(os.Args, "-")
+		os.Args = append(os.Args, stdinFilename)
 	}
 	for _, arg := range os.Args[1:] {
 		func() {
 			var rawReader io.ReadCloser
-			if arg == "-" {
+			if arg == stdinFilename {
 				rawReader = os.Stdin
 			} else {
 				rawReader = V(os.Open(arg))
