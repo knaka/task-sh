@@ -16,6 +16,7 @@ cargo_bin_path() {
   if is_windows
   then
     echo Not implemented yet >&2
+    # winget install -e --id rustlang.rustup
     return 1
   fi
   cargo_bin_path=$HOME/.cargo/bin

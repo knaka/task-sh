@@ -16,6 +16,7 @@ import kotlin.system.exitProcess
         HelpCommand::class,
         KotlinGreeting::class,
         SubcommandListing::class,
+        JavaGreeting::class,
     ],
 )
 class App : Runnable {
