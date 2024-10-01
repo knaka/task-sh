@@ -40,7 +40,7 @@ subcmd_rustup() (
 
 subcmd_cargo() (
   set_cargo_path
-  cargo "$@" | cat
+  cargo "$@" --color never | cat
 )
 
 subcmd_rustc() (

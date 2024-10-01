@@ -3,6 +3,8 @@ set -o nounset -o errexit
 
 test "${guard_a24f1b4+set}" = set && return 0; guard_a24f1b4=x
 
+. task-rs.lib.sh
+
 subcmd_build() (
   chdir_script
   force=false
