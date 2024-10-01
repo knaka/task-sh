@@ -17,53 +17,43 @@ impl MainCommand {
             handler_map: HashMap::new(),
         }
     }
-
     fn register_subcommand(&mut self, subcommand: Command, handler: SubcommandHandler) {
-        self.root_command = self.root_command.clone().subcommand(subcommand.clone());
+        self.root_command = self.root_command.clone().subcommand(&subcommand);
         self.handler_map.insert(subcommand.get_name().to_string(), handler);
     }
 }
 
 include!("subcmds.rs");
 
-static MAIN_COMMAND: Lazy<Mutex<MainCommand>> = Lazy::new(|| {
-    Mutex::new(MainCommand::new(Command::new("myapp")))
+static SUBCOMMAND_NAMES: Lazy<Mutex<Vec<String>>> = Lazy::new(|| {
+    Mutex::new(vec![])
 });
 
-fn list_subcommands(_matches: &clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
-    let main_command = MAIN_COMMAND.lock().unwrap();
-    for (name, _) in main_command.handler_map.iter() {
-        println!("{}", name);
-    }
-    Ok(())
-}
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut main_command = MainCommand::new(Command::new("myapp"));
+    register_subcommands(&mut main_command);
     {
-        let mut main_command = MAIN_COMMAND.lock().unwrap();
-        register_subcommands(&mut main_command);
-        main_command.register_subcommand(
-            Command::new("list")
-                .about("List subcommands")
-            ,
-            list_subcommands,
-        );
+        let mut subcommand_names = SUBCOMMAND_NAMES.lock().unwrap();
+        for (subcommand_name, _) in main_command.handler_map.iter() {
+            subcommand_names.push(subcommand_name.clone());
+        }
     }
-    let mut root_command = {
-        let main_command = MAIN_COMMAND.lock().unwrap();
-        main_command.root_command.clone()
-    };
+    main_command.register_subcommand(
+        Command::new("list").about("List subcommands"),
+        |_matches: &clap::ArgMatches| {
+            for subcommand_name in SUBCOMMAND_NAMES.lock().unwrap().iter() {
+                println!("{}", subcommand_name);
+            }
+            Ok(())
+        }
+    );
     if std::env::args().count() == 1 {
-        root_command.print_help()?;
+        main_command.root_command.print_help()?;
         std::process::exit(0);
     }
-    let matches = root_command.get_matches();
+    let matches = main_command.root_command.get_matches();
     if let Some((subcommand_name, subcommand_matches)) = matches.subcommand() {
-        let handler = {
-            let main_command = MAIN_COMMAND.lock().unwrap();
-            main_command.handler_map.get(subcommand_name).cloned()
-        };
-        if let Some(handler) = handler {
+        if let Some(handler) = main_command.handler_map.get(subcommand_name) {
             return handler(subcommand_matches);
         } else {
             eprintln!("Unknown subcommand: {}", subcommand_name);
