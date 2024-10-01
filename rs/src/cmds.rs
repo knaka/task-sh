@@ -4,8 +4,7 @@ use std::collections::HashMap;
 
 type RunFn = fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>;
 
-mod foo;
-// mod fs;
+mod fs;
 mod hello;
 
 pub fn init() -> (clap::Command, HashMap<String, RunFn>) {
@@ -13,11 +12,11 @@ pub fn init() -> (clap::Command, HashMap<String, RunFn>) {
     let mut hash = HashMap::new();
 
     cmd = foo::register(cmd);
-    hash.insert("foo".to_owned(), foo::run as RunFn);
+    hash.insert("rsfoo".to_owned(), foo::run as RunFn);
     // cmd = fs::register(cmd);
     // hash.insert("fs".to_owned(), fs::run as RunFn);
     cmd = hello::register(cmd);
-    hash.insert("hello".to_owned(), hello::run as RunFn);
+    hash.insert("rshello".to_owned(), hello::run as RunFn);
 
     (cmd, hash)
 }

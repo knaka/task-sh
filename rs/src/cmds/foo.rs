@@ -1,7 +1,7 @@
 use clap::{Arg, Command};
 
 pub fn register(command: Command) -> Command {
-    command.subcommand(Command::new("foo")
+    command.subcommand(Command::new("rsfoo")
         .about("foo command")
         .arg(Arg::new("files")
             .num_args(1..)

@@ -3,9 +3,27 @@ set -o nounset -o errexit
 
 test "${guard_a24f1b4+set}" = set && return 0; guard_a24f1b4=x
 
-task_build() (
+subcmd_build() (
   chdir_script
-  if ! newer src/ --than target/
+  force=false
+  while getopts f:-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      f|force) force=true;;
+      \?) usage; exit 2;;
+      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if ! $force && ! newer src/ --than target/
   then
     return 0
   fi

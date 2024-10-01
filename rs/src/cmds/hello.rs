@@ -2,7 +2,7 @@ use anyhow::Context;
 use clap::{Arg, Command};
 
 pub fn register(command: Command) -> Command {
-    command.subcommand(Command::new("hello")
+    command.subcommand(Command::new("rshello")
         .about("hello command")
         .arg(Arg::new("name")
             .short('n')

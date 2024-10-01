@@ -1,7 +1,11 @@
+# The Manifest Format - The Cargo Book https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [package]
 name = "rsmain"
 version = "0.1.0"
 edition = "2021"
+# Releases · rust-lang/rust https://github.com/rust-lang/rust/releases
+rust-version = "1.80.1"
 
 # バージョン指定において、semantic に patch は上げて良いなら `~` で指定する
 [dependencies]
@@ -11,6 +15,8 @@ regex = "~0.1"
 # “This library provides anyhow::Error, a trait object based error type for easy idiomatic error handling in Rust applications.” // anyhow - Rust https://docs.rs/anyhow/latest/anyhow/
 anyhow = { version = "~1.0.66", features = ["backtrace"] }
 subcommand = "~0.1.2"
+rustc_version = "0.4.1"
+rustc_version_runtime = "0.3.0"
 
 [[bin]]
 name = "rsmain"

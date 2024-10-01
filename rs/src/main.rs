@@ -1,21 +1,21 @@
-use anyhow::Context;
+mod subcmd_hello;
 
-mod cmds;
+use clap::{Command};
+use std::collections::HashMap;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    std::env::set_var("RUST_BACKTRACE", "FULL");
-    let (mut cmd_root, sub_cmd_fns) = cmds::init();
-    cmd_root = cmd_root
-        .name("app")
-        .about("app command")
-        .version("0.1.2")
-    ;
-    return match cmd_root.get_matches().subcommand() {
-        Some((name, sub_arg_matches)) => {
-            sub_cmd_fns.get(name).context("39aec96")?(sub_arg_matches)
+    let mut command = Command::new("myapp");
+    let mut command_map: HashMap<&str, fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>> = HashMap::new();
+
+    command = subcmd_hello::register(command, &mut command_map);
+
+    let matches = command.get_matches();
+    if let Some((subcommand_name, args)) = matches.subcommand() {
+        if let Some(handler) = command_map.get(subcommand_name) {
+            return handler(args);
+        } else {
+            eprintln!("Unknown subcommand: {}", subcommand_name);
         }
-        _ => {
-            Err("No subcommand provided".into())
-        }
-    };
+    }
+    Ok(())
 }
