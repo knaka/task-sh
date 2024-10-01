@@ -12,7 +12,7 @@ fn init() {
     ROOT_COMMAND.lock().unwrap().register(
         NAME,
         Command::new(NAME)
-            .about("Prints 'Hello, world!'")
+            .about("Greets the user.")
             // .arg(arg!(-n --name <NAME> "The name to greet").default_value("world").required(false))
             .args([
                 (arg!(-n --name <NAME> "The name to greet") as Arg).default_value("world"),

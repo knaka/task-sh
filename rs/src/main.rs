@@ -1,7 +1,3 @@
-// mod subcmd_goodbye;
-mod subcmd_hello;
-// mod subcmd_list;
-
 use clap::{Command};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -34,6 +30,8 @@ static ROOT_COMMAND: Lazy<Mutex<MainCommand>> = Lazy::new(|| {
         .version("0.1.0");
     Mutex::new(MainCommand::new(root_command))
 });
+
+include!("subcmds.rs");
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let main_command = ROOT_COMMAND.lock().unwrap();

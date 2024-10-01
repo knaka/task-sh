@@ -304,6 +304,7 @@ dependencies = [
  "anyhow",
  "clap",
  "ctor",
+ "glob",
  "list_files_macro",
  "once_cell",
  "regex",

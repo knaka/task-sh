@@ -25,7 +25,7 @@ subcmd_build() (
   done
   shift $((OPTIND-1))
 
-  if ! $force && ! newer src/ --than target/
+  if ! $force && ! newer Cargo.toml build.rs src/ --than target/debug/rsmain
   then
     return 0
   fi
