@@ -10,13 +10,14 @@ fn main() -> std::io::Result<()> {
 "###)?;
     let subcommand_files_pattern = Path::new("src").join("subcmd_*.rs");
     let entries = glob(&subcommand_files_pattern.to_string_lossy()).unwrap();
-    let module_names: Vec<String> = entries
+    let mut module_names: Vec<String> = dbg!(dbg!(entries
         .filter_map(|entry| {
             entry.ok().and_then(|path| {
                 path.file_stem().map(|file_stem| file_stem.to_string_lossy().to_string())
             })
         })
-        .collect();
+        .collect()));
+    module_names.sort_by(|a, b| a.cmp(b));
     for module_name in &module_names.clone() {
         writeln!(writer, "mod {module};", module = module_name)?;
     }

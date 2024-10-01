@@ -38,15 +38,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             subcommand_names.push(subcommand_name.clone());
         }
     }
-    main_command.register_subcommand(
-        Command::new("list").about("List subcommands"),
-        |_matches: &clap::ArgMatches| {
-            for subcommand_name in SUBCOMMAND_NAMES.lock().unwrap().iter() {
-                println!("{}", subcommand_name);
-            }
-            Ok(())
-        }
-    );
     if std::env::args().count() == 1 {
         main_command.root_command.print_help()?;
         std::process::exit(0);
