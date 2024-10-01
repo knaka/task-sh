@@ -1,8 +1,7 @@
-use clap::{Command, Arg, ArgAction, arg};
-use crate::MainCommand;
+use clap::{Command, Arg, ArgAction, arg, ArgMatches};
 
-pub fn register(main_command: &mut MainCommand) {
-    let command = Command::new("rs-hello")
+pub fn meta() -> Command {
+    Command::new("rs-hello")
         .about("Greet the user")
         .args([
             (arg!(-n --name <NAME> "The name to greet") as Arg).default_value("world"),
@@ -19,17 +18,16 @@ pub fn register(main_command: &mut MainCommand) {
                 .action(ArgAction::SetTrue)
                 .help("Uppercase the output")
                 .required(false),
-        ]);
-    main_command.register_subcommand(command,
-    |matches: &clap::ArgMatches| {
-            let uppercase = matches.get_flag("uppercase");
-            let name = matches.get_one::<String>("name").unwrap();
-            if uppercase {
-                println!("HELLO, {}!", name.to_uppercase());
-            } else {
-                println!("Hello, {}!", name);
-            }
-            Ok(())
-        },
-    )
+        ])
+}
+
+pub fn handler(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
+    let uppercase = matches.get_flag("uppercase");
+    let name = matches.get_one::<String>("name").unwrap();
+    if uppercase {
+        println!("HELLO, {}!", name.to_uppercase());
+    } else {
+        println!("Hello, {}!", name);
+    }
+    Ok(())
 }

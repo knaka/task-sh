@@ -3,5 +3,5 @@
 mod subcmd_hello;
 
 fn register_subcommands(main_command: &mut MainCommand) {
-    subcmd_hello::register(main_command);
+    main_command.register_subcommand(subcmd_hello::meta(), subcmd_hello::handler);
 }
