@@ -2,10 +2,8 @@ use clap::{Command, Arg, ArgAction, arg};
 use crate::MainCommand;
 
 pub fn register(main_command: &mut MainCommand) {
-    const NAME: &str = "rs-hello";
     main_command.register_subcommand(
-        NAME,
-        Command::new(NAME)
+        Command::new("rs-hello")
             .about("Greet the user")
             .args([
                 (arg!(-n --name <NAME> "The name to greet") as Arg).default_value("world"),
@@ -25,7 +23,7 @@ pub fn register(main_command: &mut MainCommand) {
                 ,
             ])
         ,
-        |matches| {
+        |matches: &clap::ArgMatches| {
             let uppercase = matches.get_flag("uppercase");
             let name = matches.get_one::<String>("name").unwrap();
             if uppercase {
