@@ -219,10 +219,13 @@ ensure_opt_arg() (
 )
 
 run_installed() (
-  name=
-  id=
-  path=
-  while getopts n:i:p:-: OPT
+  cmd_name=
+  winget_id=
+  win_cmd_path=
+  brew_id=
+  brew_cmd_path=
+  no_exec=false
+  while getopts nc:p:b:P:w:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -232,30 +235,46 @@ run_installed() (
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      n|name) name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      i|winget-id) id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      p|winget-path) path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      n|no-exec|install-only) no_exec=true;;
+      b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       \?) usage; exit 2;;
       *) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
   done
   shift $((OPTIND-1))
 
+  cmd_path="$cmd_name"
   if is_windows
   then
-    if ! type "$path" > /dev/null 2>&1
+    if tet -n "$win_cmd_path"
     then
-      winget install -e --id "$id"
+      cmd_path="$win_cmd_path"
     fi
-    "$path" "$@"
-    return $?
-  fi
-  if ! type "$name" > /dev/null 2>&1
+    if ! type "$cmd_path" > /dev/null 2>&1
+    then
+      winget install -e --id "$winget_id" 2>&1
+    fi
+    cmd_path="$win_cmd_path"
+  elif type brew > /dev/null 2>&1
   then
-    echo "Install $name and try again." >&2
-    exit 1
+    if test -n "$brew_cmd_path"
+    then
+      cmd_path="$brew_cmd_path"
+    fi
+    if ! type "$cmd_path" > /dev/null 2>&1
+    then
+      brew install "$brew_id"
+    fi
   fi
-  "$name" "$@"
+  if $no_exec
+  then
+    return 0
+  fi
+  "$cmd_path" "$@"
 )
 
 # --------------------------------------------------------------------------

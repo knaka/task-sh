@@ -6,9 +6,12 @@ test "${guard_d3015b9+set}" = set && return 0; guard_d3015b9=-
 . task.sh
 
 subcmd_jq() ( # Run jq(1).
+  cmd=jq
+  winget_cmd_path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe
   run_installed \
-    --name=jq \
+    --cmd="$cmd" \
+    --brew-id=jq \
     --winget-id=jqlang.jq \
-    --winget-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
+    --winget-cmd-path="$winget_cmd_path" \
     -- "$@"
 )

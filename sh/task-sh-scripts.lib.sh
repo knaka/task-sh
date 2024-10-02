@@ -5,6 +5,7 @@ test "${guard_b6c071a+set}" = set && return 0; guard_b6c071a=-
 . task.sh
 
 subcmd_install() ( # Install shell scripts.
+  chdir_script
   excluded_scripts=":task.sh:"
   for file in task-*.sh *.lib.sh
   do
@@ -37,7 +38,7 @@ subcmd_install() ( # Install shell scripts.
 set sh_dir_path=$PWD
 EOF
   else
-    cat <<EOF > "$sh_bin_dir_path"/.env.sh
+    cat <<-EOF > "$sh_bin_dir_path"/.env.sh
 sh_dir_path="$PWD"
 EOF
   fi
