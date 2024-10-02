@@ -2,12 +2,12 @@
 
 mod subcmd_dm;
 mod subcmd_empty;
+mod subcmd_fn;
 mod subcmd_hello;
-mod subcmd_list;
 
 fn register_subcommands(main_command: &mut MainCommand) {
-    main_command.register_subcommand(subcmd_dm::meta(), subcmd_dm::handler);
-    main_command.register_subcommand(subcmd_empty::meta(), subcmd_empty::handler);
-    main_command.register_subcommand(subcmd_hello::meta(), subcmd_hello::handler);
-    main_command.register_subcommand(subcmd_list::meta(), subcmd_list::handler);
+    main_command.register_subcommand(subcmd_dm::meta(), Box::new(subcmd_dm::handler));
+    main_command.register_subcommand(subcmd_empty::meta(), Box::new(subcmd_empty::handler));
+    main_command.register_subcommand(subcmd_fn::meta(), Box::new(subcmd_fn::handler));
+    main_command.register_subcommand(subcmd_hello::meta(), Box::new(subcmd_hello::handler));
 }

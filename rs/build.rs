@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
 fn register_subcommands(main_command: &mut MainCommand) {{"###)?;
     for module_name in &module_names {
         // writeln!(writer, "    {module}::register(main_command);", module = module_name)?;
-        writeln!(writer, "    main_command.register_subcommand({module}::meta(), {module}::handler);", module = module_name)?;
+        writeln!(writer, "    main_command.register_subcommand({module}::meta(), Box::new({module}::handler));", module = module_name)?;
     }
     writeln!(writer, r###"}}"###)?;
     Ok(())

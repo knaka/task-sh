@@ -100,6 +100,7 @@ java_home() (
 )
 
 set_java_env() {
+  test "${guard_282af03+set}" = set && return 0; guard_282af03=x
   JAVA_HOME="$(java_home)"
   export JAVA_HOME
   PATH="$JAVA_HOME"/bin:"$PATH"

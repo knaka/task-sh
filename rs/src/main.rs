@@ -1,9 +1,7 @@
 use clap::Command;
 use std::collections::HashMap;
-use std::sync::Mutex;
-use once_cell::sync::Lazy;
 
-type SubcommandHandler = fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>;
+type SubcommandHandler = Box<dyn Fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>>;
 
 pub struct MainCommand {
     root_command: Command,
@@ -25,19 +23,22 @@ impl MainCommand {
 
 include!("subcmds.rs");
 
-static SUBCOMMAND_NAMES: Lazy<Mutex<Vec<String>>> = Lazy::new(|| {
-    Mutex::new(vec![])
-});
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut main_command = MainCommand::new(Command::new("myapp"));
+    let mut main_command = MainCommand::new(Command::new(""));
     register_subcommands(&mut main_command);
-    {
-        let mut subcommand_names = SUBCOMMAND_NAMES.lock().unwrap();
-        for (subcommand_name, _) in main_command.handler_map.iter() {
-            subcommand_names.push(subcommand_name.clone());
-        }
-    }
+    let subcmd_names: Vec<String> = main_command.handler_map.keys().map(|name| name.clone()).collect();
+    main_command.root_command = main_command.root_command.subcommand(
+        Command::new("list").about("List subcommand names")
+    );
+    main_command.register_subcommand(
+        Command::new("list").about("List subcommand names"),
+        Box::new(move |_matches| {
+            for name in &subcmd_names {
+                println!("{}", name);
+            }
+            Ok(())
+        })
+    );
     if std::env::args().count() == 1 {
         main_command.root_command.print_help()?;
         std::process::exit(0);
@@ -52,3 +53,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
+
+// use std::sync::{Mutex};
+// use once_cell::sync::Lazy;
+
+// static SUBCOMMAND_NAMES: Lazy<Mutex<Vec<String>>> = Lazy::new(|| {
+//     Mutex::new(vec![])
+// });

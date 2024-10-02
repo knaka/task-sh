@@ -139,6 +139,7 @@ newer() (
   # If the destination does not exist, it is considered newer than the destination.
   if ! test -e "$dest"
   then
+    echo "Destination does not exist: $dest" >&2
     return 0
   fi
   # If the destination is a directory, the newest file in the directory is used.
@@ -153,8 +154,10 @@ newer() (
   fi
   if test -z "$dest"
   then
+    echo "No destination file" >&2
     return 0
   fi
+  # echo "74476d8 | dest: $dest, newer: $(find "$@" -newer "$dest")" >&2
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 )
 
@@ -298,9 +301,9 @@ Usage:
   $0 [opttions] <task[arg1,arg2,...]> [tasks...]
 
 Options:
-  -d, --directory  Change directory before running tasks.
-  -h, --help       Display this help and exit.
-  -v, --verbose    Verbose mode.
+  -d, --directory=<dir>  Change directory before running tasks.
+  -h, --help             Display this help and exit.
+  -v, --verbose          Verbose mode.
 
 Subcommands:
 EOF

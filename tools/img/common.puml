@@ -1,0 +1,18 @@
+@startuml
+
+' スッキリしていて、省スペースで、見やすく、デフォルトと違うものにしたい
+!theme reddress-lightorange
+
+' 地味すぎる plain
+' 案外良いかも reddress-lightorange
+' 良いが、デフォルトに近すぎるか toy
+
+'skinparam backgroundcolor transparent
+
+!if %variable_exists("filehash")
+  right footer filehash
+!endif
+
+'mainframe aaa
+
+@enduml

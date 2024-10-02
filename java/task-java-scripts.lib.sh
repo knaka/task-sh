@@ -37,8 +37,6 @@ subcmd_run() ( # Runs the program.
     "$@"
 )
 
-
-
 subcmd_install() ( # Install shims for the program subcommands.
   chdir_script
   subcmd_build
