@@ -91,6 +91,8 @@ set_path_attr() (
   fi
 )
 
+file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
+
 set_dir_sync_ignored() (
   for path in "$@"
   do
@@ -99,7 +101,23 @@ set_dir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
-    for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
+set_file_sync_ignored() (
+  for path in "$@"
+  do
+    if test -f "$path"
+    then
+      continue
+    fi
+    touch "$path"
+    for attribute in $file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
@@ -276,6 +294,38 @@ run_installed() (
   fi
   "$cmd_path" "$@"
 )
+
+load_env() {
+  if test -r "$SCRIPT_DIR"/.env
+  then
+    # shellcheck disable=SC1090
+    . "$SCRIPT_DIR"/.env
+  fi
+  if test "${APP_ENV+set}" = set
+  then
+    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".
+    then
+      # shellcheck disable=SC1090
+      . "$SCRIPT_DIR"/.env."$APP_ENV"
+    fi
+  fi
+  if test "${APP_SENV+set}" != set || test "${APP_SENV}" != "test"
+  then
+    if test -r "$SCRIPT_DIR"/.env.local
+    then
+      # shellcheck disable=SC1091
+      . "$SCRIPT_DIR"/.env.local
+    fi
+  fi
+  if test "${APP_ENV+set}" = set
+  then
+    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".local
+    then
+      # shellcheck disable=SC1091
+      . "$SCRIPT_DIR"/.env."$APP_ENV".local
+    fi
+  fi
+}
 
 # --------------------------------------------------------------------------
 

@@ -35,3 +35,39 @@ subcmd_psql() (
 subcmd_pg_dump() (
   subcmd_pg__run pg_dump "$@"
 )
+
+subcmd_pg_dumpall() (
+  subcmd_pg__run pg_dumpall "$@"
+)
+
+task_pg__cli() (
+  load_env
+  export PGPASSWORD
+  subcmd_psql \
+    --host="$PGHOST" \
+    --port="$PGPORT" \
+    --username="$PGUSER" \
+    --dbname="$PGDATABASE" \
+    "$@"
+)
+
+subcmd_pg__dump() (
+  load_env
+  export PGPASSWORD
+  subcmd_pg_dump \
+    --host="$PGHOST" \
+    --port="$PGPORT" \
+    --username="$PGUSER" \
+    --dbname="$PGDATABASE" \
+    "$@"
+)
+
+subcmd_pg__dumpall() (
+  load_env
+  export PGPASSWORD
+  subcmd_pg_dumpall \
+    --host="$PGHOST" \
+    --port="$PGPORT" \
+    --username="$PGUSER" \
+    "$@"
+)
