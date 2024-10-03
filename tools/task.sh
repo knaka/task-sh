@@ -413,8 +413,14 @@ main() {
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
-    subcmd_"$subcmd" "$@" || exit $?
-    exit 0
+    if alias subcmd_"$subcmd" > /dev/null 2>&1
+    then
+      # shellcheck disable=SC2294
+      eval subcmd_"$subcmd" "$@"
+      exit $?
+    fi
+    subcmd_"$subcmd" "$@"
+    exit $?
   fi
 
   for task_with_args in "$@"

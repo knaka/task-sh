@@ -12,3 +12,6 @@ subcmd_my_ip_addr() {
   # shellcheck disable=SC2154
   echo "My IP Address: $json__ip"
 }
+
+# subcmd_* aliases is “eval”ed in main function.
+alias subcmd_my-ip-addr='subcmd_my_ip_addr'
