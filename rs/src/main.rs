@@ -16,9 +16,8 @@ impl App {
         }
     }
     fn register_subcommand(&mut self, subcommand: Command, handler: SubcommandHandler) {
-        // Cannot move self.main_command because self is borrowed as mutable.
-        self.main_command = self.main_command.clone().subcommand(&subcommand);
         self.handler_map.insert(subcommand.get_name().to_string(), handler);
+        self.main_command = self.main_command.clone().subcommand(subcommand);
     }
 }
 
