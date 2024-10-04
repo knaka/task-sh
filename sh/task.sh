@@ -63,13 +63,6 @@ exe_ext() {
   fi
 }
 
-is_mac() {
-  case "$(uname -s)" in
-    Darwin) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
 is_bsd() {
   if stat -f "%z" . > /dev/null 2>&1
   then
@@ -100,35 +93,31 @@ set_path_attr() (
 
 file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
 
-set_dir_sync_ignored() (
-  for path in "$@"
-  do
-    if test -d "$path"
+set_sync_ignored() (
+  sync_ignorance_file="$SCRIPT_DIR"/.syncignored
+  if ! test -r "$sync_ignorance_file"
+  then
+    touch "$sync_ignorance_file"
+    if ! grep -q "^/\.syncignored\$" "$SCRIPT_DIR/.gitignore" > /dev/null 2>&1
     then
-      continue
+      echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
     fi
-    mkdir -p "$path"
+  fi
+  path="$1"
+  if ! test -e "$path"
+  then
+    return 0
+  fi
+  rel_path="${path#"$SCRIPT_DIR"/}"
+  if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
+  then
     # shellcheck disable=SC2154
     for attribute in $file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-  done
-)
-
-set_file_sync_ignored() (
-  for path in "$@"
-  do
-    if test -f "$path"
-    then
-      continue
-    fi
-    touch "$path"
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
+    echo "/$rel_path" >> "$sync_ignorance_file"
+  fi
 )
 
 is_newer_than() {

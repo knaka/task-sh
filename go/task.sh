@@ -120,39 +120,6 @@ set_sync_ignored() (
   fi
 )
 
-# todo: remove
-set_dir_sync_ignored() (
-  for path in "$@"
-  do
-    if test -d "$path"
-    then
-      continue
-    fi
-    mkdir -p "$path"
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
-)
-
-# todo: remove
-set_file_sync_ignored() (
-  for path in "$@"
-  do
-    if test -f "$path"
-    then
-      continue
-    fi
-    touch "$path"
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
-)
-
 is_newer_than() {
   test -n "$(find "$1" -newer "$2"  2>/dev/null)" || return 1
 }

@@ -106,7 +106,7 @@ set_sync_ignored() (
   path="$1"
   if ! test -e "$path"
   then
-    return 1
+    return 0
   fi
   rel_path="${path#"$SCRIPT_DIR"/}"
   if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
@@ -116,41 +116,8 @@ set_sync_ignored() (
     do
       set_path_attr "$path" "$attribute" 1
     done
-    echo "$rel_path" >> "$sync_ignorance_file"
+    echo "/$rel_path" >> "$sync_ignorance_file"
   fi
-)
-
-# todo: remove
-set_dir_sync_ignored() (
-  for path in "$@"
-  do
-    if test -d "$path"
-    then
-      continue
-    fi
-    mkdir -p "$path"
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
-)
-
-# todo: remove
-set_file_sync_ignored() (
-  for path in "$@"
-  do
-    if test -f "$path"
-    then
-      continue
-    fi
-    touch "$path"
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-  done
 )
 
 is_newer_than() {
