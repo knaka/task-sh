@@ -5,10 +5,16 @@ test "${guard_7917aa0+set}" = set && return 0; guard_7917aa0=-
 
 . task.sh
 
-set_dir_sync_ignored "$SCRIPT_DIR"/gradle/wrapper
-set_dir_sync_ignored "$SCRIPT_DIR"/.gradle
-set_dir_sync_ignored "$SCRIPT_DIR"/app/build
-set_dir_sync_ignored "$SCRIPT_DIR"/.kotlin
+(
+  for dir in gradle/wrapper .gradle app/build .kotlin
+  do
+    mkdir -p "$dir"
+    set_sync_ignored "$dir"
+  done
+)
+
+set_sync_ignored "$SCRIPT_DIR"/gradlew
+set_sync_ignored "$SCRIPT_DIR"/gradlew.bat
 
 gradle_home() (
   # Gradle | Releases https://gradle.org/releases/

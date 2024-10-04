@@ -63,6 +63,13 @@ exe_ext() {
   fi
 }
 
+is_mac() {
+  case "$(uname -s)" in
+    Darwin) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 is_bsd() {
   if stat -f "%z" . > /dev/null 2>&1
   then

@@ -11,12 +11,22 @@ then
   cmd_path="$HOME"/AppData/Local/Amazon/Kindle/application/Kindle.exe
   if ! test -e "$cmd_path"
   then
-    echo d: 23280f7 "$cmd_path" >&2
     unset USERPROFILE
     unset HOMEPATH
     unset HOME
-    # winget install -e --id Amazon.Kindle
+    winget install -e --id Amazon.Kindle
   fi
+  cross_run "$cmd_path" "$@" &
+  exit $?
+elif is_mac
+then
+  path="/Applications/Amazon Kindle.app"
+  if ! test -d "$path"
+  then
+    echo "Amazon Kindle.app not found in /Applications"
+    exit 1
+  fi
+  open "$path" "$@" &
+  exit $?
 fi
 
-cross_run "$cmd_path" "$@" &

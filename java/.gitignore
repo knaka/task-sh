@@ -8,3 +8,4 @@ build
 /gradlew
 /gradlew.bat
 /.cds
+/.syncignored
