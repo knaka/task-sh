@@ -43,19 +43,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::process::exit(0);
     }
     let matches = app.main_command.get_matches();
-    if let Some((subcommand_name, subcommand_matches)) = matches.subcommand() {
-        if let Some(handler) = app.handler_map.get(subcommand_name) {
-            return handler(subcommand_matches);
-        } else {
-            eprintln!("Unknown subcommand: {}", subcommand_name);
-        }
-    }
-    Ok(())
+    let (subcommand_name, subcommand_matches) = matches.subcommand().unwrap();
+    return app.handler_map.get(subcommand_name).unwrap()(subcommand_matches);
 }
-
-// use std::sync::{Mutex};
-// use once_cell::sync::Lazy;
-
-// static SUBCOMMAND_NAMES: Lazy<Mutex<Vec<String>>> = Lazy::new(|| {
-//     Mutex::new(vec![])
-// });
