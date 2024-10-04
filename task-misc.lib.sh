@@ -4,6 +4,7 @@ set -o nounset -o errexit
 test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=-
 
 . task.sh
+. task-git.lib.sh
 
 task_install() ( # Install in each directory.
   chdir_script
@@ -91,3 +92,35 @@ delegate_tasks() (
 subcmd_newer() {
   newer "$@"
 }
+
+subcmd_dupcheck() (
+  ignore_list=":task:"
+  chdir_script
+  base_prev=
+  hash_prev=
+  path_prev=
+  for path in $(subcmd_git ls-files)
+  do
+    base=$(basename "$path")
+    case "$base" in
+      .*) continue;;
+      README*) continue;;
+    esac
+    if echo "$ignore_list" | grep -q ":$base:" > /dev/null 2>&1
+    then
+      continue
+    fi
+    echo "$base" "$(sha1sum "$path" | cut -d ' ' -f 1)" "$path"
+  done | sort | while read -r base hash path
+  do
+    if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
+    then
+      echo "Conflict:"
+      echo "  $path"
+      echo "  $path_prev"
+    fi
+    base_prev="$base"
+    hash_prev="$hash"
+    path_prev="$path"
+  done
+)

@@ -10,6 +10,7 @@ if "%~1" == "update-me" (
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
 set ver=FRP-5398-g89ae34445
 if "%PROCESSOR_ARCHITECTURE%" == "x86" (
+  echo "WARNING: Your environment is 32-bit. Not all features are supported." >&2
   set arch=32
 ) else if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
   set arch=64u

@@ -9,14 +9,15 @@ set_sync_ignored "$SCRIPT_DIR"/.git
 
 subcmd_git() ( # Run git command.
   chdir_script
+  git_cmd_path="$(command -v git)"
   if ! test -r .git/HEAD
   then
-    git init
+    "$git_cmd_path" init
     set_sync_ignored "$SCRIPT_DIR"/.git
-    git remote add origin git@github.com:knaka/src.git
-    git fetch origin main
-    git reset --hard origin/main
-    git branch --set-upstream-to=origin/main main
+    "$git_cmd_path" remote add origin git@github.com:knaka/src.git
+    "$git_cmd_path" fetch origin main
+    "$git_cmd_path" reset --hard origin/main
+    "$git_cmd_path" branch --set-upstream-to=origin/main main
   fi
-  git "$@"
+  "$git_cmd_path" "$@"
 )
