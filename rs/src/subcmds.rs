@@ -5,7 +5,7 @@ mod subcmd_empty;
 mod subcmd_fn;
 mod subcmd_hello;
 
-fn register_subcommands(main_command: &mut MainCommand) {
+fn register_subcommands(main_command: &mut App) {
     main_command.register_subcommand(subcmd_dm::meta(), Box::new(subcmd_dm::handler));
     main_command.register_subcommand(subcmd_empty::meta(), Box::new(subcmd_empty::handler));
     main_command.register_subcommand(subcmd_fn::meta(), Box::new(subcmd_fn::handler));
