@@ -6,8 +6,6 @@ test "${guard_9ac5215+set}" = set && return 0; guard_9ac5215=-
 . task.sh
 . task-rye.lib.sh
 
-set_dir_sync_ignored "$SCRIPT_DIR"/.venv
-
 task_install() ( # Install scripts.
   py_bin_dir_path="$HOME"/py-bin
   mkdir -p "$py_bin_dir_path"

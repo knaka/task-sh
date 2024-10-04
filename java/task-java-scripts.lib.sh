@@ -5,7 +5,8 @@ test "${guard_ecc3b3b+set}" = set && return 0; guard_ecc3b3b=-
 
 . task-java.lib.sh
 
-set_dir_sync_ignored "$SCRIPT_DIR"/.cds
+mkdir -p .cds
+set_sync_ignored .cds
 
 subcmd_run() ( # Runs the program.
   main_class=org.example.AppKt

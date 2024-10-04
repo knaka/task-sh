@@ -5,6 +5,9 @@ test "${guard_6d6de14+set}" = set && return 0; guard_6d6de14=-
 
 . task.sh
 
+mkdir -p .venv
+set_sync_ignored .venv
+
 subcmd_rye() ( # Execute rye.
   # Releases · astral-sh/rye https://github.com/astral-sh/rye/releases
   cmd_base="rye"

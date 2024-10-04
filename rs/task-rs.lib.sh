@@ -5,8 +5,13 @@ test "${guard_87ee349+set}" = set && return 0; guard_87ee349=x
 
 . task.sh
 
-set_dir_sync_ignored "$SCRIPT_DIR"/target
-set_dir_sync_ignored "$SCRIPT_DIR"/.idea
+(
+  for dir in target .idea
+  do
+    mkdir -p "$dir"
+    set_sync_ignored "$dir"
+  done
+)
 
 cargo_bin_path() {
   if type rustup >/dev/null 2>&1

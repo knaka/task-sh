@@ -1,6 +1,15 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+test "${guard_bd3d431+set}" = set && return 0; guard_bd3d431=x
+
+. ./task.sh
+
+mkdir -p build
+set_sync_ignored build
+mkdir -p .stack-work
+set_sync_ignored .stack-work
+
 subcmd_ghcup() { # Run the `ghcup` command.
   exec sh "$(dirname "$0")"/ghcup-cmd.sh "$@"
 }
@@ -8,9 +17,6 @@ subcmd_ghcup() { # Run the `ghcup` command.
 subcmd_stack() { # Run the `stack` command.
   exec sh "$(dirname "$0")"/stack-cmd.sh "$@"
 }
-
-# shellcheck disable=SC1091
-. "$(dirname "$0")"/task.sh
 
 # shellcheck disable=SC2120
 subcmd_build() { # Build the project.
@@ -37,13 +43,6 @@ subcmd_run() {
   fi
   exec "$(dirname "$0")"/build/main-exe "$@"
 } 
-
-(
-  cd "$(dirname "$0")"
-  mkdir -p build
-  mkdir -p .stack-work
-  set_path_sync_ignored build .stack-work
-)
 
 task_install() { # Installs Haskell shim entries.
   bin_dir_path="$HOME/hs-bin"

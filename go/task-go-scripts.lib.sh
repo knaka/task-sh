@@ -6,10 +6,16 @@ test "${guard_bcd6f78+set}" = set && return 0; guard_bcd6f78=-
 . task.sh
 . task-go.lib.sh
 
-set_dir_sync_ignored "$script_dir_path"/.idea "$script_dir_path"/build
+(
+  for dir in .idea build
+  do
+    mkdir -p "$dir"
+    set_sync_ignored "$dir"
+  done
+)
 
 subcmd_build() ( # Build Go source files incrementally.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   go_bin_dir_path=./build
   mkdir -p "$go_bin_dir_path"
   if test "${1+set}" != "set"
@@ -33,7 +39,7 @@ subcmd_build() ( # Build Go source files incrementally.
 )
 
 task_install() { # Install Go tools.
-  cd "$script_dir_path" || exit 1
+  chdir_script
   go_sim_dir_path="$HOME"/go-bin
   mkdir -p "$go_sim_dir_path"
   rm -f "$go_sim_dir_path"/*

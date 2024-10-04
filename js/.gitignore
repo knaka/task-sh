@@ -1,3 +1,2 @@
-/build
-/.idea
 /.syncignored
+/node_modules

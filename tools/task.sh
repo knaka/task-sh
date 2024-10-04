@@ -93,6 +93,34 @@ set_path_attr() (
 
 file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
 
+set_sync_ignored() (
+  sync_ignorance_file="$SCRIPT_DIR"/.syncignored
+  if ! test -r "$sync_ignorance_file"
+  then
+    touch "$sync_ignorance_file"
+    if ! grep -q "^/\.syncignored\$" "$SCRIPT_DIR/.gitignore" > /dev/null 2>&1
+    then
+      echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
+    fi
+  fi
+  path="$1"
+  if ! test -e "$path"
+  then
+    return 1
+  fi
+  rel_path="${path#"$SCRIPT_DIR"/}"
+  if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
+  then
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+    echo "$rel_path" >> "$sync_ignorance_file"
+  fi
+)
+
+# todo: remove
 set_dir_sync_ignored() (
   for path in "$@"
   do
@@ -109,6 +137,7 @@ set_dir_sync_ignored() (
   done
 )
 
+# todo: remove
 set_file_sync_ignored() (
   for path in "$@"
   do

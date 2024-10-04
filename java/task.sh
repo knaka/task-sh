@@ -108,15 +108,15 @@ set_sync_ignored() (
   then
     return 0
   fi
-  the_rel_path="${path#"$SCRIPT_DIR"/}"
-  if ! grep -q "^$the_rel_path/*\$" "$sync_ignorance_file"
+  rel_path="${path#"$SCRIPT_DIR"/}"
+  if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
   then
     # shellcheck disable=SC2154
     for attribute in $file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    echo "$the_rel_path" >> "$sync_ignorance_file"
+    echo "/$rel_path" >> "$sync_ignorance_file"
   fi
 )
 

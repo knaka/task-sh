@@ -5,7 +5,8 @@ test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=x
 
 . task.sh
 
-set_dir_sync_ignored "$SCRIPT_DIR"/.idea
+mkdir -p .idea
+set_sync_ignored .idea
 
 java_arch() {
   case "$(uname -m)" in

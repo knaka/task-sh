@@ -91,6 +91,36 @@ set_path_attr() (
   fi
 )
 
+file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
+
+set_sync_ignored() (
+  sync_ignorance_file="$SCRIPT_DIR"/.syncignored
+  if ! test -r "$sync_ignorance_file"
+  then
+    touch "$sync_ignorance_file"
+    if ! grep -q "^/\.syncignored\$" "$SCRIPT_DIR/.gitignore" > /dev/null 2>&1
+    then
+      echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
+    fi
+  fi
+  path="$1"
+  if ! test -e "$path"
+  then
+    return 0
+  fi
+  rel_path="${path#"$SCRIPT_DIR"/}"
+  if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
+  then
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+    echo "/$rel_path" >> "$sync_ignorance_file"
+  fi
+)
+
+# todo: remove
 set_dir_sync_ignored() (
   for path in "$@"
   do
@@ -99,7 +129,24 @@ set_dir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
-    for attribute in "com.dropbox.ignored" "com.apple.fileprovider.ignore#P"
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
+# todo: remove
+set_file_sync_ignored() (
+  for path in "$@"
+  do
+    if test -f "$path"
+    then
+      continue
+    fi
+    touch "$path"
+    for attribute in $file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
@@ -219,10 +266,13 @@ ensure_opt_arg() (
 )
 
 run_installed() (
-  name=
-  id=
-  path=
-  while getopts n:i:p:-: OPT
+  cmd_name=
+  winget_id=
+  win_cmd_path=
+  brew_id=
+  brew_cmd_path=
+  no_exec=false
+  while getopts nc:p:b:P:w:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -232,31 +282,79 @@ run_installed() (
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      n|name) name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      i|winget-id) id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      p|winget-path) path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      n|no-exec|install-only) no_exec=true;;
+      b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       \?) usage; exit 2;;
       *) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
   done
   shift $((OPTIND-1))
 
+  cmd_path="$cmd_name"
   if is_windows
   then
-    if ! type "$path" > /dev/null 2>&1
+    if tet -n "$win_cmd_path"
     then
-      winget install -e --id "$id"
+      cmd_path="$win_cmd_path"
     fi
-    "$path" "$@"
-    return $?
-  fi
-  if ! type "$name" > /dev/null 2>&1
+    if ! type "$cmd_path" > /dev/null 2>&1
+    then
+      winget install -e --id "$winget_id" 2>&1
+    fi
+    cmd_path="$win_cmd_path"
+  elif type brew > /dev/null 2>&1
   then
-    echo "Install $name and try again." >&2
-    exit 1
+    if test -n "$brew_cmd_path"
+    then
+      cmd_path="$brew_cmd_path"
+    fi
+    if ! type "$cmd_path" > /dev/null 2>&1
+    then
+      brew install "$brew_id"
+    fi
   fi
-  "$name" "$@"
+  if $no_exec
+  then
+    return 0
+  fi
+  "$cmd_path" "$@"
 )
+
+load_env() {
+  if test -r "$SCRIPT_DIR"/.env
+  then
+    # shellcheck disable=SC1090
+    . "$SCRIPT_DIR"/.env
+  fi
+  if test "${APP_ENV+set}" = set
+  then
+    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".
+    then
+      # shellcheck disable=SC1090
+      . "$SCRIPT_DIR"/.env."$APP_ENV"
+    fi
+  fi
+  if test "${APP_SENV+set}" != set || test "${APP_SENV}" != "test"
+  then
+    if test -r "$SCRIPT_DIR"/.env.local
+    then
+      # shellcheck disable=SC1091
+      . "$SCRIPT_DIR"/.env.local
+    fi
+  fi
+  if test "${APP_ENV+set}" = set
+  then
+    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".local
+    then
+      # shellcheck disable=SC1091
+      . "$SCRIPT_DIR"/.env."$APP_ENV".local
+    fi
+  fi
+}
 
 # --------------------------------------------------------------------------
 
@@ -394,8 +492,14 @@ main() {
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
-    subcmd_"$subcmd" "$@" || exit $?
-    exit 0
+    if alias subcmd_"$subcmd" > /dev/null 2>&1
+    then
+      # shellcheck disable=SC2294
+      eval subcmd_"$subcmd" "$@"
+      exit $?
+    fi
+    subcmd_"$subcmd" "$@"
+    exit $?
   fi
 
   for task_with_args in "$@"

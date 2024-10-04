@@ -1,18 +1,12 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_c16da21+set}" = set && return 0; guard_c16da21=-
+test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
 
 . task.sh
 
-set_dir_sync_ignored \
-  "$script_dir_path"/.idea \
-  "$script_dir_path"/build
-  
 delegate_tasks() (
-  ORIGINAL_WD="$PWD"
-  export ORIGINAL_WD
-  cd "$script_dir_path" || exit 1
+  chdir_script
   cmd_file=build/60f20fa"$(exe_ext)"
   task_go_files=task.go
   for task_go_file in task-*.go
