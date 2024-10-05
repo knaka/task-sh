@@ -94,7 +94,7 @@ subcmd_newer() {
 }
 
 subcmd_dupcheck() (
-  ignore_list=":task:"
+  ignore_list=":task:package.json:package-lock.json:"
   chdir_script
   base_prev=
   hash_prev=
@@ -113,6 +113,7 @@ subcmd_dupcheck() (
     echo "$base" "$(sha1sum "$path" | cut -d ' ' -f 1)" "$path"
   done | sort | while read -r base hash path
   do
+    # echo aa0accc "$base" "$hash" "$path" >&2
     if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
     then
       echo "Conflict:"
@@ -122,5 +123,13 @@ subcmd_dupcheck() (
     base_prev="$base"
     hash_prev="$hash"
     path_prev="$path"
+  done
+)
+
+task_task_sh__copy() (
+  chdir_script
+  for dest in */task.sh
+  do
+    cp task.sh "$dest"
   done
 )
