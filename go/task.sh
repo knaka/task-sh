@@ -103,21 +103,23 @@ set_sync_ignored() (
       echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
     fi
   fi
-  path="$1"
-  if ! test -e "$path"
-  then
-    return 0
-  fi
-  rel_path="${path#"$SCRIPT_DIR"/}"
-  if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
-  then
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-    echo "/$rel_path" >> "$sync_ignorance_file"
-  fi
+  for path in "$@"
+  do
+    if ! test -e "$path"
+    then
+      continue
+    fi
+    rel_path="${path#"$SCRIPT_DIR"/}"
+    if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
+    then
+      # shellcheck disable=SC2154
+      for attribute in $file_sharing_ignorance_attributes
+      do
+        set_path_attr "$path" "$attribute" 1
+      done
+      echo "/$rel_path" >> "$sync_ignorance_file"
+    fi
+  done
 )
 
 is_newer_than() {
@@ -291,36 +293,45 @@ run_installed() (
   "$cmd_path" "$@"
 )
 
-load_env() {
-  if test -r "$SCRIPT_DIR"/.env
+load() {
+  if ! test -r "$1"
   then
-    # shellcheck disable=SC1090
-    . "$SCRIPT_DIR"/.env
+    return 0
   fi
+  IFS=
+  while read -r line_0e9c96b
+  do
+    key_07bde23="$(echo "$line_0e9c96b" | sed -E -n -e 's/^([a-zA-Z_][[:alnum:]_]*)=.*$/\1/p')"
+    if test -z "$key_07bde23"
+    then
+      continue
+    fi
+    val="$(eval "echo \"\${$key_07bde23:=}\"")"
+    # echo bcff3d2 "$val" >&2
+    if test -n "$val"
+    then
+      continue
+    fi
+    eval "$line_0e9c96b"
+  done < "$1"
+  unset IFS
+}
+
+load_env() {
   if test "${APP_ENV+set}" = set
   then
-    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".
-    then
-      # shellcheck disable=SC1090
-      . "$SCRIPT_DIR"/.env."$APP_ENV"
-    fi
+    load "$SCRIPT_DIR"/.env."$APP_ENV".local
   fi
   if test "${APP_SENV+set}" != set || test "${APP_SENV}" != "test"
   then
-    if test -r "$SCRIPT_DIR"/.env.local
-    then
-      # shellcheck disable=SC1091
-      . "$SCRIPT_DIR"/.env.local
-    fi
+    load "$SCRIPT_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
   then
-    if test -r "$SCRIPT_DIR"/.env."$APP_ENV".local
-    then
-      # shellcheck disable=SC1091
-      . "$SCRIPT_DIR"/.env."$APP_ENV".local
-    fi
+    load "$SCRIPT_DIR"/.env."$APP_ENV"
   fi
+  # shellcheck disable=SC1091
+  load "$SCRIPT_DIR"/.env
 }
 
 # --------------------------------------------------------------------------
