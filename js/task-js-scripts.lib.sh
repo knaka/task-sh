@@ -46,7 +46,7 @@ EOF
 )
 
 subcmd_run() ( # Run JS script in the original working directory.
-  chdrir_script
+  chdir_script
   script='
 const { spawn } = require("child_process");
 spawn(
