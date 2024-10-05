@@ -439,7 +439,9 @@ main() {
   do
     if test "$OPT" = "-"
     then
+      # shellcheck disable=SC2031
       OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2031
       OPTARG="${OPTARG#"$OPT"}"
       OPTARG="${OPTARG#=}"
     fi
