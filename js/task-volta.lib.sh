@@ -5,6 +5,11 @@ test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
 
 . task.sh
 
+mkdir -p node_modules
+set_sync_ignored node_modules
+
+set_sync_ignored .env*.local || :
+
 subcmd_volta() ( # Executes volta command.
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
   cmd_base=volta

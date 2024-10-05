@@ -94,7 +94,16 @@ subcmd_newer() {
 }
 
 subcmd_dupcheck() (
-  ignore_list=":task:package.json:package-lock.json:"
+  # shellcheck disable=SC2140
+  ignore_list=":"\
+"task:"\
+"package.json:"\
+"package-lock.json:"\
+""
+  # shellcheck disable=SC2140
+  ignore_path=":"\
+"next/app/:"\
+""
   chdir_script
   base_prev=
   hash_prev=
@@ -106,6 +115,10 @@ subcmd_dupcheck() (
       .*) continue;;
       README*) continue;;
     esac
+    if echo "$ignore_path" | grep -q ":$(dirname "$path")/:" > /dev/null 2>&1
+    then
+      continue
+    fi
     if echo "$ignore_list" | grep -q ":$base:" > /dev/null 2>&1
     then
       continue
