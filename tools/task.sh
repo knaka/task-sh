@@ -334,6 +334,21 @@ load_env() {
   load "$SCRIPT_DIR"/.env
 }
 
+kill_children() {
+  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
+  for i_519fa93 in $(jobs | sed -E -e 's/^\[([0-9]+).*/\1/')
+  do
+    kill "%$i_519fa93"
+    wait "%$i_519fa93" > /dev/null 2>&1 || :
+  done
+}
+
+prompt() (
+  printf "%s: " "$1" >&2
+  read -r input
+  echo "$input"
+)
+
 # --------------------------------------------------------------------------
 
 task_subcmds() ( # List subcommands.
@@ -439,7 +454,9 @@ main() {
   do
     if test "$OPT" = "-"
     then
+      # shellcheck disable=SC2031
       OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2031
       OPTARG="${OPTARG#"$OPT"}"
       OPTARG="${OPTARG#=}"
     fi

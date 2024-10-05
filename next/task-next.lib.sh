@@ -26,36 +26,6 @@ open_browser() (
   esac
 )
 
-kill_children() {
-  for i_519fa93 in $(seq 1 "$(jobs 2>&1 | wc -l)")
-  do
-    kill "%$i_519fa93" > /dev/null 2>&1
-    wait "%$i_519fa93" > /dev/null 2>&1 || :
-  done
-  while true
-  do
-    sleep 1
-    # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-    if test -z "$(jobs 2>&1 | grep -v Terminated)"
-    then
-      break
-    fi
-  done
-}
-
-prompt_exit() (
-  while true
-  do
-    printf 'Enter "exit" to exit: '
-    read -r input
-    # jobs
-    if [ "$input" = "exit" ]
-    then
-      break
-    fi
-  done
-)
-
 subcmd_dev() (
   chdir_script
   load_env
@@ -71,22 +41,38 @@ subcmd_dev() (
     if test -n "${temp_dir_path+set}"
     then
       rm -rf "$temp_dir_path"
+      echo "Removed temp dir." >&2
     fi
   }
   trap cleanup_0968807 EXIT
-  "$npm_cmd_path" run dev > "$temp_dir_path"/next-dev.log 2>&1 &
-  tail -f "$temp_dir_path"/next-dev.log 2> /dev/null &
+  "$npm_cmd_path" run dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
   while true
   do
-    if grep -q "Ready" "$temp_dir_path"/next-dev.log > /dev/null 2>&1
-    # if grep -q "Compiled" "$temp_dir_path"/next-dev.log > /dev/null 2>&1
+    sleep 1
+    if grep -q "Ready in " "$temp_dir_path"/next-dev.log > /dev/null 2>&1
     then
       break
     fi
-    sleep 1
   done
-  open_browser "http://localhost:${PORT:-3000}"
-  prompt_exit
+  while true
+  do
+    cmd="$(prompt "Command")"
+    case "$cmd" in
+      "")
+        echo "exit | url" >&2
+        ;;
+      url)
+        # open_browser "http://localhost:${PORT:-3000}"
+        echo "http://localhost:${PORT:-3000}" >&2
+        ;;
+      exit)
+        break
+        ;;
+      *)
+        echo Unknown command: "$cmd" >&2
+        ;;
+    esac
+  done
   kill_children
 )
 
