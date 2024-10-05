@@ -54,7 +54,7 @@ prompt_exit() {
   done
 }
 
-subcmd_start() (
+subcmd_dev() (
   chdir_script
   load_env
   if test "${PORT+set}" = set
