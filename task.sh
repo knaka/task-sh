@@ -335,21 +335,23 @@ load_env() {
 }
 
 kill_children() {
-  # while true
+  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
+  # for i_519fa93 in $(jobs | sed -E -e 's/^\[([0-9]+).*/\1/')
   # do
-  #   i_519fa93=$(jobs | sed -nE -e 's/^\[([0-9]+)\]\+.*/\1/p')
-  #   if test -z "$i_519fa93"
-  #   then
-  #     break
-  #   fi
   #   kill "%$i_519fa93"
   #   wait "%$i_519fa93" > /dev/null 2>&1 || :
   # done
-  for pid_7e44bc0 in $(jobs -p | tail -r)
+  # for pid_7e44bc0 in $(jobs -p | tail -r)
+  # do
+  #   kill "$pid_7e44bc0"
+  #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
+  # done
+  jobs -p | tail -r | while read -r pid
   do
-    kill "$pid_7e44bc0"
-    wait "$pid_7e44bc0" > /dev/null 2>&1 || :
+    kill "$pid"
+    wait "$pid" > /dev/null 2>&1 || :
   done
+  echo "Killed children." >&2
 }
 
 prompt() (

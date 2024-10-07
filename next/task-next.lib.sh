@@ -30,34 +30,26 @@ subcmd_next() {
   subcmd_npx next "$@"
 }
 
-subcmd_dev() (
+task_dev() {
   chdir_script
   load_env
   if test "${PORT+set}" = set
   then
     export PORT
   fi
-  temp_dir_path="$(mktemp -d)"
+  temp_dir_path_77c589f="$(mktemp -d)"
+  # shellcheck disable=SC2317
   cleanup_0968807() {
-    # shellcheck disable=SC2317
-    if test -n "${temp_dir_path+set}"
-    then
-      rm -rf "$temp_dir_path"
-      echo "Removed temp dir." >&2
-    fi
+    rm -rf "$temp_dir_path_77c589f"
   }
   # trap cleanup_0968807 EXIT
   push_cleanup cleanup_0968807
-  # subcmd_npm run dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
-  # subcmd_next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
-  # sh task.sh next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
-  npx_path="$(subcmd_volta which npx)"
-  "$npx_path" next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  "$(subcmd_volta which npx)" next dev 2>&1 | tee "$temp_dir_path_77c589f"/next-dev.log &
   push_cleanup kill_children
   while true
   do
     sleep 1
-    if grep -q "Ready in " "$temp_dir_path"/next-dev.log > /dev/null 2>&1
+    if grep -q "Ready in " "$temp_dir_path_77c589f"/next-dev.log > /dev/null 2>&1
     then
       break
     fi
@@ -70,17 +62,16 @@ subcmd_dev() (
   usage_8e51f1d
   # Some "/bin/sh" provides `-s` option.
   # shellcheck disable=SC3045
-  while read -rsn1 key
+  while read -rsn1 key_f7d5ecc
   do
-    case "$key" in
+    case "$key_f7d5ecc" in
       b) open_browser "http://localhost:${PORT:-3000}" ;;
       c) clear ;;
       x) break ;;
       *) usage_8e51f1d ;;
     esac
   done
-  kill_children
-)
+}
 
 subcmd_build() (
   subcmd_npm run build
