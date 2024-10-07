@@ -146,3 +146,33 @@ task_task_sh__copy() (
     cp task.sh "$dest"
   done
 )
+
+task_hello1() {
+  while true
+  do
+    echo hello1
+    sleep 1
+  done
+}
+
+task_hello2() (
+  while true
+  do
+    echo hello2
+    sleep 1
+  done
+)
+
+task_daemon() {
+  task_hello1 &
+  # task_hello2 &
+  (
+    while true
+    do
+      echo hello3
+      sleep 1
+    done
+  ) &
+  sleep 3
+  kill_children
+}

@@ -341,6 +341,7 @@ kill_children() {
     kill "%$i_519fa93"
     wait "%$i_519fa93" > /dev/null 2>&1 || :
   done
+  echo "Killed children." >&2
 }
 
 prompt() (

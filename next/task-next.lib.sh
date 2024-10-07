@@ -26,6 +26,10 @@ open_browser() (
   esac
 )
 
+subcmd_next() {
+  subcmd_npx next "$@"
+}
+
 subcmd_dev() (
   chdir_script
   load_env
@@ -33,8 +37,6 @@ subcmd_dev() (
   then
     export PORT
   fi
-  # Create direct child to kill the process.
-  npm_cmd_path="$(subcmd_volta which npm)"
   temp_dir_path="$(mktemp -d)"
   cleanup_0968807() {
     # shellcheck disable=SC2317
@@ -44,8 +46,14 @@ subcmd_dev() (
       echo "Removed temp dir." >&2
     fi
   }
-  trap cleanup_0968807 EXIT
-  "$npm_cmd_path" run dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  # trap cleanup_0968807 EXIT
+  push_cleanup cleanup_0968807
+  # subcmd_npm run dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  # subcmd_next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  # sh task.sh next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  npx_path="$(subcmd_volta which npx)"
+  "$npx_path" next dev 2>&1 | tee "$temp_dir_path"/next-dev.log &
+  push_cleanup kill_children
   while true
   do
     sleep 1
@@ -54,23 +62,21 @@ subcmd_dev() (
       break
     fi
   done
-  while true
+  usage_8e51f1d() {
+    echo "[b] Open a Browser"
+    echo "[c] Clear console"
+    echo "[x] to exit"
+  }
+  usage_8e51f1d
+  # Some "/bin/sh" provides `-s` option.
+  # shellcheck disable=SC3045
+  while read -rsn1 key
   do
-    cmd="$(prompt "Command")"
-    case "$cmd" in
-      "")
-        echo "exit | url" >&2
-        ;;
-      url)
-        # open_browser "http://localhost:${PORT:-3000}"
-        echo "http://localhost:${PORT:-3000}" >&2
-        ;;
-      exit)
-        break
-        ;;
-      *)
-        echo Unknown command: "$cmd" >&2
-        ;;
+    case "$key" in
+      b) open_browser "http://localhost:${PORT:-3000}" ;;
+      c) clear ;;
+      x) break ;;
+      *) usage_8e51f1d ;;
     esac
   done
   kill_children
