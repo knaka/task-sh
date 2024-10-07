@@ -5,12 +5,12 @@ test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
 
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then
-  temp_dir_path="$(mktemp -d)"
+  temp_dir_path_5de91af="$(mktemp -d)"
   # shellcheck disable=SC2317
-  cleanup() { rm -fr "$temp_dir_path"; }
-  trap cleanup EXIT
-  curl --fail --location --output "$temp_dir_path"/task_sh https://raw.githubusercontent.com/knaka/src/main/task.sh
-  cat "$temp_dir_path"/task_sh > "$0"
+  cleanup_7f0c4de() { rm -fr "$temp_dir_path_5de91af"; }
+  trap cleanup_7f0c4de EXIT
+  curl --fail --location --output "$temp_dir_path_5de91af"/task_sh https://raw.githubusercontent.com/knaka/src/main/task.sh
+  cat "$temp_dir_path_5de91af"/task_sh > "$0"
   exit 0
 fi
 
@@ -28,21 +28,41 @@ chdir_script() {
   cd "$SCRIPT_DIR" || exit 1
 }
 
-inside_script_dir() {
+in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
 
-cleanups=
+_temp_dir_path_d4a4197="$(mktemp -d --dry-run -t "task_sh_$$")"
 
-push_cleanup() {
-  cleanups="$1 $cleanups"
+temp_dir_path() {
+  if ! test -d "$_temp_dir_path_d4a4197"
+  then
+    mkdir -p "$_temp_dir_path_d4a4197"
+  fi
+  echo "$_temp_dir_path_d4a4197"
 }
 
 cleanup() {
-  for cleanup in $cleanups
+  rm -fr "$_temp_dir_path_d4a4197"
+  # echo "Cleaned up temporary files." >&2
+
+  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
+  # for i_519fa93 in $(jobs | sed -E -e 's/^\[([0-9]+).*/\1/')
+  # do
+  #   kill "%$i_519fa93"
+  #   wait "%$i_519fa93" > /dev/null 2>&1 || :
+  # done
+  # for pid_7e44bc0 in $(jobs -p | tail -r)
+  # do
+  #   kill "$pid_7e44bc0"
+  #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
+  # done
+  jobs -p | tail -r | while read -r pid
   do
-    $cleanup
+    kill "$pid"
+    wait "$pid" > /dev/null 2>&1 || :
   done
+  # echo "Killed children." >&2
 }
 
 trap cleanup EXIT
@@ -121,10 +141,6 @@ set_sync_ignored() (
     fi
   done
 )
-
-is_newer_than() {
-  test -n "$(find "$1" -newer "$2"  2>/dev/null)" || return 1
-}
 
 newer() (
   found_than=false
@@ -332,26 +348,6 @@ load_env() {
   fi
   # shellcheck disable=SC1091
   load "$SCRIPT_DIR"/.env
-}
-
-kill_children() {
-  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  # for i_519fa93 in $(jobs | sed -E -e 's/^\[([0-9]+).*/\1/')
-  # do
-  #   kill "%$i_519fa93"
-  #   wait "%$i_519fa93" > /dev/null 2>&1 || :
-  # done
-  # for pid_7e44bc0 in $(jobs -p | tail -r)
-  # do
-  #   kill "$pid_7e44bc0"
-  #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
-  # done
-  jobs -p | tail -r | while read -r pid
-  do
-    kill "$pid"
-    wait "$pid" > /dev/null 2>&1 || :
-  done
-  echo "Killed children." >&2
 }
 
 prompt() (

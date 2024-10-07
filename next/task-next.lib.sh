@@ -37,24 +37,18 @@ task_dev() {
   then
     export PORT
   fi
-  temp_dir_path_77c589f="$(mktemp -d)"
   # shellcheck disable=SC2317
-  cleanup_0968807() {
-    rm -rf "$temp_dir_path_77c589f"
-  }
-  # trap cleanup_0968807 EXIT
-  push_cleanup cleanup_0968807
-  "$(subcmd_volta which npx)" next dev 2>&1 | tee "$temp_dir_path_77c589f"/next-dev.log &
-  push_cleanup kill_children
+  "$(subcmd_volta which npx)" next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
-    if grep -q "Ready in " "$temp_dir_path_77c589f"/next-dev.log > /dev/null 2>&1
+    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
     then
       break
     fi
   done
   usage_8e51f1d() {
+    echo
     echo "[b] Open a Browser"
     echo "[c] Clear console"
     echo "[x] to exit"
