@@ -4,6 +4,7 @@ set -o errexit -o nounset
 test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
 
 . task.sh
+. task-volta.lib.sh
 
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"
@@ -45,9 +46,9 @@ EOF
   done
 )
 
-subcmd_run() ( # Run JS script in the original working directory.
+subcmd_run() { # Run JS script in the original working directory.
   chdir_script
-  script='
+  script_ac72EF8='
 const { spawn } = require("child_process");
 spawn(
   process.execPath,
@@ -69,6 +70,6 @@ spawn(
 ;
 '
   # Node.js on Windows does not recognize multi-line script passed to -e option. ???
-  script="$(echo "$script" | tr -d '\n')"
-  subcmd_volta run node -e "$script" "$ORIGINAL_DIR" "$@"
-)
+  script_ac72EF8="$(echo "$script_ac72EF8" | tr -d '\n')"
+  "$(node_cmd_path)" -e "$script_ac72EF8" "$ORIGINAL_DIR" "$@"
+}
