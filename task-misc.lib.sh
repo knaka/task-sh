@@ -99,6 +99,8 @@ subcmd_dupcheck() (
 "task:"\
 "package.json:"\
 "package-lock.json:"\
+"task-project.lib.sh:"\
+"task-prj.lib.sh:"\
 ""
   # shellcheck disable=SC2140
   ignore_path=":"\
