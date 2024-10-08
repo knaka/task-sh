@@ -11,6 +11,10 @@ set_sync_ignored .next .vercel
 
 set_sync_ignored next-env.d.ts || :
 
+subcmd_next() {
+  subcmd_npx next "$@"
+}
+
 open_browser() (
   case "$(uname -s)" in
     Linux)
@@ -26,11 +30,27 @@ open_browser() (
   esac
 )
 
-subcmd_next() {
-  subcmd_npx next "$@"
+usage_next_prompt() {
+  echo
+  echo "[b] Open a Browser"
+  echo "[c] Clear console"
+  echo "[x] to exit"
 }
 
-task_dev() {
+next_prompt() {
+  usage_next_prompt
+  while true
+  do
+    case "$(get_key)" in
+      b) open_browser "http://localhost:${1}" ;;
+      c) clear ;;
+      x) break ;;
+      *) usage_next_prompt ;;
+    esac
+  done
+}
+
+task_dev() { # Development server for Next.js
   chdir_script
   load_env
   if test "${PORT+set}" = set
@@ -38,7 +58,7 @@ task_dev() {
     export PORT
   fi
   # shellcheck disable=SC2317
-  "$(subcmd_volta which npx)" next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  "$(npx_cmd_path)" next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
@@ -47,49 +67,30 @@ task_dev() {
       break
     fi
   done
-  usage_8e51f1d() {
-    echo
-    echo "[b] Open a Browser"
-    echo "[c] Clear console"
-    echo "[x] to exit"
-  }
-  usage_8e51f1d
-  # Some "/bin/sh" provides `-s` option.
-  # shellcheck disable=SC3045
-  while read -rsn1 key_f7d5ecc
-  do
-    case "$key_f7d5ecc" in
-      b) open_browser "http://localhost:${PORT:-3000}" ;;
-      c) clear ;;
-      x) break ;;
-      *) usage_8e51f1d ;;
-    esac
-  done
+  next_prompt "${PORT:-3000}"
+  chdir_original
 }
 
-subcmd_build() (
+task_build() { # Build the Next.js app.
   subcmd_npm run build
-)
+}
 
-subcmd_depbuild() (
+task_depbuild() ( # Build the Next.js app if the source is newer than the build.
   chdir_script
   if newer app --than .next
   then
-    subcmd_build
+    task_build
   fi
 )
 
-subcmd_start() {
+task_start() ( # Start the Next.js server with the production build.
   chdir_script
   load_env
   if test "${PORT+set}" = set
   then
     export PORT
   fi
-  subcmd_depbuild
-  npm_cmd_path="$(subcmd_volta which npm)"
-  "$npm_cmd_path" run start &
-  open_browser "http://localhost:${PORT:-3000}"
-  prompt_exit
-  kill_children
-}
+  task_depbuild
+  "$(npx_cmd_path next)" run start &
+  next_prompt "${PORT:-3000}"
+)
