@@ -87,7 +87,8 @@ npx_cmd_path() {
 }
 
 subcmd_npx() { # Run npx.
-  "$(npx_cmd_path)" "$@"
+  # "$(npx_cmd_path)" "$@"
+  subcmd_volta run npx "$@"
 } 
 
 node_cmd_path() {
