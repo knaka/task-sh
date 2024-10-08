@@ -28,6 +28,17 @@ chdir_script() {
   cd "$SCRIPT_DIR" || exit 1
 }
 
+user_specified_directory=
+
+chdir_user() {
+  if test -n "$user_specified_directory"
+  then
+    cd "$user_specified_directory" || exit 1
+  else
+    chdir_original
+  fi
+}
+
 in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
@@ -250,6 +261,21 @@ ensure_opt_arg() (
   echo "$2"
 )
 
+open_browser() (
+  case "$(uname -s)" in
+    Linux)
+      xdg-open "$1" ;;
+    Darwin)
+      open "$1" ;;
+    Windows_NT)
+      start "$1" ;;
+    *)
+      echo "Unsupported OS: $(uname -s)" >&2
+      exit 1
+      ;;
+  esac
+)
+
 run_installed() (
   cmd_name=
   winget_id=
@@ -350,10 +376,11 @@ load_env() {
   load "$SCRIPT_DIR"/.env
 }
 
-prompt() (
-  printf "%s: " "$1" >&2
-  read -r input
-  echo "$input"
+get_key() (
+  # Some "/bin/sh" provides `-s` option.
+  # shellcheck disable=SC3045
+  read -rsn1 key
+  echo "$key"
 )
 
 # --------------------------------------------------------------------------
@@ -414,6 +441,8 @@ EOF
 )
 
 main() {
+  chdir_script
+
   if test "${ARG0BASE+set}" = "set"
   then
     case "$ARG0BASE" in
@@ -438,25 +467,24 @@ main() {
   fi
 
   task_file_paths="$(realpath "$0")"
-  chdir_script
-  for file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
+  for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
-    if ! test -r "$file_path"
+    if ! test -r "$task_file_path"
     then
       continue
     fi
-    case "$(basename "$file_path")" in
-      task-dev.sh|task-prd.sh) continue;;
+    case "$(basename "$task_file_path")" in
+      task-dev.sh|task-prd.sh)
+      continue
+      ;;
     esac
-    task_file_paths="$task_file_paths $file_path"
+    task_file_paths="$task_file_paths $task_file_path"
     # shellcheck disable=SC1090
-    . "$file_path"
+    . "$task_file_path"
   done
-  chdir_original
 
   verbose=false
   shows_help=false
-  directory=""
   while getopts d:hv-: OPT
   do
     if test "$OPT" = "-"
@@ -468,7 +496,7 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      d|directory) directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       h|help) shows_help=true;;
       v|verbose) verbose=true;;
       \?) usage; exit 2;;
@@ -477,20 +505,13 @@ main() {
   done
   shift $((OPTIND-1))
 
-  if test -n "$directory"
-  then
-    if $verbose; then echo "cd $directory" >&2; fi
-    cd "$directory"
-  fi
-
   if $shows_help || test "${1+set}" != "set"
   then
     usage
     exit 0
   fi
 
-  subcmd="$1"
-  subcmd="$(echo "$subcmd" | sed -r -e 's/:/__/g')"
+  subcmd="$(echo "$1" | sed -r -e 's/:/__/g')"
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
     shift
@@ -506,27 +527,27 @@ main() {
 
   for task_with_args in "$@"
   do
-    task="$task_with_args"
+    task_name="$task_with_args"
     args=""
     case "$task_with_args" in
       *\[*)
-        task="${task_with_args%%\[*}"
+        task_name="${task_with_args%%\[*}"
         args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
         ;;
     esac
-    task="$(echo "$task" | sed -r -e 's/:/__/g')"
-    if ! type task_"$task" > /dev/null 2>&1
+    task_name="$(echo "$task_name" | sed -r -e 's/:/__/g')"
+    if ! type task_"$task_name" > /dev/null 2>&1
     then
       if type delegate_tasks > /dev/null 2>&1
       then  
         delegate_tasks "$@"
-        exit 0
+        continue
       fi
-      echo "Unknown task: $task" >&2
+      echo "Unknown task: $task_name" >&2
       exit 1
     fi
     # shellcheck disable=SC2086
-    task_"$task" $args
+    task_"$task_name" $args
   done
 }
 

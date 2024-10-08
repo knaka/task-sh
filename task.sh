@@ -261,6 +261,21 @@ ensure_opt_arg() (
   echo "$2"
 )
 
+open_browser() (
+  case "$(uname -s)" in
+    Linux)
+      xdg-open "$1" ;;
+    Darwin)
+      open "$1" ;;
+    Windows_NT)
+      start "$1" ;;
+    *)
+      echo "Unsupported OS: $(uname -s)" >&2
+      exit 1
+      ;;
+  esac
+)
+
 run_installed() (
   cmd_name=
   winget_id=
