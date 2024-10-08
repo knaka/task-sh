@@ -11,5 +11,6 @@ set_sync_ignored .next .vercel out
 set_sync_ignored next-env.d.ts || :
 
 subcmd_next() {
-  "$(npx_cmd_path)" next "$@"
+  set_node_env
+  node"$(exe_ext)" node_modules/next/dist/bin/next "$@"
 }

@@ -27,27 +27,6 @@ next_prompt() {
   done
 }
 
-task_dev() { # Development server for Next.js
-  chdir_script
-  load_env
-  if test "${PORT+set}" = set
-  then
-    export PORT
-  fi
-  set_node_env
-  node"$(exe_ext)" node_modules/next/dist/bin/next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
-  while true
-  do
-    sleep 1
-    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
-    then
-      break
-    fi
-  done
-  next_prompt "http://localhost:${PORT:-3000}"
-  chdir_original
-}
-
 task_build() { # Build the Next.js app.
   subcmd_npm run build
 }
@@ -60,14 +39,41 @@ task_depbuild() ( # Build the Next.js app if the source is newer than the build.
   fi
 )
 
-task_start() ( # Start the Next.js server with the production build.
-  chdir_script
+task_dev() { # Development server for Next.js
   load_env
   if test "${PORT+set}" = set
   then
     export PORT
   fi
-  task_depbuild
-  "$(npx_cmd_path next)" run start &
+  sh task.sh next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  while true
+  do
+    sleep 1
+    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
+    then
+      break
+    fi
+  done
   next_prompt "http://localhost:${PORT:-3000}"
+}
+
+task_start() ( # Start the Next.js server with the production build.
+  load_env
+  if test "${PORT+set}" = set
+  then
+    export PORT
+  fi
+  task_build
+  sh task.sh next start 2>&1 | tee "$(temp_dir_path)"/next-prd.log &
+  while true
+  do
+    sleep 1
+    if grep -q "Ready in " "$(temp_dir_path)"/next-prd.log > /dev/null 2>&1
+    then
+      break
+    fi
+  done
+  next_prompt "http://localhost:${PORT:-3000}"
+  # Cannot kill with kill(1)
+  pkill -f 'next-server \('
 )

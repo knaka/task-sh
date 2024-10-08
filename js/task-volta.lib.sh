@@ -10,7 +10,7 @@ set_sync_ignored node_modules
 
 set_sync_ignored .env*.local || :
 
-volta_cmd_path() (
+volta_dir_path() (
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
   cmd_base=volta
   ver=2.0.1
@@ -56,7 +56,7 @@ volta_cmd_path() (
     chmod +x "$volta_dir_path"/*
     rm -fr "$temp_dir_path"
   fi
-  echo "$volta_cmd_path"
+  echo "$volta_dir_path"
 )
 
 set_volta_env() {
@@ -65,7 +65,7 @@ set_volta_env() {
     return 0
   fi
   guard_fc3b530=x
-  PATH="$(dirname "$(volta_cmd_path)"):$PATH"
+  PATH="$(volta_dir_path):$PATH"
   export PATH
 }
 
@@ -82,32 +82,20 @@ set_node_env() {
 
 subcmd_volta() {
   set_volta_env
-  "$(volta_cmd_path)" "$@"
+  volta"$(exe_ext)" "$@"
 }
-
-# npm_cmd_path() {
-#   subcmd_volta which npm
-# }
 
 subcmd_npm() { # Run npm.
-  # This fails on Windows.
-  # "$(npm_cmd_path)" "$@"
-  subcmd_volta run npm "$@"
-}
-
-npx_cmd_path() {
-  subcmd_volta which npx
+  set_node_env
+  npm"$(exe_ext)" "$@"
 }
 
 subcmd_npx() { # Run npx.
-  # "$(npx_cmd_path)" "$@"
-  subcmd_volta run npx "$@"
+  set_node_env
+  npx"$(exe_ext)" "$@"
 } 
 
-# node_cmd_path() {
-#   subcmd_volta which node
-# }
-
 subcmd_node() {
-  "$(node_cmd_path)" "$@"
+  set_node_env
+  node"$(exe_ext)" "$@"
 }

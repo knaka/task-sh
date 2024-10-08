@@ -7,14 +7,10 @@ test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 . task-volta.lib.sh
 . task-next.lib.sh
 
-
 mkdir -p .wrangler
 set_sync_ignored .wrangler
 
 subcmd_esbuild() {
-  # echo "$(npx_cmd_path)" >&2
-  # cross_run "$(npx_cmd_path)" esbuild "$@"
-  # subcmd_volta run npx esbuild "$@"
   set_node_env
   node_modules/esbuild/bin/esbuild"$(exe_ext)" "$@"
 }
@@ -24,6 +20,11 @@ task_worker__build() {
   subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js
 }
 
+subcmd_wrangler() {
+  set_node_env
+  node"$(exe_ext)" node_modules/wrangler/bin/wrangler.js "$@"
+}
+
 task_worker__dev() {
   load_env
   opt_9754aa0=
@@ -31,18 +32,8 @@ task_worker__dev() {
   then
     opt_9754aa0="--port=$NEXT_PUBLIC_API_PORT"
   fi
-
-  # NG
-  # # shellcheck disable=SC2086
-  # subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
-
   # shellcheck disable=SC2086
-  # "$(npx_cmd_path)" wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
-  # subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
-
-  set_node_env
-  # shellcheck disable=SC2086
-  node"$(exe_ext)" node_modules/wrangler/bin/wrangler.js pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
+  subcmd_wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
 }
 
 task_worker__depbuild() {
@@ -108,9 +99,7 @@ task_next__dev() {
   fi
   set_node_env
   # shellcheck disable=SC2086
-  node"$(exe_ext)" ./node_modules/.bin/next dev $opts_93039d0
-  # load_env
-  # next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
+  subcmd_next dev $opts_93039d0
 }
 
 task_dev() {
@@ -120,22 +109,30 @@ task_dev() {
   export APP_ENV
   sh task.sh worker:watchbuild &
   sh task.sh worker:dev &
-  sh task.sh next:dev &
+  sh task.sh next:dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  while true
+  do
+    sleep 1
+    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
+    then
+      break
+    fi
+  done
   load_env
   next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
 }
 
 task_pages__start() {
-  # "$(npx_cmd_path)" wrangler pages dev out/
-  subcmd_npx wrangler pages dev out/
+  subcmd_wrangler pages dev out/
 }
 
-task_preview() {
+task_start() {
   NODE_ENV=production
   export NODE_ENV
   APP_ENV=production
   export APP_ENV
   sh task.sh worker:build
   sh task.sh next:build
+  # Wrangler provides interactive CUI.
   sh task.sh pages:start
 }
