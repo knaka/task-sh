@@ -43,7 +43,8 @@ in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
 
-_temp_dir_path_d4a4197="$(mktemp -d --dry-run -t "task_sh_$$")"
+# busybox not supports -t
+_temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
 temp_dir_path() {
   if ! test -d "$_temp_dir_path_d4a4197"
@@ -53,12 +54,19 @@ temp_dir_path() {
   echo "$_temp_dir_path_d4a4197"
 }
 
+if ! type tac > /dev/null 2>&1
+then
+  tac() {
+    tail -r
+  }
+fi
+
 cleanup() {
   rm -fr "$_temp_dir_path_d4a4197"
   # echo "Cleaned up temporary files." >&2
 
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  for i_519fa93 in $(jobs | tail -r | sed -E -e 's/^\[([0-9]+).*/\1/')
+  for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
   do
     kill "%$i_519fa93"
     wait "%$i_519fa93" || :
