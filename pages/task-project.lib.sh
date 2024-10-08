@@ -14,7 +14,9 @@ set_sync_ignored .wrangler
 subcmd_esbuild() {
   # echo "$(npx_cmd_path)" >&2
   # cross_run "$(npx_cmd_path)" esbuild "$@"
-  subcmd_volta run npx esbuild "$@"
+  # subcmd_volta run npx esbuild "$@"
+  set_node_env
+  node_modules/esbuild/bin/esbuild"$(exe_ext)" "$@"
 }
 
 # shellcheck disable=SC2120
@@ -36,7 +38,11 @@ task_worker__dev() {
 
   # shellcheck disable=SC2086
   # "$(npx_cmd_path)" wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
-  subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
+  # subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
+
+  set_node_env
+  # shellcheck disable=SC2086
+  node"$(exe_ext)" node_modules/wrangler/bin/wrangler.js pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
 }
 
 task_worker__depbuild() {
@@ -49,7 +55,10 @@ task_worker__depbuild() {
 
 task_worker__watchbuild() {
   # "forever" is used to keep the process running even after the stdin is closed.
-  task_worker__build --watch=forever
+  # task_worker__build --watch=forever
+  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
+  # set_node_env
+  # node node_modules/esbuild/bin/esbuild --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
   # while true
   # do
   #   task_worker__depbuild
@@ -99,7 +108,7 @@ task_next__dev() {
   fi
   set_node_env
   # shellcheck disable=SC2086
-  node"$(exe_ext)" ./node_modules/.bin/next dev $opts_93039d0 &
+  node"$(exe_ext)" ./node_modules/.bin/next dev $opts_93039d0
   # load_env
   # next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
 }

@@ -62,27 +62,35 @@ then
 fi
 
 cleanup() {
+  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
+  if is_windows 
+  then
+    for i_519fa93 in $(seq 10)
+    do
+      kill "%$i_519fa93" > /dev/null 2>&1 || :
+      wait "%$i_519fa93" > /dev/null 2>&1 || :
+    done
+  else 
+    for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
+    do
+      kill "%$i_519fa93"
+      wait "%$i_519fa93" || :
+    done
+    # for pid_7e44bc0 in $(jobs -p | tail -r)
+    # do
+    #   kill "$pid_7e44bc0"
+    #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
+    # done
+    # jobs -p | tail -r | while read -r pid
+    # do
+    #   kill "$pid" > /dev/null 2>&1 || :
+    #   wait "$pid" > /dev/null 2>&1 || :
+    # done
+  fi
+  # echo "Killed children." >&2
+
   rm -fr "$_temp_dir_path_d4a4197"
   # echo "Cleaned up temporary files." >&2
-
-  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
-  do
-    kill "%$i_519fa93"
-    wait "%$i_519fa93" || :
-    # wait "%$i_519fa93" > /dev/null 2>&1 || :
-  done
-  # for pid_7e44bc0 in $(jobs -p | tail -r)
-  # do
-  #   kill "$pid_7e44bc0"
-  #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
-  # done
-  # jobs -p | tail -r | while read -r pid
-  # do
-  #   kill "$pid" > /dev/null 2>&1 || :
-  #   wait "$pid" > /dev/null 2>&1 || :
-  # done
-  # echo "Killed children." >&2
 }
 
 trap cleanup EXIT

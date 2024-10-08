@@ -28,14 +28,14 @@ next_prompt() {
 }
 
 task_dev() { # Development server for Next.js
+  chdir_script
   load_env
   if test "${PORT+set}" = set
   then
     export PORT
   fi
-  # shellcheck disable=SC2317
   set_node_env
-  node"$(exe_ext)" node_modules/.bin/next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  node"$(exe_ext)" node_modules/next/dist/bin/next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
@@ -45,6 +45,7 @@ task_dev() { # Development server for Next.js
     fi
   done
   next_prompt "http://localhost:${PORT:-3000}"
+  chdir_original
 }
 
 task_build() { # Build the Next.js app.

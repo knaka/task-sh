@@ -1,11 +1,11 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-# foo() { while true; do echo foo; sleep 1; done }
-# foo &
-# sleep 3
-# kill %+
-# exit 0
+foo() { while true; do echo foo; sleep 1; done }
+foo &
+sleep 3
+kill %+
+exit 0
 
 # bar() ( while true; do echo bar; sleep 1; done )
 # bar &
