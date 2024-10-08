@@ -69,17 +69,30 @@ set_volta_env() {
   export PATH
 }
 
+set_node_env() {
+  if test "${guard_54448e7+set}" = set
+  then
+    return 0
+  fi
+  guard_54448e7=x
+  set_volta_env
+  PATH="$(dirname "$(subcmd_volta which node)"):$PATH"
+  export PATH
+}
+
 subcmd_volta() {
   set_volta_env
   "$(volta_cmd_path)" "$@"
 }
 
-npm_cmd_path() {
-  subcmd_volta which npm
-}
+# npm_cmd_path() {
+#   subcmd_volta which npm
+# }
 
 subcmd_npm() { # Run npm.
-  "$(npm_cmd_path)" "$@"
+  # This fails on Windows.
+  # "$(npm_cmd_path)" "$@"
+  subcmd_volta run npm "$@"
 }
 
 npx_cmd_path() {
@@ -91,9 +104,9 @@ subcmd_npx() { # Run npx.
   subcmd_volta run npx "$@"
 } 
 
-node_cmd_path() {
-  subcmd_volta which node
-}
+# node_cmd_path() {
+#   subcmd_volta which node
+# }
 
 subcmd_node() {
   "$(node_cmd_path)" "$@"

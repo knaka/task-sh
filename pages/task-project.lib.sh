@@ -12,7 +12,9 @@ mkdir -p .wrangler
 set_sync_ignored .wrangler
 
 subcmd_esbuild() {
-  "$(npx_cmd_path)" esbuild "$@"
+  # echo "$(npx_cmd_path)" >&2
+  # cross_run "$(npx_cmd_path)" esbuild "$@"
+  subcmd_volta run npx esbuild "$@"
 }
 
 # shellcheck disable=SC2120
@@ -33,7 +35,8 @@ task_worker__dev() {
   # subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
 
   # shellcheck disable=SC2086
-  "$(npx_cmd_path)" wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
+  # "$(npx_cmd_path)" wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
+  subcmd_npx wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
 }
 
 task_worker__depbuild() {
@@ -94,8 +97,11 @@ task_next__dev() {
   then
     opts_93039d0="--port=$NEXT_DEV_SERVER_PORT"
   fi
+  set_node_env
   # shellcheck disable=SC2086
-  "$(npx_cmd_path)" next dev $opts_93039d0
+  node"$(exe_ext)" ./node_modules/.bin/next dev $opts_93039d0 &
+  # load_env
+  # next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
 }
 
 task_dev() {
@@ -111,7 +117,8 @@ task_dev() {
 }
 
 task_pages__start() {
-  "$(npx_cmd_path)" wrangler pages dev out/
+  # "$(npx_cmd_path)" wrangler pages dev out/
+  subcmd_npx wrangler pages dev out/
 }
 
 task_preview() {
