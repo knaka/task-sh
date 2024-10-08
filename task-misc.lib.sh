@@ -101,6 +101,8 @@ subcmd_dupcheck() (
 "package-lock.json:"\
 "task-project.lib.sh:"\
 "task-prj.lib.sh:"\
+"tsconfig.json:"\
+"page.tsx:"\
 ""
   # shellcheck disable=SC2140
   ignore_path=":"\

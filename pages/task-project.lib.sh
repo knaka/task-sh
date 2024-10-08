@@ -27,7 +27,6 @@ task_worker__dev() {
   then
     opt_9754aa0="--port=$NEXT_PUBLIC_API_PORT"
   fi
-  echo d: "$opt_9754aa0" >&2
 
   # NG
   # # shellcheck disable=SC2086
@@ -89,7 +88,14 @@ next_prompt() {
 }
 
 task_next__dev() {
-  "$(npx_cmd_path)" next dev
+  load_env
+  opts_93039d0=
+  if test "${NEXT_DEV_SERVER_PORT+set}" = set
+  then
+    opts_93039d0="--port=$NEXT_DEV_SERVER_PORT"
+  fi
+  # shellcheck disable=SC2086
+  "$(npx_cmd_path)" next dev $opts_93039d0
 }
 
 task_dev() {
@@ -100,7 +106,8 @@ task_dev() {
   sh task.sh worker:watchbuild &
   sh task.sh worker:dev &
   sh task.sh next:dev &
-  next_prompt "http://localhost:3000"
+  load_env
+  next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
 }
 
 task_pages__start() {

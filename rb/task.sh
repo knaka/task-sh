@@ -58,7 +58,7 @@ cleanup() {
   # echo "Cleaned up temporary files." >&2
 
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  for i_519fa93 in $(jobs | sed -E -e 's/^\[([0-9]+).*/\1/')
+  for i_519fa93 in $(jobs | tail -r | sed -E -e 's/^\[([0-9]+).*/\1/')
   do
     kill "%$i_519fa93"
     wait "%$i_519fa93" || :
