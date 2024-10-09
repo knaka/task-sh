@@ -27,7 +27,6 @@ shift $((OPTIND-1))
 
 if ! test "${1+set}" = set
 then
-	echo 59d3089 >&2
 	set -- -
 fi
 

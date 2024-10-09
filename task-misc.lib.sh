@@ -52,6 +52,10 @@ task_task_cmd__copy() ( # Copy task.cmd to each directory.
     then
       continue
     fi
+    if ! test -r "$dir"/task.cmd
+    then
+      continue
+    fi
     cp -f task.cmd "$dir"/task.cmd
   done
 )
@@ -89,11 +93,11 @@ delegate_tasks() (
   esac
 )
 
-subcmd_newer() {
+subcmd_newer() { # Check newer files.
   newer "$@"
 }
 
-subcmd_dupcheck() (
+subcmd_dupcheck() ( # Check duplicate files.
   # shellcheck disable=SC2140
   ignore_list=":"\
 "task:"\

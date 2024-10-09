@@ -13,8 +13,8 @@ export const ApiAccess = () => {
   useEffect(() => {
     (async () => {
       const response = await fetch(`${apiEndpointBase}/hello`);
-      const data = await response.text();
-      setMessage(data);
+      const data: any = await response.json();
+      setMessage(data.message);
     })();
   });
   return (<div>
