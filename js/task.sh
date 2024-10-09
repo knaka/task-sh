@@ -43,7 +43,7 @@ in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
 
-# busybox not supports -t
+# BusyBox sh not supports -t.
 _temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
 temp_dir_path() {
@@ -76,16 +76,6 @@ cleanup() {
       kill "%$i_519fa93"
       wait "%$i_519fa93" || :
     done
-    # for pid_7e44bc0 in $(jobs -p | tail -r)
-    # do
-    #   kill "$pid_7e44bc0"
-    #   wait "$pid_7e44bc0" > /dev/null 2>&1 || :
-    # done
-    # jobs -p | tail -r | while read -r pid
-    # do
-    #   kill "$pid" > /dev/null 2>&1 || :
-    #   wait "$pid" > /dev/null 2>&1 || :
-    # done
   fi
   # echo "Killed children." >&2
 
@@ -117,10 +107,14 @@ is_bsd() {
     return 0
   fi
   return 1
-  # case "$(uname -s)" in
-  #   Darwin|FreeBSD|NetBSD|OpenBSD) return 0 ;;
-  #   *) return 1 ;;
-  # esac
+}
+
+is_darwin() {
+  if test "$(uname -s)" = "Darwin"
+  then
+    return 0
+  fi
+  return 1
 }
 
 set_path_attr() (
@@ -234,7 +228,6 @@ newer() (
     echo "No destination file" >&2
     return 0
   fi
-  # echo "74476d8 | dest: $dest, newer: $(find "$@" -newer "$dest")" >&2
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 )
 
@@ -310,7 +303,7 @@ open_browser() (
   esac
 )
 
-run_installed() (
+run_installed() ( # Run a command after ensuring it is installed.
   cmd_name=
   winget_id=
   win_cmd_path=
@@ -393,7 +386,7 @@ load() {
   unset IFS
 }
 
-load_env() {
+load_env() { # Load environment variables.
   if test "${APP_ENV+set}" = set
   then
     load "$SCRIPT_DIR"/.env."$APP_ENV".local
@@ -418,6 +411,8 @@ get_key() (
 )
 
 # --------------------------------------------------------------------------
+
+task_file_paths=
 
 task_subcmds() ( # List subcommands.
   chdir_script
@@ -456,8 +451,8 @@ usage() ( # Show help message.
   chdir_script
   cat <<EOF
 Usage:
-  $0 [options] <subcommand> [args...]
-  $0 [opttions] <task[arg1,arg2,...]> [tasks...]
+  $ARG0BASE [options] <subcommand> [args...]
+  $ARG0BASE [options] <task[arg1,arg2,...]> [tasks...]
 
 Options:
   -d, --directory=<dir>  Change directory before running tasks.
@@ -573,7 +568,8 @@ main() {
     if ! type task_"$task_name" > /dev/null 2>&1
     then
       if type delegate_tasks > /dev/null 2>&1
-      then  
+      then
+        $verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
         delegate_tasks "$@"
         continue
       fi
