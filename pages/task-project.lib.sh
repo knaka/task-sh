@@ -14,17 +14,30 @@ set_sync_ignored .wrangler
 
 subcmd_esbuild() {
   set_node_env
-  if type node_modules/esbuild/bin/esbuild 2> /dev/null > /dev/null
+  if head -1 node_modules/esbuild/bin/esbuild | grep -q node
   then
-    node_modules/esbuild/bin/esbuild "$@"
-  else
     node node_modules/esbuild/bin/esbuild "$@"
+    return $?
   fi
+  node_modules/esbuild/bin/esbuild "$@"
 }
 
 # shellcheck disable=SC2120
 task_worker__build() {
   subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js
+}
+
+task_worker__depbuild() {
+  if ! newer worker/ --than public/_worker.js
+  then
+    return 0
+  fi
+  task_worker__build
+}
+
+task_worker__watchbuild() {
+  # "forever" to keep the process running even after the stdin is closed.
+  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
 }
 
 subcmd_wrangler() {
@@ -41,27 +54,6 @@ task_worker__dev() {
   fi
   # shellcheck disable=SC2086
   subcmd_wrangler pages dev $opt_9754aa0 --live-reload --show-interactive-dev-session=false public/
-}
-
-task_worker__depbuild() {
-  if ! newer worker/ --than public/_worker.js
-  then
-    return 0
-  fi
-  task_worker__build
-}
-
-task_worker__watchbuild() {
-  # "forever" is used to keep the process running even after the stdin is closed.
-  # task_worker__build --watch=forever
-  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
-  # set_node_env
-  # node node_modules/esbuild/bin/esbuild --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
-  # while true
-  # do
-  #   task_worker__depbuild
-  #   sleep 1
-  # done
 }
 
 task_next__build() {
