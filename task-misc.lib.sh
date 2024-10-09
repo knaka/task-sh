@@ -147,6 +147,26 @@ subcmd_dupcheck() ( # Check duplicate files.
   done
 )
 
+task_task_cmd__rename_copy() (
+  for dest in */*.cmd
+  do
+    if ! test -r "$dest"
+    then
+      continue
+    fi
+    if test "$(dirname "$dest")" = "cmd"
+    then
+      continue
+    fi
+    case "$(basename "$dest")" in
+      go-embedded.cmd)
+        continue
+        ;;
+    esac
+    cp -f task.cmd "$dest"
+  done
+)
+
 task_task_sh__copy() (
   chdir_script
   for dest in */task.sh
