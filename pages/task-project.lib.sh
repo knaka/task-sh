@@ -7,12 +7,19 @@ test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 . task-volta.lib.sh
 . task-next.lib.sh
 
+mkdir_sync_ignored .wrangler build
+
 mkdir -p .wrangler
 set_sync_ignored .wrangler
 
 subcmd_esbuild() {
   set_node_env
-  node_modules/esbuild/bin/esbuild"$(exe_ext)" "$@"
+  if type node_modules/esbuild/bin/esbuild 2> /dev/null > /dev/null
+  then
+    node_modules/esbuild/bin/esbuild "$@"
+  else
+    node node_modules/esbuild/bin/esbuild "$@"
+  fi
 }
 
 # shellcheck disable=SC2120
@@ -63,7 +70,7 @@ task_next__build() {
 
 # shellcheck disable=SC2120
 task_next__depbuild() {
-  if ! newer app/ public/ --than out
+  if ! newer app/ public/ --than build/out
   then
     return 0
   fi
@@ -123,7 +130,7 @@ task_dev() {
 }
 
 task_pages__start() {
-  subcmd_wrangler pages dev out/
+  subcmd_wrangler pages dev build/out/
 }
 
 task_start() {
@@ -132,6 +139,16 @@ task_start() {
   APP_ENV=production
   export APP_ENV
   sh task.sh worker:build
+  # "EBUSY" error occurs on Windows frequently.
+  if is_windows
+  then
+    for _ in 1 2 3
+    do
+      rm -fr .next/* > /dev/null 2>&1 || :
+      sleep 1
+    done
+    rm -fr .next/*
+  fi
   sh task.sh next:build
   # Wrangler provides interactive CUI.
   sh task.sh pages:start

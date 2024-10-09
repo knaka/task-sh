@@ -63,7 +63,7 @@ task_start() ( # Start the Next.js server with the production build.
   then
     export PORT
   fi
-  task_build
+  # task_build
   sh task.sh next start 2>&1 | tee "$(temp_dir_path)"/next-prd.log &
   while true
   do
@@ -74,6 +74,15 @@ task_start() ( # Start the Next.js server with the production build.
     fi
   done
   next_prompt "http://localhost:${PORT:-3000}"
-  # Cannot kill with kill(1)
-  pkill -f 'next-server \('
+  # Cannot kill with kill(1).
+  pkill -f 'next-server \(' > /dev/null 2>&1 || :
+  # On Windows, no way to kill only the child process.
+  if is_windows
+  then
+    # Wait for the child process to exit. Otherwise you cannot remove temporary files.
+    while killall node.exe > /dev/null 2>&1
+    do
+      sleep 1
+    done
+  fi
 )

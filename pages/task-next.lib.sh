@@ -3,10 +3,10 @@ set -o nounset -o errexit
 
 test "${guard_972a0be+set}" = set && return 0; guard_972a0be=x
 
+. task.sh
 . task-volta.lib.sh
 
-mkdir -p .next .vercel out
-set_sync_ignored .next .vercel out
+mkdir_sync_ignored .next .vercel
 
 set_sync_ignored next-env.d.ts || :
 

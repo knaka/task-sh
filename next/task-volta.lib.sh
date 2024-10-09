@@ -5,8 +5,7 @@ test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
 
 . task.sh
 
-mkdir -p node_modules
-set_sync_ignored node_modules
+mkdir_sync_ignored node_modules
 
 set_sync_ignored .env*.local || :
 
@@ -87,12 +86,12 @@ subcmd_volta() {
 
 subcmd_npm() { # Run npm.
   set_node_env
-  npm"$(exe_ext)" "$@"
+  cross_run npm "$@"
 }
 
 subcmd_npx() { # Run npx.
   set_node_env
-  npx"$(exe_ext)" "$@"
+  cross_run npx "$@"
 } 
 
 subcmd_node() {

@@ -171,6 +171,22 @@ set_sync_ignored() (
   done
 )
 
+mkdir_sync_ignored() (
+  for path in "$@"
+  do
+    if test -d "$path"
+    then
+      continue
+    fi
+    mkdir -p "$path"
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
 newer() (
   found_than=false
   dest=
@@ -286,7 +302,7 @@ open_browser() (
     Darwin)
       open "$1" ;;
     Windows_NT)
-      start "$1" ;;
+      PowerShell -Command "Start-Process '$1'" ;;
     *)
       echo "Unsupported OS: $(uname -s)" >&2
       exit 1
