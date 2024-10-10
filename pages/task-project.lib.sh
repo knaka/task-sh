@@ -8,7 +8,7 @@ test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 . task-next.lib.sh
 
 mkdir_sync_ignored .wrangler build
-mkdir_sync-ignored .gobin
+mkdir_sync_ignored .gobin
 
 mkdir -p .wrangler
 set_sync_ignored .wrangler
@@ -157,35 +157,27 @@ task_dev__db__schema__dump() {
 
 task_db__gen() {
   cross_run ./cmd-gobin run sqlc generate
-    for file in sqlcgen/*.ts
+  IFS=
+  # shellcheck disable=SC2043
+  for file in sqlcgen/querier.ts
   do
-    IFS=''
     while read -r line
     do
       # Nullable is NULL if not specified (= undefined). Not to specify `null` explicitly.
-      line="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
-      # If the property is undefined, it is set to null.
-      args="$(echo "$line" | sed -n -E -e "s/^.* \.bind\((.*)\).*$/\1/p")"
-      if test -n "$args"
+      if echo "$line" | grep -q -E -e "\| null;"
       then
-        params=
-        delim=
-        while true
-        do
-          arg="${args%%, *}"
-          argMod="(typeof $arg === 'undefined')? null: $arg"
-          params="$params$delim$argMod"
-          delim=", "
-          args="${args#*, }"
-          if test "$arg" = "$args"
-          then
-            break
-          fi
-        done
+        line="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
+      fi
+      # Replace `bind` method parameters with undefined check.
+      if echo "$line" | grep -q -E -e "\.bind\("
+      then
+        params="$(echo "$line" | sed -n -E -e "s/^.*\.bind\((.*)\).*$/\1/p")"
+        params="$(echo "$params" | sed -e "s/, */\n/g" | sed -E -e 's/(.+)/typeof \1 === "undefined"? null: \1/' | paste -sd , -)"
         line="$(echo "$line" | sed -E -e "s/\.bind\(.*\)/.bind($params)/")"
       fi
       echo "$line"
     done < "$file" > "$file.tmp"
     mv "$file.tmp" "$file"
   done
+  unset IFS
 }

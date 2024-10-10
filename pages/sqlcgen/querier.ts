@@ -42,7 +42,7 @@ export function getUser(
 ): Query<GetUserRow | null> {
   const ps = d1
     .prepare(getUserQuery)
-    .bind((typeof args.nullableId === 'undefined')? null: args.nullableId, (typeof args.nullableUsername === 'undefined')? null: args.nullableUsername);
+    .bind(typeof args.nullableId === "undefined"? null: args.nullableId,typeof args.nullableUsername === "undefined"? null: args.nullableUsername);
   return {
     then(onFulfilled?: (value: GetUserRow | null) => void, onRejected?: (reason?: any) => void) {
       ps.first<RawGetUserRow | null>()
@@ -90,7 +90,7 @@ export function getTheUser(
 ): Query<D1Result<GetTheUserRow>> {
   const ps = d1
     .prepare(getTheUserQuery)
-    .bind((typeof args.id === 'undefined')? null: args.id);
+    .bind(typeof args.id === "undefined"? null: args.id);
   return {
     then(onFulfilled?: (value: D1Result<GetTheUserRow>) => void, onRejected?: (reason?: any) => void) {
       ps.all<RawGetTheUserRow>()
@@ -124,7 +124,7 @@ export function addUser(
 ): Query<D1Result> {
   const ps = d1
     .prepare(addUserQuery)
-    .bind((typeof args.username === 'undefined')? null: args.username);
+    .bind(typeof args.username === "undefined"? null: args.username);
   return {
     then(onFulfilled?: (value: D1Result) => void, onRejected?: (reason?: any) => void) {
       ps.run()
