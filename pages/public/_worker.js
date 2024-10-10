@@ -5722,6 +5722,31 @@ var z = /* @__PURE__ */ Object.freeze({
   ZodError
 });
 
+// sqlcgen/querier.ts
+var getUserQuery = `-- name: GetUser :one
+SELECT id, username, updated_at, created_at
+FROM users
+WHERE
+  CASE WHEN CAST(?1 AS integer) IS NOT NULL THEN id = ?1 ELSE false END OR
+  CASE WHEN CAST(?2 AS string) IS NOT NULL THEN username = ?2 ELSE false END
+LIMIT 1`;
+function getUser(d1, args) {
+  const ps = d1.prepare(getUserQuery).bind(typeof args.nullableId === "undefined" ? null : args.nullableId, typeof args.nullableUsername === "undefined" ? null : args.nullableUsername);
+  return {
+    then(onFulfilled, onRejected) {
+      ps.first().then((raw2) => raw2 ? {
+        id: raw2.id,
+        username: raw2.username,
+        updatedAt: raw2.updated_at,
+        createdAt: raw2.created_at
+      } : null).then(onFulfilled).catch(onRejected);
+    },
+    batch() {
+      return ps;
+    }
+  };
+}
+
 // worker/index.ts
 var api = new Hono2().get(
   "/hello",
@@ -5729,7 +5754,9 @@ var api = new Hono2().get(
     "param",
     z.object({})
   ),
-  (c) => {
+  async (c) => {
+    const res = await getUser(c.env.DB, { nullableId: 3 });
+    console.log("034a7bc", res);
     return c.json({
       message: "Hello Pages!! This is Hono!! 321fab3!"
     });

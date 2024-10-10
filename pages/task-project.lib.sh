@@ -8,6 +8,7 @@ test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 . task-next.lib.sh
 
 mkdir_sync_ignored .wrangler build
+mkdir_sync-ignored .gobin
 
 mkdir -p .wrangler
 set_sync_ignored .wrangler
@@ -144,4 +145,47 @@ task_start() {
   sh task.sh next:build
   # Wrangler provides interactive CUI.
   sh task.sh pages:start
+}
+
+task_dev__db__exec() {
+  subcmd_wrangler d1 execute --local --file=./test.sql test-db
+}
+
+task_dev__db__schema__dump() {
+  subcmd_wrangler d1 export --local --no-data --output=/dev/stdout test-db
+}
+
+task_db__gen() {
+  cross_run ./cmd-gobin run sqlc generate
+    for file in sqlcgen/*.ts
+  do
+    IFS=''
+    while read -r line
+    do
+      # Nullable is NULL if not specified (= undefined). Not to specify `null` explicitly.
+      line="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
+      # If the property is undefined, it is set to null.
+      args="$(echo "$line" | sed -n -E -e "s/^.* \.bind\((.*)\).*$/\1/p")"
+      if test -n "$args"
+      then
+        params=
+        delim=
+        while true
+        do
+          arg="${args%%, *}"
+          argMod="(typeof $arg === 'undefined')? null: $arg"
+          params="$params$delim$argMod"
+          delim=", "
+          args="${args#*, }"
+          if test "$arg" = "$args"
+          then
+            break
+          fi
+        done
+        line="$(echo "$line" | sed -E -e "s/\.bind\(.*\)/.bind($params)/")"
+      fi
+      echo "$line"
+    done < "$file" > "$file.tmp"
+    mv "$file.tmp" "$file"
+  done
 }

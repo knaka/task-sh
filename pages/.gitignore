@@ -37,3 +37,4 @@ next-env.d.ts
 /.syncignored
 /.wrangler
 /build
+/.gobin
