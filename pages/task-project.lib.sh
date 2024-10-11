@@ -6,6 +6,7 @@ test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 . task.sh
 . task-volta.lib.sh
 . task-next.lib.sh
+. task-sqlite3.lib.sh
 
 mkdir_sync_ignored .wrangler build
 mkdir_sync_ignored .gobin
@@ -147,16 +148,44 @@ task_start() {
   sh task.sh pages:start
 }
 
-task_dev__db__exec() {
-  subcmd_wrangler d1 execute --local --file=./test.sql test-db
+subcmd_dev__db__exec() {
+  subcmd_wrangler d1 execute --local test-db "$@"
+  # --file=./vacuum.sql
 }
 
-task_dev__db__schema__dump() {
-  subcmd_wrangler d1 export --local --no-data --output=/dev/stdout test-db
+task_dev__db__schema() {
+  mkdir -p build/
+  subcmd_wrangler d1 export --local --no-data --output=build/dev-schema.sql test-db
+}
+
+task_dev__db__dump() {
+  subcmd_wrangler d1 export --local --output=/dev/stdout test-db
+}
+
+task_dev__db__drop() {
+  find .wrangler -type f -name "*.sqlite*" -print0 | xargs -0 -n1 rm -f
+}
+
+task_dev__db__create() {
+  subcmd_dev__db__exec --command "SELECT current_timestamp"
+}
+
+task_dev__db__diff() {
+  task_dev__db__schema
+  rm -f build/dev-schema.db
+  subcmd_sqlite3 build/dev-schema.db < build/dev-schema.sql
+  cross_run ./cmd-gobin run sqlite3def --file=schema.sql build/dev-schema.db --dry-run > build/dev-diff.sql
+  cat build/dev-diff.sql
+}
+
+task_dev__db__migrate() {
+  task_dev__db__diff
+  subcmd_dev__db__exec --file=build/dev-diff.sql
 }
 
 task_db__gen() {
   cross_run ./cmd-gobin run sqlc generate
+  # To keep the trailing spaces.
   IFS=
   # shellcheck disable=SC2043
   for file in sqlcgen/querier.ts
@@ -180,4 +209,15 @@ task_db__gen() {
     mv "$file.tmp" "$file"
   done
   unset IFS
+}
+
+task_db__watchgen() {
+  while true
+  do
+    if newer query.sql schema.sql --than sqlcgen/
+    then
+      sh task.sh db:gen
+    fi
+    sleep 10    
+  done
 }
