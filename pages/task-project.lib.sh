@@ -201,7 +201,7 @@ task_db__gen() {
       if echo "$line" | grep -q -E -e "\.bind\("
       then
         params="$(echo "$line" | sed -n -E -e "s/^.*\.bind\((.*)\).*$/\1/p")"
-        params="$(echo "$params" | sed -e "s/, */\n/g" | sed -E -e 's/(.+)/typeof \1 === "undefined"? null: \1/' | paste -sd , -)"
+        params="$(echo "$params" | sed -e "s/, */\n/g" | sed -E -e 's/(.+)/typeof \1 === "undefined"? null: \1/' | paste -s - | sed -e 's/\t/, /')"
         line="$(echo "$line" | sed -E -e "s/\.bind\(.*\)/.bind($params)/")"
       fi
       echo "$line"

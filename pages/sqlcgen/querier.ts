@@ -42,7 +42,7 @@ export function getUser(
 ): Query<GetUserRow | null> {
   const ps = d1
     .prepare(getUserQuery)
-    .bind(typeof args.nullableId === "undefined"? null: args.nullableId,typeof args.nullableUsername === "undefined"? null: args.nullableUsername);
+    .bind(typeof args.nullableId === "undefined"? null: args.nullableId, typeof args.nullableUsername === "undefined"? null: args.nullableUsername);
   return {
     then(onFulfilled?: (value: GetUserRow | null) => void, onRejected?: (reason?: any) => void) {
       ps.first<RawGetUserRow | null>()
