@@ -18,7 +18,7 @@ then
   fi
   cross_run "$cmd_path" "$@" &
   exit $?
-elif is_mac
+elif is_darwin
 then
   path="/Applications/Amazon Kindle.app"
   if ! test -d "$path"
@@ -26,7 +26,7 @@ then
     echo "Amazon Kindle.app not found in /Applications"
     exit 1
   fi
-  open "$path" "$@" &
+  open "$path" "$@"
   exit $?
 fi
 
