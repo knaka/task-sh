@@ -45,3 +45,8 @@ subcmd_run() {
   "$SCRIPT_DIR"/target/debug/rsmain "$@"
 }
 
+subcmd_cargo_in_original() { # Run cargo in the original working directory.
+  chdir_original 
+  subcmd_cargo "$@"
+  chdir_script
+}

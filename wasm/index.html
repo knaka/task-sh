@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>hello-wasm example</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, { sum3 } from "./pkg/rsmain.js";
+      init().then(() => {
+        console.log(sum3(2, 3, 4));
+      });
+    </script>
+  </body>
+</html>

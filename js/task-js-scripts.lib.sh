@@ -71,5 +71,5 @@ spawn(
 '
   # Node.js on Windows does not recognize multi-line script passed to -e option. ???
   script_ac72EF8="$(echo "$script_ac72EF8" | tr -d '\n')"
-  "$(node_cmd_path)" -e "$script_ac72EF8" "$ORIGINAL_DIR" "$@"
+  subcmd_node -e "$script_ac72EF8" "$ORIGINAL_DIR" "$@"
 }
