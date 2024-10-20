@@ -9,3 +9,13 @@ ensure_cargo_subcmd_component() {
     subcmd_cargo install cargo-component
   fi
 }
+
+subcmd_wasmtime() {
+  run_installed \
+    --cmd=wasmtime \
+    --brew-id=wasmtime \
+    --winget-id=BytecodeAlliance.Wasmtime \
+    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/wasmtime.exe \
+    -- \
+    "$@"
+}
