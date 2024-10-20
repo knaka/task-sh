@@ -1,6 +1,6 @@
 use clap::Command;
 use std::collections::HashMap;
-use anyhow::Context;
+// use anyhow::Context;
 
 type SubcommandHandler = Box<dyn Fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>>;
 

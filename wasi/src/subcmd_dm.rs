@@ -76,6 +76,7 @@ const STDIN_FILENAME: &str = "-";
 type InputStream = Box<dyn Read>;
 
 use std::env::set_var;
+use std::fs::canonicalize;
 
 pub fn handler(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
     let verbose = matches.get_flag("verbose");
@@ -106,7 +107,9 @@ pub fn handler(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 format!("{}/{}", original_dir, file)
             };
-            Box::new(std::fs::File::open(file2).context("8493036")?) as InputStream
+            let file3 = canonicalize(&file2).context("c3ee24f")?;
+            // let file3 = realpath::realpath(&file2).context("c3ee24f")?;
+            Box::new(std::fs::File::open(file3).context("8493036")?) as InputStream
         };
         dump_file(input_stream)?;
     }
