@@ -1,5 +1,6 @@
 use clap::Command;
 use std::collections::HashMap;
+use anyhow::Context;
 
 type SubcommandHandler = Box<dyn Fn(&clap::ArgMatches) -> Result<(), Box<dyn std::error::Error>>>;
 
@@ -24,6 +25,11 @@ impl App {
 include!("subcmds.rs");
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // If the env var "$ORIGINAL_DIR" is set, change the current working directory to it.
+    // let mut original_dir = "/".to_string();
+    // if let Ok(original_dir_env) = std::env::var("ORIGINAL_DIR") {
+    //     original_dir = original_dir_env;
+    // }
     let mut app = App::new(Command::new(""));
     register_subcommands(&mut app);
     let subcmd_names = app.handler_map.keys()

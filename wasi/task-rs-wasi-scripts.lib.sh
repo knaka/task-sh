@@ -8,13 +8,8 @@ test "${guard_5544dc4+set}" = set && return 0; guard_5544dc4=x
 
 subcmd_run() {
   chdir_original
-  subcmd_wasmtime target/wasm32-wasip1/debug/wasimain.wasm "$@"
+  subcmd_wasmtime --dir=/ --env ORIGINAL_DIR="$ORIGINAL_DIR" "$SCRIPT_DIR"/target/wasm32-wasip1/debug/wasimain.wasm "$@"
   chdir_script
-}
-
-# shellcheck disable=SC2120
-task_build() {
-  subcmd_cargo component build "$@"
 }
 
 subcmd_install() {

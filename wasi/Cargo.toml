@@ -10,6 +10,8 @@ glob = "~0.3.1"
 [dependencies]
 wit-bindgen-rt = { version = "0.34.0", features = ["bitflags"] }
 clap = { version = "~4.5.1", features = ["derive"] }
+anyhow = { version = "~1.0.66", features = ["backtrace"] }
+atty = "~0.2.14"
 
 [profile.release]
 codegen-units = 1

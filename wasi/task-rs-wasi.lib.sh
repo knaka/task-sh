@@ -10,6 +10,11 @@ ensure_cargo_subcmd_component() {
   fi
 }
 
+# shellcheck disable=SC2120
+task_build() {
+  subcmd_cargo component build "$@"
+}
+
 subcmd_wasmtime() {
   run_installed \
     --cmd=wasmtime \
