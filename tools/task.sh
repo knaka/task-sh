@@ -181,6 +181,17 @@ mkdir_sync_ignored() (
   done
 )
 
+force_sync_ignored() (
+  for path in "$@"
+  do
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
 newer() (
   found_than=false
   dest=
@@ -335,7 +346,7 @@ run_installed() ( # Run a command after ensuring it is installed.
   cmd_path="$cmd_name"
   if is_windows
   then
-    if tet -n "$win_cmd_path"
+    if test -n "$win_cmd_path"
     then
       cmd_path="$win_cmd_path"
     fi

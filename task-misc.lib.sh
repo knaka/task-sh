@@ -107,6 +107,8 @@ subcmd_dupcheck() ( # Check duplicate files.
 "task-prj.lib.sh:"\
 "tsconfig.json:"\
 "page.tsx:"\
+"Cargo.toml:"\
+"Cargo.lock:"\
 ""
   # shellcheck disable=SC2140
   ignore_path=":"\
@@ -122,6 +124,7 @@ subcmd_dupcheck() ( # Check duplicate files.
     case "$base" in
       .*) continue;;
       README*) continue;;
+      *.rs) continue;;
     esac
     if echo "$ignore_path" | grep -q ":$(dirname "$path")/:" > /dev/null 2>&1
     then

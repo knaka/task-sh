@@ -4,7 +4,7 @@ set -o nounset -o errexit
 test "${guard_9ac5215+set}" = set && return 0; guard_9ac5215=-
 
 . task.sh
-. task-uv.lib.sh
+. task-rye.lib.sh
 
 task_install() ( # Install scripts.
   py_bin_dir_path="$HOME"/py-bin
@@ -54,12 +54,12 @@ sys.exit(process.returncode)
 EOF
 )"
   no_indent_script="$(echo "$no_indent_script" | tr '\n' ';')"
-  subcmd_uv run python -c "$no_indent_script" "$ORIGINAL_DIR" "$@"
+  subcmd_rye run python -c "$no_indent_script" "$ORIGINAL_DIR" "$@"
 )
 
-subcmd_sync() { # Updates the UV virtualenv.
+subcmd_sync() { # Updates the Rye virtualenv.
   chdir_script
-  subcmd_uv sync "$@"
+  subcmd_rye sync "$@"
 }
 
 subcmd_foo() {
@@ -71,5 +71,5 @@ print('This is a Python script.')
 EOF
 )"
   no_indent_script="$(echo "$no_indent_script" | tr '\n' ';')"
-  subcmd_uv run python -c "$no_indent_script"
+  subcmd_rye run python -c "$no_indent_script"
 }

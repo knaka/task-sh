@@ -126,8 +126,7 @@ set_path_attr() (
     xattr -w "$attribute" "$value" "$path"
   elif which PowerShell > /dev/null 2>&1
   then
-    # Execute in background because this takes much time.
-    PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'" &
+    PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'"
   elif which attr > /dev/null 2>&1
   then
     attr -s "$attribute" -V "$value" "$path"
@@ -136,48 +135,33 @@ set_path_attr() (
 
 file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
 
-# set_sync_ignored() (
-#   sync_ignorance_file="$SCRIPT_DIR"/.syncignored
-#   if ! test -r "$sync_ignorance_file"
-#   then
-#     touch "$sync_ignorance_file"
-#     set_sync_ignored "$sync_ignorance_file"
-#     if ! grep -q "^/\.syncignored\$" "$SCRIPT_DIR/.gitignore" > /dev/null 2>&1
-#     then
-#       echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
-#     fi
-#   fi
-#   for path in "$@"
-#   do
-#     if ! test -e "$path"
-#     then
-#       continue
-#     fi
-#     rel_path="${path#"$SCRIPT_DIR"/}"
-#     if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
-#     then
-#       # shellcheck disable=SC2154
-#       for attribute in $file_sharing_ignorance_attributes
-#       do
-#         set_path_attr "$path" "$attribute" 1
-#       done
-#       echo "$rel_path" >> "$sync_ignorance_file"
-#     fi
-#   done
-# )
-
 set_sync_ignored() (
+  sync_ignorance_file="$SCRIPT_DIR"/.syncignored
+  if ! test -r "$sync_ignorance_file"
+  then
+    touch "$sync_ignorance_file"
+    set_sync_ignored "$sync_ignorance_file"
+    if ! grep -q "^/\.syncignored\$" "$SCRIPT_DIR/.gitignore" > /dev/null 2>&1
+    then
+      echo "/.syncignored" >> "$SCRIPT_DIR/.gitignore"
+    fi
+  fi
   for path in "$@"
   do
     if ! test -e "$path"
     then
       continue
     fi
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
+    rel_path="${path#"$SCRIPT_DIR"/}"
+    if ! grep -q "^$rel_path/*\$" "$sync_ignorance_file"
+    then
+      # shellcheck disable=SC2154
+      for attribute in $file_sharing_ignorance_attributes
+      do
+        set_path_attr "$path" "$attribute" 1
+      done
+      echo "$rel_path" >> "$sync_ignorance_file"
+    fi
   done
 )
 
@@ -189,6 +173,17 @@ mkdir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
+force_sync_ignored() (
+  for path in "$@"
+  do
     # shellcheck disable=SC2154
     for attribute in $file_sharing_ignorance_attributes
     do
@@ -351,7 +346,7 @@ run_installed() ( # Run a command after ensuring it is installed.
   cmd_path="$cmd_name"
   if is_windows
   then
-    if tet -n "$win_cmd_path"
+    if test -n "$win_cmd_path"
     then
       cmd_path="$win_cmd_path"
     fi

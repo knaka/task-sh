@@ -181,6 +181,17 @@ mkdir_sync_ignored() (
   done
 )
 
+force_sync_ignored() (
+  for path in "$@"
+  do
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
 newer() (
   found_than=false
   dest=

@@ -55,6 +55,8 @@ uv_dir_path() (
     case "$arc_ext" in
       .tar.gz)
         tar"$(exe_ext)" -xf "$temp_file_path"
+        mv uv-*/* .
+        rmdir uv-*/
         ;;
       .zip)
         unzip -o "$temp_file_path"
@@ -78,14 +80,4 @@ subcmd_uv() {
 subcmd_uvx() {
   set_uv_env
   cross_run uvx "$@"
-}
-
-task_init() {
-  set_uv_env
-  cross_run uv run python -c 'print("", end="")'
-  # shellcheck disable=SC2154
-  for attribute in $file_sharing_ignorance_attributes
-  do
-    set_path_attr ".venv" "$attribute" 1
-  done
 }

@@ -126,7 +126,6 @@ set_path_attr() (
     xattr -w "$attribute" "$value" "$path"
   elif which PowerShell > /dev/null 2>&1
   then
-    echo 6fad8d1 >&2
     PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'"
   elif which attr > /dev/null 2>&1
   then
@@ -347,7 +346,7 @@ run_installed() ( # Run a command after ensuring it is installed.
   cmd_path="$cmd_name"
   if is_windows
   then
-    if tet -n "$win_cmd_path"
+    if test -n "$win_cmd_path"
     then
       cmd_path="$win_cmd_path"
     fi
