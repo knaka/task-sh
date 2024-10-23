@@ -3,6 +3,10 @@ set -o nounset -o errexit
 
 test "${guard_205ffb3+set}" = set && return 0; guard_205ffb3=x
 
+. task.sh
+
+mkdir_sync_ignored .vscode
+
 ensure_cargo_subcmd_component() {
   if ! type cargo-component >/dev/null 2>&1
   then
@@ -20,7 +24,10 @@ subcmd_wasmtime() {
     --cmd=wasmtime \
     --brew-id=wasmtime \
     --winget-id=BytecodeAlliance.Wasmtime \
-    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/wasmtime.exe \
+    --winget-cmd-path=C:/"Program Files"/Wasmtime/bin/wasmtime.exe \
     -- \
     "$@"
 }
+
+# Needs?:
+#   /msys64/usr/bin/pacman --sync -y --needed base-devel mingw-w64-x86_64-toolchain

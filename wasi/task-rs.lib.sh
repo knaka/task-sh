@@ -7,6 +7,7 @@ test "${guard_87ee349+set}" = set && return 0; guard_87ee349=x
 
 mkdir_sync_ignored target
 mkdir_sync_ignored .bin
+mkdir_sync_ignored .idea
 
 cargo_bin_path() {
   if type rustup >/dev/null 2>&1
@@ -43,6 +44,12 @@ cargo_local_bin_path() (
 set_cargo_path() {
   test "${guard_7f2c09a+set}" = set && return 0; guard_7f2c09a=x
   PATH="$(cargo_local_bin_path):$(cargo_bin_path):$PATH"
+  if is_windows
+  then
+    # Any smarter way to do this?
+    # pacman -S --needed base-devel mingw-w64-x86_64-toolchain
+    PATH="c:/msys64/usr/bin:c:/msys64/mingw64/bin:$PATH"
+  fi
   export PATH  
 }
 

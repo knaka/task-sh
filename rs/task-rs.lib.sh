@@ -8,6 +8,9 @@ test "${guard_87ee349+set}" = set && return 0; guard_87ee349=x
 mkdir_sync_ignored target
 mkdir_sync_ignored .bin
 
+set_sync_ignored target
+set_sync_ignored .bin
+
 cargo_bin_path() {
   if type rustup >/dev/null 2>&1
   then

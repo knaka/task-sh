@@ -126,6 +126,7 @@ set_path_attr() (
     xattr -w "$attribute" "$value" "$path"
   elif which PowerShell > /dev/null 2>&1
   then
+    echo 6fad8d1 >&2
     PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'"
   elif which attr > /dev/null 2>&1
   then
@@ -173,6 +174,17 @@ mkdir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
+    # shellcheck disable=SC2154
+    for attribute in $file_sharing_ignorance_attributes
+    do
+      set_path_attr "$path" "$attribute" 1
+    done
+  done
+)
+
+force_sync_ignored() (
+  for path in "$@"
+  do
     # shellcheck disable=SC2154
     for attribute in $file_sharing_ignorance_attributes
     do

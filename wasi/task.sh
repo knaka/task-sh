@@ -335,7 +335,7 @@ run_installed() ( # Run a command after ensuring it is installed.
   cmd_path="$cmd_name"
   if is_windows
   then
-    if tet -n "$win_cmd_path"
+    if test -n "$win_cmd_path"
     then
       cmd_path="$win_cmd_path"
     fi
