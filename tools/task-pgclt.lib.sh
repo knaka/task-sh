@@ -10,20 +10,15 @@ brew_psql_cmd_path=/usr/local/opt/postgresql@15/bin/psql
 winget_psql_cmd_path="$HOME"/foo/bar/psql.exe
 
 subcmd_pg__run() (
-  run_installed \
-    --install-only \
-    --cmd="$psql_cmd" \
-    --brew-id=postgresql@15 \
-    --brew-cmd-path="$brew_psql_cmd_path" \
-    --winget-id=foo.bar \
-    --winget-cmd-path="$winget_psql_cmd_path"
-  if type "$psql_cmd" >/dev/null 2>&1
-  then
-    PATH="$(dirname "$winget_psql_cmd_path"):$PATH"
-  elif type "$brew_psql_cmd_path" >/dev/null 2>&1
-  then
-    PATH="$(dirname "$brew_psql_cmd_path"):$PATH"
-  fi
+  cmd_path=$(
+    install_pkg_cmd \
+      --cmd="$psql_cmd" \
+      --brew-id=postgresql@15 \
+      --brew-cmd-path="$brew_psql_cmd_path" \
+      --winget-id=foo.bar \
+      --winget-cmd-path="$winget_psql_cmd_path"
+  )
+  PATH="$(dirname "$cmd_path"):$PATH"
   export PATH
   "$@"
 )

@@ -318,9 +318,9 @@ run_pkg_cmd() {
   true
 }
 
-install_pkg() {
+pkg_cmd_path() (
   true
-}
+)
 
 run_installed() ( # Run a command after ensuring it is installed.
   cmd_name=

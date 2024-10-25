@@ -314,6 +314,14 @@ open_browser() (
   esac
 )
 
+run_pkg_cmd() {
+  true
+}
+
+pkg_cmd_path() (
+  true
+)
+
 run_installed() ( # Run a command after ensuring it is installed.
   cmd_name=
   winget_id=

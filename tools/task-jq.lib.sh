@@ -5,15 +5,14 @@ test "${guard_d3015b9+set}" = set && return 0; guard_d3015b9=-
 
 . task.sh
 
-subcmd_jq() ( # Run jq(1).
-  cmd=jq
-  run_installed \
-    --cmd="$cmd" \
+subcmd_jq() { # Run jq(1).
+  run_pkg_cmd \
+    --cmd=jq \
     --brew-id=jq \
     --winget-id=jqlang.jq \
     --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
     -- "$@"
-)
+}
 
 subcmd_json2sh() {
   # shellcheck disable=SC2016
@@ -30,4 +29,13 @@ def to_sh(prefix):
 
 to_sh("json__")
 '
+}
+
+task_test() {
+  install_pkg_cmd \
+    --cmd=jq \
+    --brew-id=jq \
+    --winget-id=jqlang.jq \
+    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
+    -- foo bar "bar baz"
 }
