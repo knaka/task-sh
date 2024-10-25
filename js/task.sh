@@ -314,22 +314,15 @@ open_browser() (
   esac
 )
 
-run_pkg_cmd() {
-  true
-}
-
-pkg_cmd_path() (
-  true
-)
-
-run_installed() ( # Run a command after ensuring it is installed.
+# Ensure a package is installed and return the command and arguments separated by tabs.
+install_pkg_cmd_tabsep_args() (
   cmd_name=
   winget_id=
   win_cmd_path=
+  scoop_id=
   brew_id=
   brew_cmd_path=
-  no_exec=false
-  while getopts nc:p:b:P:w:-: OPT
+  while getopts nc:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -339,13 +332,13 @@ run_installed() ( # Run a command after ensuring it is installed.
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      n|no-exec|install-only) no_exec=true;;
       b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      \?) usage; exit 2;;
+      s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      \?) exit 2;;
       *) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
   done
@@ -354,32 +347,108 @@ run_installed() ( # Run a command after ensuring it is installed.
   cmd_path="$cmd_name"
   if is_windows
   then
-    if test -n "$win_cmd_path"
+    if test -n "$scoop_id"
+    then
+      if ! type scoop > /dev/null 2>&1
+      then
+        powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression" 1>&2
+      fi
+      cmd_path="$HOME"/scoop/shims/ghcup
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        scoop install "$scoop_id" 1>&2
+      fi
+    elif test -n "$winget_id"
     then
       cmd_path="$win_cmd_path"
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        winget install -e --id "$winget_id" 2>&1
+      fi
+    else
+      echo "No package ID for Windows specified." >&2
+      exit 1
     fi
-    if ! type "$cmd_path" > /dev/null 2>&1
-    then
-      winget install -e --id "$winget_id" 2>&1
-    fi
-    cmd_path="$win_cmd_path"
-  elif type brew > /dev/null 2>&1
+  elif is_darwin
   then
-    if test -n "$brew_cmd_path"
+    if test -n "$brew_id"
     then
-      cmd_path="$brew_cmd_path"
-    fi
-    if ! type "$cmd_path" > /dev/null 2>&1
-    then
-      brew install "$brew_id"
+      if test -n "$brew_cmd_path"
+      then
+        cmd_path="$brew_cmd_path"
+      fi
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        brew install "$brew_id" 1>&2
+      fi
+    else
+      echo "No package ID for macOS specified." >&2
+      exit 1
     fi
   fi
-  if $no_exec
+  if which "$cmd_path" > /dev/null 2>&1
   then
-    return 0
+    printf "%s\t" "$(which "$cmd_path")"
+  else
+    echo "Command not installed: $cmd_path" >&2
+    exit 1
   fi
-  "$cmd_path" "$@"
+  for arg in "$@"
+  do
+    printf "%s\t" "$arg"
+  done
 )
+
+set_ifs_tab() {
+  if test -n "${IFS+set}"
+  then
+    ifs_a8fded1="$IFS"
+  fi
+  IFS="$(printf '\t')"
+}
+
+set_ifs_newline() {
+  if test -n "${IFS+set}"
+  then
+    ifs_a8fded1="$IFS"
+  fi
+  IFS="$(printf '\n\r')"
+}
+
+set_ifs_pipe() {
+  if test -n "${IFS+set}"
+  then
+    ifs_a8fded1="$IFS"
+  fi
+  IFS="$(printf '|')"
+}
+
+restore_ifs() {
+  if test -n "${ifs_a8fded1+set}"
+  then
+    IFS="$ifs_a8fded1"
+    unset ifs_a8fded1
+  else
+    IFS="$(printf ' \t\n\r')"
+  fi
+}
+
+install_pkg_cmd() {
+  set_ifs_tab
+  # shellcheck disable=SC2046
+  set -- $(install_pkg_cmd_tabsep_args "$@")
+  restore_ifs
+  echo "$1"
+}
+
+run_pkg_cmd() { # Run a command after ensuring it is installed.
+  set_ifs_tab
+  # shellcheck disable=SC2046
+  set -- $(install_pkg_cmd_tabsep_args "$@")
+  restore_ifs
+  # echo 01d637b "$@" >&2
+  cross_run "$@"
+}
 
 load() {
   if ! test -r "$1"
