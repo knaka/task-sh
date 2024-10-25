@@ -20,7 +20,7 @@ task_build() {
 }
 
 subcmd_wasmtime() {
-  run_installed \
+  run_pkg_cmd \
     --cmd=wasmtime \
     --brew-id=wasmtime \
     --winget-id=BytecodeAlliance.Wasmtime \
