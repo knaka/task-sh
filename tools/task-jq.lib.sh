@@ -30,12 +30,3 @@ def to_sh(prefix):
 to_sh("json__")
 '
 }
-
-task_test() {
-  install_pkg_cmd \
-    --cmd=jq \
-    --brew-id=jq \
-    --winget-id=jqlang.jq \
-    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
-    -- foo bar "bar baz"
-}
