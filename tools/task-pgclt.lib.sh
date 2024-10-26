@@ -7,7 +7,7 @@ test "${guard_e099219+set}" = set && return 0; guard_e099219=x
 
 psql_cmd=psql
 brew_psql_cmd_path=/usr/local/opt/postgresql@15/bin/psql
-winget_psql_cmd_path="$HOME"/foo/bar/psql.exe
+winget_psql_cmd_path=C:/"Program Files"/PostgreSQL/15/bin/psql.exe
 
 subcmd_pg__run() (
   cmd_path=$(
@@ -15,7 +15,7 @@ subcmd_pg__run() (
       --cmd="$psql_cmd" \
       --brew-id=postgresql@15 \
       --brew-cmd-path="$brew_psql_cmd_path" \
-      --winget-id=foo.bar \
+      --winget-id=PostgreSQL.PostgreSQL.15 \
       --winget-cmd-path="$winget_psql_cmd_path"
   )
   PATH="$(dirname "$cmd_path"):$PATH"
