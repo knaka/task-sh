@@ -485,6 +485,26 @@ get_key() (
   echo "$key"
 )
 
+memoize() (
+  cache_file_name="$1"
+  shift
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  then
+    "$@" > "$(temp_dir_path)/$cache_file_name" 2> /dev/null
+  fi
+  cat "$(temp_dir_path)/$cache_file_name"
+)
+
+memoize2() (
+  cache_file_name="$1"
+  shift
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  then
+    "$@" > "$(temp_dir_path)/$cache_file_name"
+  fi
+  cat "$(temp_dir_path)/$cache_file_name"
+)
+
 # --------------------------------------------------------------------------
 
 task_file_paths=
