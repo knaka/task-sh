@@ -329,6 +329,7 @@ install_pkg_cmd_tabsep_args() (
     esac
   done
   shift $((OPTIND-1))
+  unset OPTIND
 
   cmd_path="$cmd_name"
   if is_windows
@@ -607,6 +608,7 @@ main() {
     esac
   done
   shift $((OPTIND-1))
+  unset OPTIND
 
   if $shows_help || test "${1+set}" != "set"
   then
