@@ -211,7 +211,7 @@ task_daemon() {
 task_once() {
   echo Started Once >&2
   first_call 4012815 || return 0
-  echo Once >&2
+  echo Doing Once >&2
 }
 
 readonly psv_bb1e7fe="foo||bar|baz"

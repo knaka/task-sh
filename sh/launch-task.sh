@@ -6,4 +6,8 @@ test "${guard_c6d16e2+set}" = set && return 0; guard_c6d16e2=x
 if type ./task >/dev/null 2>&1
 then
   exec ./task "$@"
+elif test -r "package.json"
+then
+  npm run "$@"
 fi
+exit 1
