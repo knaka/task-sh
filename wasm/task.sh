@@ -134,7 +134,7 @@ set_path_attr() (
   fi
 )
 
-file_sharing_ignorance_attributes="com.dropbox.ignored com.apple.fileprovider.ignore#P"
+readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P"
 
 set_sync_ignored() (
   for path in "$@"
@@ -143,11 +143,12 @@ set_sync_ignored() (
     then
       continue
     fi
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
+    set_ifs_pipe
+    for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
+    restore_ifs
   done
 )
 
@@ -159,22 +160,24 @@ mkdir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
+    set_ifs_pipe
+    for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
+    restore_ifs
   done
 )
 
 force_sync_ignored() (
   for path in "$@"
   do
-    # shellcheck disable=SC2154
-    for attribute in $file_sharing_ignorance_attributes
+    set_ifs_pipe
+    for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
+    restore_ifs
   done
 )
 
@@ -386,28 +389,52 @@ install_pkg_cmd_tabsep_args() (
   done
 )
 
+unset ifs_a8fded1
+
+set_ifs() {
+  if test -z "${ifs_a8fded1+set}" && test -n "${IFS+set}"
+  then
+    ifs_a8fded1="$IFS"
+  fi
+  IFS="$1"
+}
+
+# For CSV.
+set_ifs_comma() {
+  set_ifs "$(printf ',')"
+}
+
+# For TSV.
 set_ifs_tab() {
-  if test -n "${IFS+set}"
-  then
-    ifs_a8fded1="$IFS"
-  fi
-  IFS="$(printf '\t')"
+  set_ifs "$(printf '\t')"
 }
 
-set_ifs_newline() {
-  if test -n "${IFS+set}"
-  then
-    ifs_a8fded1="$IFS"
-  fi
-  IFS="$(printf '\n\r')"
-}
-
+# For PSV.
 set_ifs_pipe() {
-  if test -n "${IFS+set}"
-  then
-    ifs_a8fded1="$IFS"
-  fi
-  IFS="$(printf '|')"
+  set_ifs "$(printf '|')"
+}
+
+# Mianly for paths, files, and directories.
+set_ifs_colon() {
+  set_ifs "$(printf ':')"
+}
+
+set_ifs_path_list_sepaprator() {
+  set_ifs_colon
+}
+
+# To split path.
+set_ifs_slashes() {
+  set_ifs "$(printf "/\\")"
+}
+
+set_ifs_path_sepaprator() {
+  set_ifs_slashes
+}
+
+# Default.
+set_ifs_newline() {
+  set_ifs "$(printf '\n\r')"
 }
 
 restore_ifs() {
@@ -419,6 +446,16 @@ restore_ifs() {
     IFS="$(printf ' \t\n\r')"
   fi
 }
+
+# Expects $IFS is set to the proper value for the separator for the "list" string $1.
+strjoin() (
+  delim=
+  for arg in $1
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim="$2"
+  done
+)
 
 install_pkg_cmd() {
   set_ifs_tab
