@@ -16,7 +16,6 @@ subcmd_aws() {
 
 task_aws__caller() {
   subcmd_aws sts get-caller-identity
-
 }
 
 task_aws__account() {
