@@ -50,7 +50,7 @@ task_install() { # Install Go tools.
       continue
     fi
     case "$go_file" in
-      task.go,task-*.go) continue;;
+      task.go|task-*.go) continue ;;
     esac
     name=$(basename "$go_file" .go)
     target_sim_path="$go_sim_dir_path"/"$name"

@@ -527,20 +527,28 @@ memoize() (
   shift
   if ! test -r "$(temp_dir_path)/$cache_file_name"
   then
+    "$@" > "$(temp_dir_path)/$cache_file_name"
+  fi
+  cat "$(temp_dir_path)/$cache_file_name"
+)
+
+memoize_silent() (
+  cache_file_name="$1"
+  shift
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  then
     "$@" > "$(temp_dir_path)/$cache_file_name" 2> /dev/null
   fi
   cat "$(temp_dir_path)/$cache_file_name"
 )
 
-memoize2() (
-  cache_file_name="$1"
-  shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
+first_call() {
+  if eval "test \"\${guard_$1+set}\" = set"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name"
+    return 1
   fi
-  cat "$(temp_dir_path)/$cache_file_name"
-)
+  eval "guard_$1=x"
+}
 
 # --------------------------------------------------------------------------
 

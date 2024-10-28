@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o nounset -o errexit
 
-test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=-
+# test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=x
 
 . task.sh
 . task-git.lib.sh
@@ -210,7 +210,7 @@ task_daemon() {
 
 task_once() {
   echo Started Once >&2
-  test "${guard_823250d+set}" = set && return 0; guard_823250d=x
+  first_call 4012815 || return 0
   echo Once >&2
 }
 
