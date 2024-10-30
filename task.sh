@@ -62,6 +62,7 @@ then
 fi
 
 cleanup() {
+  rc=$?
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
   if is_windows 
   then
@@ -81,6 +82,17 @@ cleanup() {
 
   rm -fr "$_temp_dir_path_d4a4197"
   # echo "Cleaned up temporary files." >&2
+
+  if test "$rc" -ne 0
+  then
+    echo "Exiting with status $rc" >&2
+    if type on_error > /dev/null 2>&1
+    then
+      on_error
+    fi
+  fi
+
+  exit "$rc"
 }
 
 trap cleanup EXIT
