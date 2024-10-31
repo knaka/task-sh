@@ -37,6 +37,7 @@ subcmd_pg_dumpall() (
 
 task_pg__cli() (
   load_env
+  # shellcheck disable=SC2031
   if ! test "${PGDATABASE+set}" = set
   then
     # shellcheck disable=SC2030
@@ -53,6 +54,12 @@ task_pg__cli() (
 
 subcmd_pg__dump() (
   load_env
+  # shellcheck disable=SC2031
+  if ! test "${PGDATABASE+set}" = set
+  then
+    # shellcheck disable=SC2030
+    PGDATABASE=postgres
+  fi
   export PGPASSWORD
   subcmd_pg_dump \
     --host="$PGHOST" \

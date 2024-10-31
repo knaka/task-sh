@@ -60,7 +60,8 @@ set_dynamic_entry() {
 
 # ------------------------------------------------------------------------------
 
-available_port() (
+# Checks if the port is available.
+is_available_port() (
   port="$1"
   if is_windows
   then
@@ -78,6 +79,7 @@ available_port() (
   return 1
 )
 
+# Finds a free port.
 find_free_port() (
   port_base=10000
   if test "${1+set}" = set
@@ -86,7 +88,7 @@ find_free_port() (
   fi
   for port in $(seq "$port_base" "$((port_base + 100))")
   do
-    if available_port "$port"
+    if is_available_port "$port"
     then
       echo "$port"
       break
@@ -117,7 +119,7 @@ pg_dev_prompt() {
   done
 }
 
-task_pg__dev() { # start DB (creates cluster if not exists).
+task_pg__dev() { # Start PostgreSQL DB (creates DB cluster if not exists).
   load_env
   if ! test "${PGPORT+set}" = set
   then
