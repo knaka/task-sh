@@ -499,9 +499,9 @@ load() {
     then
       continue
     fi
-    val="$(eval "echo \"\${$key_07bde23:=}\"")"
+    val_5d77cea="$(eval "echo \"\${$key_07bde23:=}\"")"
     # echo bcff3d2 "$val" >&2
-    if test -n "$val"
+    if test -n "$val_5d77cea"
     then
       continue
     fi
@@ -513,10 +513,12 @@ load() {
 load_env() { # Load environment variables.
   if test "${APP_ENV+set}" = set
   then
+    load "$SCRIPT_DIR"/.env."$APP_ENV".dynamic
     load "$SCRIPT_DIR"/.env."$APP_ENV".local
   fi
   if test "${APP_SENV+set}" != set || test "${APP_SENV}" != "test"
   then
+    load "$SCRIPT_DIR"/.env.dynamic
     load "$SCRIPT_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
