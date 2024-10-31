@@ -9,6 +9,9 @@ test "${guard_a543be5+set}" = set && return 0; guard_a543be5=x
 mkdir -p pgdata
 set_sync_ignored pgdata
 
+touch .env.dynamic
+set_sync_ignored .env.dynamic
+
 set_sync_ignored .env.local || :
 
 subcmd_pg_ctl() (
@@ -17,6 +20,11 @@ subcmd_pg_ctl() (
 
 subcmd_initdb() (
   subcmd_pg__run initdb "$@"
+)
+
+modify_postgresql_conf() (
+  sed -i '' -E -e "s/^#?port =.*$/port = $PGPORT/" "$SCRIPT_DIR"/pgdata/postgresql.conf
+  sed -i '' -E -e "s/^#?listen_addresses =.*$/listen_addresses = '$PGHOST'/" "$SCRIPT_DIR"/pgdata/postgresql.conf
 )
 
 task_pg__cluster__create() (
@@ -36,7 +44,7 @@ task_pg__cluster__create() (
     --no-locale \
     --encoding=UTF8
   rm -fr "$temp_dir_path_d9f5174"
-  sed -i '' -E -e "s/^#?port =.*$/port = $PGPORT/" "$SCRIPT_DIR"/pgdata/postgresql.conf
+  modify_postgresql_conf
 )
 
 task_pg__cluster__drop() (
