@@ -562,6 +562,28 @@ first_call() {
   eval "guard_$1=x"
 }
 
+underline() {
+  printf '\033[4m%s\033[0m' "$1"
+}
+
+bold() {
+  printf '\033[1m%s\033[0m' "$1"
+}
+
+enclose_with_brackets() {
+  printf '[%s]' "$1"
+}
+
+# Emphasize text.
+emph() {
+  if is_windows
+  then
+    enclose_with_brackets "$(bold "$(underline "$1")")"
+  else
+    bold "$(underline "$1")"
+  fi
+}
+
 # --------------------------------------------------------------------------
 
 task_file_paths=
