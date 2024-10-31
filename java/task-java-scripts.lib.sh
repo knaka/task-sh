@@ -3,7 +3,7 @@ set -o nounset -o errexit -o pipefail
 
 test "${guard_ecc3b3b+set}" = set && return 0; guard_ecc3b3b=-
 
-. task-java.lib.sh
+. ./task-java.lib.sh
 
 mkdir -p .cds
 set_sync_ignored .cds

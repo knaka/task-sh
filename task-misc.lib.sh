@@ -3,8 +3,8 @@ set -o nounset -o errexit
 
 # test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=x
 
-. task.sh
-. task-git.lib.sh
+. ./task.sh
+. ./task-git.lib.sh
 
 task_install() ( # Install in each directory.
   chdir_script

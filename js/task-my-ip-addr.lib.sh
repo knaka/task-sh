@@ -3,15 +3,15 @@ set -o nounset -o errexit
 
 test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 
-. task.sh
+. ./task.sh
 # For subcmd_json2sh
 if test -r task-json2sh.lib.sh
 then
   # shellcheck disable=SC1091
-  . task-json2sh.lib.sh
+  . ./task-json2sh.lib.sh
 else
   # shellcheck disable=SC1091
-  . task-jq.lib.sh
+  . ./task-jq.lib.sh
 fi
 
 subcmd_my_ip_addr() {

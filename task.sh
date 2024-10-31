@@ -365,7 +365,7 @@ install_pkg_cmd_tabsep_args() (
       cmd_path="$win_cmd_path"
       if ! type "$cmd_path" > /dev/null 2>&1
       then
-        winget install -e --id "$winget_id" 2>&1
+        winget install --accept-package-agreements --accept-source-agreements --exact --id "$winget_id" 2>&1
       fi
     else
       echo "No package ID for Windows specified." >&2

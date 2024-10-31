@@ -3,8 +3,8 @@ set -o errexit -o nounset
 
 test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
 
-. task.sh
-. task-volta.lib.sh
+. ./task.sh
+. ./task-volta.lib.sh
 
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"

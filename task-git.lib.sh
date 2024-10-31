@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
-. task.sh
+. ./task.sh
 
 set_sync_ignored "$SCRIPT_DIR"/.git
 

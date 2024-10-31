@@ -3,10 +3,10 @@ set -o nounset -o errexit
 
 test "${guard_e249abe+set}" = set && return 0; guard_e249abe=x
 
-. task.sh
-. task-volta.lib.sh
-. task-next.lib.sh
-. task-sqlite3.lib.sh
+. ./task.sh
+. ./task-volta.lib.sh
+. ./task-next.lib.sh
+. ./task-sqlite3.lib.sh
 
 mkdir_sync_ignored .wrangler build
 mkdir_sync_ignored .gobin

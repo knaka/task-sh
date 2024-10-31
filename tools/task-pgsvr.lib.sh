@@ -3,8 +3,8 @@ set -o nounset -o errexit
 
 test "${guard_a543be5+set}" = set && return 0; guard_a543be5=x
 
-. task.sh
-. task-pgclt.lib.sh
+. ./task.sh
+. ./task-pgclt.lib.sh
 
 mkdir -p pgdata
 set_sync_ignored pgdata

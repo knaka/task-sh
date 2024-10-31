@@ -2,7 +2,7 @@
 
 test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
 
-. task.sh
+. ./task.sh
 
 # gobin returns the path to the Go bin directory.
 gobin() (

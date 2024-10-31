@@ -3,9 +3,9 @@ set -o nounset -o errexit
 
 test "${guard_0047173+set}" = set && return 0; guard_0047173=x
 
-. task.sh
-. task-volta.lib.sh
-. task-next.lib.sh
+. ./task.sh
+. ./task-volta.lib.sh
+. ./task-next.lib.sh
 
 usage_next_prompt() {
   echo

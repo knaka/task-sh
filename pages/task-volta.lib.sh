@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
 
-. task.sh
+. ./task.sh
 
 mkdir_sync_ignored node_modules
 

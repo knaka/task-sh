@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=x
 
-. task.sh
+. ./task.sh
 
 mkdir -p .idea
 set_sync_ignored .idea

@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_3b8c583+set}" = set && return 0; guard_3b8c583=-
 
-. task.sh
+. ./task.sh
 
 subcmd_docker() (
   if ! type docker > /dev/null 2>&1

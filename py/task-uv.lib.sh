@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_dce0096+set}" = set && return 0; guard_dce0096=x
 
-. task.sh
+. ./task.sh
 
 set_sync_ignored .venv
 

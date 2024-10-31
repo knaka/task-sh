@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_7ebf15b+set}" = set && return 0; guard_7ebf15b=-
 
-. task.sh
+. ./task.sh
 
 subcmd_javy() (
   # Releases · bytecodealliance/javy https://github.com/bytecodealliance/javy/releases

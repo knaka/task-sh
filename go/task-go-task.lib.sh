@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
 
-. task.sh
+. ./task.sh
 
 delegate_tasks() (
   chdir_script

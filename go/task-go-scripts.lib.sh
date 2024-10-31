@@ -3,8 +3,8 @@ set -o nounset -o errexit
 
 test "${guard_bcd6f78+set}" = set && return 0; guard_bcd6f78=-
 
-. task.sh
-. task-go.lib.sh
+. ./task.sh
+. ./task-go.lib.sh
 
 (
   for dir in .idea build

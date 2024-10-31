@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_e099219+set}" = set && return 0; guard_e099219=x
 
-. task.sh
+. ./task.sh
 
 psql_cmd=psql
 brew_psql_cmd_path=/usr/local/opt/postgresql@15/bin/psql

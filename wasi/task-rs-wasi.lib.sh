@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_205ffb3+set}" = set && return 0; guard_205ffb3=x
 
-. task.sh
+. ./task.sh
 
 mkdir_sync_ignored .vscode
 

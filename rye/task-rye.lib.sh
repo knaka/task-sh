@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_6d6de14+set}" = set && return 0; guard_6d6de14=-
 
-. task.sh
+. ./task.sh
 
 mkdir -p .venv
 set_sync_ignored .venv

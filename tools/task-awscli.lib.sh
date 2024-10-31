@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_f4297b5+set}" = set && return 0; guard_f4297b5=x
 
-. task.sh
+. ./task.sh
 
 subcmd_aws() {
   run_pkg_cmd \

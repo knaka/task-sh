@@ -3,7 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_7917aa0+set}" = set && return 0; guard_7917aa0=-
 
-. task.sh
+. ./task.sh
 
 set_sync_ignored_bcc0a9f() (
   for dir in gradle/wrapper .gradle app/build .kotlin

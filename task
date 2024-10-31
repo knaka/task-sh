@@ -24,4 +24,5 @@ then
   # shellcheck disable=SC1090
   . "$env_file_path"
 fi
+export POSIXLY_CORRECT=1
 exec sh "$sh_dir_path/$script_name.sh" "$@"

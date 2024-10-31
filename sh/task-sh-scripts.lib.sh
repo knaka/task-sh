@@ -2,7 +2,7 @@
 
 test "${guard_b6c071a+set}" = set && return 0; guard_b6c071a=-
 
-. task.sh
+. ./task.sh
 
 subcmd_install() ( # Install shell scripts.
   chdir_script

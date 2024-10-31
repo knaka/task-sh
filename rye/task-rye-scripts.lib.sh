@@ -3,8 +3,8 @@ set -o nounset -o errexit
 
 test "${guard_9ac5215+set}" = set && return 0; guard_9ac5215=-
 
-. task.sh
-. task-rye.lib.sh
+. ./task.sh
+. ./task-rye.lib.sh
 
 task_install() ( # Install scripts.
   py_bin_dir_path="$HOME"/py-bin

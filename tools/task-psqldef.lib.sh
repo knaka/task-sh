@@ -5,9 +5,9 @@ set -o nounset -o errexit
 
 test "${guard_c78c581+set}" = set && return 0; guard_c78c581=-
 
-. task.sh
-. task-docker.lib.sh
-. task-go.lib.sh
+. ./task.sh
+. ./task-docker.lib.sh
+. ./task-go.lib.sh
 
 subcmd_psqldef() (
   # sqldef/sqldef: Idempotent schema management for MySQL, PostgreSQL, and more https://github.com/sqldef/sqldef

@@ -3,8 +3,8 @@ set -o nounset -o errexit
 
 test "${guard_5544dc4+set}" = set && return 0; guard_5544dc4=x
 
-. task.sh
-. task-project.lib.sh
+. ./task.sh
+. ./task-project.lib.sh
 
 subcmd_install() {
   chdir_script

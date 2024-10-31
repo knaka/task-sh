@@ -5,7 +5,7 @@ test "${guard_b657fd4+set}" = set && return 0; guard_b657fd4=x
 
 # Aliases are expanded when a function is defined, not when it is executed.
 foo() {
-  . sh-alias.lib.sh
+  . ./sh-alias.lib.sh
   # ls_with_option /
   alias ls-with-option='ls -l'
   # ls-with-option / # Error
