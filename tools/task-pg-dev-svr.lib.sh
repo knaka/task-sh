@@ -67,6 +67,7 @@ is_available_port() (
   then
     echo "Not implemented" >&2
     return 1
+    # netstat -anp | ...
   elif is_darwin
   then
     if netstat -anvp tcp | grep ^tcp4 | awk '{ print $4 }' | sed 's/.*\.//' | grep -q "^$port\$"
