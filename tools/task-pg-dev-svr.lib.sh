@@ -100,9 +100,10 @@ find_free_port() (
 
 pg_dev_usage() {
   echo
-  echo "Launch $(emph "C")LI"
-  echo "$(emph "S")tatus"
-  echo "E$(emph x)it"
+  echo "PostgreSQL Development DB:"
+  menu_item "* Launch &CLI"
+  menu_item "* &Status"
+  menu_item "* E&xit"
 }
 
 pg_dev_prompt() {
