@@ -98,18 +98,14 @@ find_free_port() (
 
 # ------------------------------------------------------------------------------
 
-pg_dev_usage() {
-  echo
-  echo "PostgreSQL Development DB:"
-  menu_item "* Launch &CLI"
-  menu_item "* &Status"
-  menu_item "* E&xit"
-}
-
 pg_dev_prompt() {
   while true
   do
-    pg_dev_usage
+    echo
+    echo "PostgreSQL Development DB:"
+    menu_item "* Launch &CLI"
+    menu_item "* &Status"
+    menu_item "* E&xit"
     # shellcheck disable=SC2119
     case "$(get_key)" in
       c) task_pg__cli ;;
