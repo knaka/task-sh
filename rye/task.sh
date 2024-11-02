@@ -578,6 +578,10 @@ enclose_with_brackets() {
 
 # Emphasize text.
 emph() {
+  if test -z "$1"
+  then
+    return
+  fi
   if is_windows
   then
     enclose_with_brackets "$(bold "$(underline "$1")")"

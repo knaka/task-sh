@@ -38,4 +38,18 @@ my_prompt() {
   done
 }
 
-my_prompt
+# my_prompt
+
+menu_item2() {
+  echo "$1" | sed -E -e 's/&&/@57125cb@/g' -e 's/([^&]*)&([^&])(.*)/\1|\2|\3/' | (
+    set_ifs_pipe
+    read -r pre ch post
+    printf "%s%s%s\n" "$pre" "$(emph "$ch")" "$post" | sed -E -e 's/@57125cb@/\&/g'
+  )
+}
+
+if test "$(basename "$0")" = "sh-escseq.sh"
+then
+  menu_item2 "E&xit"
+  menu_item2 "Save && E&xit"
+fi
