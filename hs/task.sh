@@ -97,6 +97,12 @@ cleanup() {
 
 trap cleanup EXIT
 
+verbose_f26120b=false 
+
+verbose() {
+  "$verbose_f26120b"
+}
+
 # --------------------------------------------------------------------------
 
 is_windows() {
@@ -444,9 +450,12 @@ set_ifs_path_sepaprator() {
   set_ifs_slashes
 }
 
-# Default.
 set_ifs_newline() {
   set_ifs "$(printf '\n\r')"
+}
+
+set_ifs_default() {
+  set_ifs "$(printf ' \t\n\r')"
 }
 
 restore_ifs() {
@@ -605,13 +614,16 @@ menu_item() (
 
 # --------------------------------------------------------------------------
 
-task_file_paths=
+psv_task_file_paths=
 
 task_subcmds() ( # List subcommands.
   chdir_script
   delim=" delim_2ed1065 "
+  set_ifs_pipe
   # shellcheck disable=SC2086
-  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+  set -- $psv_task_file_paths
+  restore_ifs
+  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" "$@" | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
   if type delegate_tasks > /dev/null 2>&1
   then
     if delegate_tasks subcmds > /dev/null 2>&1
@@ -623,22 +635,23 @@ task_subcmds() ( # List subcommands.
   echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
 )
 
-task_tasks() { # List tasks.
-  (
-    delim=" delim_d3984dd "
-    # shellcheck disable=SC2086
-    cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" $task_file_paths | sed -r -e 's/^task_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
-    if type delegate_tasks > /dev/null 2>&1
+task_tasks() ( # List tasks.
+  delim=" delim_d3984dd "
+  set_ifs_pipe
+  # shellcheck disable=SC2086
+  set -- $psv_task_file_paths
+  restore_ifs
+  cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" "$@" | sed -r -e 's/^task_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
+  if type delegate_tasks > /dev/null 2>&1
+  then
+    if delegate_tasks tasks > /dev/null 2>&1
     then
-      if delegate_tasks tasks > /dev/null 2>&1
-      then
-        cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
-      fi
+      cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
     fi
-    max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-    echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
+  fi
+  max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
+  echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
   )
-}
 
 usage() ( # Show help message.
   chdir_script
@@ -688,7 +701,7 @@ main() {
     esac
   fi
 
-  task_file_paths="$(realpath "$0")"
+  psv_task_file_paths="$(realpath "$0")"
   for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
     if ! test -r "$task_file_path"
@@ -700,12 +713,11 @@ main() {
       continue
       ;;
     esac
-    task_file_paths="$task_file_paths $task_file_path"
+    psv_task_file_paths="$psv_task_file_paths|$task_file_path"
     # shellcheck disable=SC1090
     . "$task_file_path"
   done
 
-  verbose=false
   shows_help=false
   while getopts d:hv-: OPT
   do
@@ -720,7 +732,7 @@ main() {
     case "$OPT" in
       d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       h|help) shows_help=true;;
-      v|verbose) verbose=true;;
+      v|verbose) verbose_f26120b=true;;
       \?) usage; exit 2;;
       *) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
@@ -763,7 +775,7 @@ main() {
     then
       if type delegate_tasks > /dev/null 2>&1
       then
-        $verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
+        verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
         delegate_tasks "$@"
         continue
       fi
