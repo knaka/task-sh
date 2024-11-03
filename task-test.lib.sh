@@ -24,6 +24,7 @@ fi
 psv_test_file_paths=
 
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
+  set +o errexit
   for test_file_path in "$SCRIPT_DIR"/test-*.sh
   do
     if ! test -r "$test_file_path"
@@ -34,6 +35,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     . "$test_file_path"
     psv_test_file_paths="${psv_test_file_paths:+$psv_test_file_paths|}$test_file_path"
   done
+  set +o errexit
   test_names=
   if test "$#" -eq 0
   then
@@ -62,7 +64,9 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    if "test_$test_name" > "$log_file_path" 2>&1
+    "test_$test_name" > "$log_file_path" 2>&1
+    # "test_$test_name"
+    if test "$?" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL"
       if verbose

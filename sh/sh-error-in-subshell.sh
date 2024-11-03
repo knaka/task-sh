@@ -2,17 +2,29 @@
 set -o nounset -o errexit
 
 f() (
-  if true
-  then
-    false
-    return $?
-  fi
-  true
-  # return $?
-  # echo "NO!!"
+  set -o errexit
+  echo AAA >&2
+  false
+  echo BBB >&2
 )
-# f
-f && echo "f succeeded" || echo "f failed"
+
+(
+  set +o errexit
+  f
+  if test $? -eq 0 
+  then
+    echo "f succeeded"
+  else
+    echo "f failed"
+  fi
+)
+
+# if f
+# then
+#   echo "f succeeded"
+# else
+#   echo "f failed"
+# fi
 # f || { echo "f failed" >&2; exit 1; }
 
 # foo() (
