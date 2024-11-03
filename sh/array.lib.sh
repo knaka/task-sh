@@ -5,10 +5,7 @@ test "${guard_490b7a1+set}" = set && return 0; guard_490b7a1=x
 
 array_head() (
   arr="$1"
-  if test -z "$arr"
-  then
-    return 1
-  fi
+  test -z "$arr" && return 1
   IFS="$2"
   # shellcheck disable=SC2086
   set -- $arr
@@ -17,10 +14,7 @@ array_head() (
 
 array_tail() (
   arr="$1"
-  if test -z "$arr"
-  then
-    return 1
-  fi
+  test -z "$arr" && return 1
   IFS="$2"
   # shellcheck disable=SC2086
   set -- $arr
@@ -33,7 +27,7 @@ array_length() (
   IFS="$2"
   # shellcheck disable=SC2086
   set -- $arr
-  echo $#
+  echo "$#"
 )
 
 array_append() (
@@ -41,21 +35,14 @@ array_append() (
   shift
   IFS="$1"
   shift
-  delim=
-  if test -n "$arr"
-  then
-    printf "%s" "$arr"
-    delim="$IFS"
-  fi
-  for i in "$@"
-  do
-    for j in $i
+  (
+    test -n "$arr" && echo "$arr"
+    printf "%s\n" "$@" | while read -r arr2
     do
-      printf "%s%s" "$delim" "$j"
-      delim="$IFS"
+      # shellcheck disable=SC2086
+      printf "%s\n" $arr2
     done
-  done
-  echo
+  ) | paste -sd "$IFS" -
 )
 
 array_prepend() (
@@ -63,21 +50,14 @@ array_prepend() (
   shift
   IFS="$1"
   shift
-  delim=
-  for i in "$@"
-  do
-    for j in $i
+  (
+    printf "%s\n" "$@" | while read -r arr2
     do
-      printf "%s%s" "$delim" "$j"
-      delim="$IFS"
+      # shellcheck disable=SC2086
+      printf "%s\n" $arr2
     done
-  done
-  if test -n "$arr"
-  then
-    printf "%s%s" "$delim" "$arr"
-    delim="$IFS"
-  fi
-  echo
+    test -n "$arr" && echo "$arr"
+  ) | paste -sd "$IFS" -
 )
 
 array_at() (
@@ -285,7 +265,8 @@ array_each() (
       should_replace=true
     fi
   done
-  for i in $arr
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | while read -r i
   do
     if $reads_stdin
     then
@@ -308,4 +289,29 @@ array_each() (
       "$@" "$i"
     fi
   done
+)
+
+array_sort() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | if test "$#" -eq 0; then sort; else "$@"; fi | paste -sd "$IFS" -
+)
+
+. ./task.sh
+
+if is_bsd
+then
+  alias shuf='sort -R'
+fi
+
+array_shuffle() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | shuf | paste -sd "$IFS" -
 )

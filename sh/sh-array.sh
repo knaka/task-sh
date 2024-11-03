@@ -149,3 +149,8 @@ assert_eq "5,3,7" "$(array_map "Alice,Bob,Charlie" , strlen)"
 assert_eq 'Hello, Alice!!!
 Hello, Bob!!!
 Hello, Charlie!!!' "$(array_each "Alice,Bob,Charlie" , printf "Hello, %s%s\n" _ "!!!")"
+
+assert_eq "abc,abcde,def,xyz" "$(array_sort "abcde,abc,xyz,def" ,)"
+assert_eq "xyz,def,abcde,abc" "$(array_sort "abcde,abc,xyz,def" , sort -r)"
+# Random sort
+array_sort "abcde,abc,xyz,def" , sort -R
