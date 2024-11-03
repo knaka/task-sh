@@ -4,6 +4,7 @@ set -o nounset -o errexit
 test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 
 . ./task.sh
+
 # For subcmd_json2sh
 if test -r task-json2sh.lib.sh
 then
@@ -14,12 +15,21 @@ else
   . ./task-jq.lib.sh
 fi
 
-subcmd_my_ip_addr() {
+task_my_ip_addr() {
   # shellcheck disable=SC2119
-  eval "$(curl"$(exe_ext)" -o - http://ip.jsontest.com/ 2> /dev/null | subcmd_json2sh)"
+  eval "$(memoize d9e8d98 curl"$(exe_ext)" -o - http://ip.jsontest.com/ | subcmd_json2sh)"
   # shellcheck disable=SC2154
   echo "My IP Address: $json__ip"
 }
 
 # subcmd_* aliases is “eval”ed in main function.
-alias subcmd_my-ip-addr='subcmd_my_ip_addr'
+# alias task_my-ip-addr='task_my_ip_addr'
+
+headers() {
+  memoize 28e678f cross_run curl -o - http://headers.jsontest.com/
+}
+
+task_headers() {
+  headers | subcmd_jq -r '.["User-Agent"]'
+  headers | subcmd_jq -r '.["Host"]'
+}
