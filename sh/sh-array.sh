@@ -36,6 +36,7 @@ assert_eq "foo,bar,baz" "$(array_prepend "bar,baz" , foo)"
 assert_eq "foo,bar,baz,qux" "$(array_prepend "baz,qux" , foo bar)"
 assert_eq "foo,bar,baz,qux" "$(array_prepend "baz,qux" , "foo,bar")"
 
+# Stack operations.
 stack="bar,baz"
 stack="$(array_prepend "$stack" , foo)"
 assert_eq "foo,bar,baz" "$stack"
@@ -57,6 +58,9 @@ then
 fi
 
 assert_eq "baz,bar,foo" "$(array_reverse "foo,bar,baz" ,)"
+
+assert_true array_contains 'foo,bar,baz' , foo
+assert_false array_contains 'foo,bar,baz' , qux
 
 # --------------------------------------------------------------------------
 
@@ -123,3 +127,25 @@ assert_eq 24 "$(
   _206d735() (echo $(( $1 * $2 )))
   array_reduce "1,2,3,4" "," 1 _206d735
 )"
+
+psv_reduce() (
+  psv="$1"
+  shift
+  init="$1"
+  shift
+  array_reduce "$psv" "|" "$init" "$@"
+)
+
+psv="100|200|300|400"
+
+assert_eq 1000 "$(psv_reduce "$psv" 0 rpn _ _ '+')"
+
+strlen() {
+  echo "${#1}"
+}
+
+assert_eq "5,3,7" "$(array_map "Alice,Bob,Charlie" , strlen)"
+
+assert_eq 'Hello, Alice!!!
+Hello, Bob!!!
+Hello, Charlie!!!' "$(array_each "Alice,Bob,Charlie" , printf "Hello, %s%s\n" _ "!!!")"

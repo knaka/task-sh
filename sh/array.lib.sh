@@ -82,8 +82,9 @@ array_prepend() (
 
 array_at() (
   arr="$1"
-  IFS="$2"
-  shift 2
+  shift
+  IFS="$1"
+  shift
   i=0
   for item in $arr
   do
@@ -122,7 +123,7 @@ array_map() (
     printf "%s" "$delim"
     if $reads_stdin
     then
-      echo "$i" | printf "%s" "$("$@")"
+      printf "%s" "$(printf "%s" "$i" | "$@")"
     elif $should_replace
     then
       (
@@ -245,5 +246,66 @@ array_reverse() (
     eval printf "%s%s" "$delim" "\$$i"
     delim="$IFS"
     i=$((i - 1))
+  done
+)
+
+array_contains() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  item="$1"
+  shift
+  for i in $arr
+  do
+    if test "$i" = "$item"
+    then
+      return 0
+    fi
+  done
+  return 1
+)
+
+array_each() (
+  reads_stdin=false
+  arr="$1"
+  shift
+  if test "$arr" = "-"
+  then
+    reads_stdin=true
+    arr="$(cat)"
+  fi
+  IFS="$1"
+  shift
+  should_replace=false
+  for arg in "$@"
+  do
+    if test "$arg" = "_" || test "$arg" = "it"
+    then
+      should_replace=true
+    fi
+  done
+  for i in $arr
+  do
+    if $reads_stdin
+    then
+      echo "$i" | "$@"
+    elif $should_replace
+    then
+      (
+        for arg in "$@"
+        do
+          if test "$arg" = "_" || test "$arg" = "it"
+          then
+            arg="$i"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )
+    else
+      "$@" "$i"
+    fi
   done
 )
