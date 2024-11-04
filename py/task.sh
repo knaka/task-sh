@@ -14,106 +14,6 @@ then
   exit 0
 fi
 
-ORIGINAL_DIR="$PWD"
-export ORIGINAL_DIR
-
-chdir_original() {
-  cd "$ORIGINAL_DIR" || exit 1
-}
-
-SCRIPT_DIR="$(realpath "$(dirname "$0")")"
-export SCRIPT_DIR
-
-chdir_script() {
-  cd "$SCRIPT_DIR" || exit 1
-}
-
-user_specified_directory=
-
-chdir_user() {
-  if test -n "$user_specified_directory"
-  then
-    cd "$user_specified_directory" || exit 1
-  else
-    chdir_original
-  fi
-}
-
-in_script_dir() {
-  echo "$PWD" | grep -q "^$SCRIPT_DIR"
-}
-
-# BusyBox sh not supports -t.
-_temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
-
-temp_dir_path() {
-  if ! test -d "$_temp_dir_path_d4a4197"
-  then
-    mkdir -p "$_temp_dir_path_d4a4197"
-  fi
-  echo "$_temp_dir_path_d4a4197"
-}
-
-if ! type tac > /dev/null 2>&1
-then
-  tac() {
-    tail -r
-  }
-fi
-
-csv_cleanup_functions=
-
-cleanup() {
-  rc=$?
-  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  if is_windows 
-  then
-    for i_519fa93 in $(seq 10)
-    do
-      kill "%$i_519fa93" > /dev/null 2>&1 || :
-      wait "%$i_519fa93" > /dev/null 2>&1 || :
-    done
-  else 
-    for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
-    do
-      kill "%$i_519fa93"
-      wait "%$i_519fa93" || :
-    done
-  fi
-  # echo "Killed children." >&2
-
-  rm -fr "$_temp_dir_path_d4a4197"
-  # echo "Cleaned up temporary files." >&2
-
-  if test "$rc" -ne 0
-  then
-    echo "Exiting with status $rc" >&2
-    if type on_error > /dev/null 2>&1
-    then
-      on_error
-    fi
-  fi
-
-  set_ifs_comma
-  for cleanup_function in $csv_cleanup_functions
-  do
-    "$cleanup_function"
-  done
-  restore_ifs
-
-  exit "$rc"
-}
-
-add_cleanup_function() {
-  csv_cleanup_functions="$(array_prepend "$csv_cleanup_functions" , "$1")"
-}
-
-verbose_f26120b=false 
-
-verbose() {
-  "$verbose_f26120b"
-}
-
 # --------------------------------------------------------------------------
 
 backup_state() {
@@ -956,6 +856,108 @@ array_shuffle() (
 )
 
 # --------------------------------------------------------------------------
+
+ORIGINAL_DIR="$PWD"
+export ORIGINAL_DIR
+
+chdir_original() {
+  cd "$ORIGINAL_DIR" || exit 1
+}
+
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+export SCRIPT_DIR
+
+chdir_script() {
+  cd "$SCRIPT_DIR" || exit 1
+}
+
+user_specified_directory=
+
+chdir_user() {
+  if test -n "$user_specified_directory"
+  then
+    cd "$user_specified_directory" || exit 1
+  else
+    chdir_original
+  fi
+}
+
+in_script_dir() {
+  echo "$PWD" | grep -q "^$SCRIPT_DIR"
+}
+
+# BusyBox sh not supports -t.
+_temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
+
+temp_dir_path() {
+  if ! test -d "$_temp_dir_path_d4a4197"
+  then
+    mkdir -p "$_temp_dir_path_d4a4197"
+  fi
+  echo "$_temp_dir_path_d4a4197"
+}
+
+if ! type tac > /dev/null 2>&1
+then
+  tac() {
+    tail -r
+  }
+fi
+
+csv_cleanup_functions=
+
+cleanup() {
+  rc=$?
+  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
+  if is_windows 
+  then
+    for i_519fa93 in $(seq 10)
+    do
+      kill "%$i_519fa93" > /dev/null 2>&1 || :
+      wait "%$i_519fa93" > /dev/null 2>&1 || :
+    done
+  else 
+    for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
+    do
+      kill "%$i_519fa93"
+      wait "%$i_519fa93" || :
+    done
+  fi
+  # echo "Killed children." >&2
+
+  rm -fr "$_temp_dir_path_d4a4197"
+  # echo "Cleaned up temporary files." >&2
+
+  if test "$rc" -ne 0
+  then
+    echo "Exiting with status $rc" >&2
+    if type on_error > /dev/null 2>&1
+    then
+      on_error
+    fi
+  fi
+
+  set_ifs_comma
+  for cleanup_function in $csv_cleanup_functions
+  do
+    "$cleanup_function"
+  done
+  restore_ifs
+
+  exit "$rc"
+}
+
+add_cleanup_function() {
+  csv_cleanup_functions="$(array_prepend "$csv_cleanup_functions" , "$1")"
+}
+
+verbose_f26120b=false 
+
+verbose() {
+  "$verbose_f26120b"
+}
+
+# -------------------------------------------------------------------------- 
 
 psv_task_file_paths=
 
