@@ -904,7 +904,7 @@ then
   }
 fi
 
-csv_cleanup_functions=
+csv_cleanup_handlers=
 
 cleanup() {
   rc=$?
@@ -938,17 +938,17 @@ cleanup() {
   fi
 
   set_ifs_comma
-  for cleanup_function in $csv_cleanup_functions
+  for cleanup_handler in $csv_cleanup_handlers
   do
-    "$cleanup_function"
+    "$cleanup_handler"
   done
   restore_ifs
 
   exit "$rc"
 }
 
-add_cleanup_function() {
-  csv_cleanup_functions="$(array_prepend "$csv_cleanup_functions" , "$1")"
+add_cleanup_handler() {
+  csv_cleanup_handlers="$(array_prepend "$csv_cleanup_handlers" , "$1")"
 }
 
 verbose_f26120b=false 
