@@ -61,6 +61,8 @@ then
   }
 fi
 
+csv_cleanup_functions=
+
 cleanup() {
   rc=$?
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
@@ -92,10 +94,19 @@ cleanup() {
     fi
   fi
 
+  set_ifs_comma
+  for cleanup_function in $csv_cleanup_functions
+  do
+    "$cleanup_function"
+  done
+  restore_ifs
+
   exit "$rc"
 }
 
-trap cleanup EXIT
+add_cleanup_function() {
+  csv_cleanup_functions="$(array_prepend "$csv_cleanup_functions" , "$1")"
+}
 
 verbose_f26120b=false 
 
@@ -104,6 +115,25 @@ verbose() {
 }
 
 # --------------------------------------------------------------------------
+
+backup_state() {
+  if test "${original_state_c225b8f+set}" = set
+  then
+    # Fails to save the state if it was already saved. Does not nest.
+    return 1
+  fi
+  original_state_c225b8f="$(set +o)"
+}
+
+restore_state() {
+  if ! test "${original_state_c225b8f+set}" = set
+  then
+    # Fails to restore the state if it was not saved.
+    return 1
+  fi
+  eval "$original_state_c225b8f"
+  unset original_state_c225b8f
+}
 
 is_windows() {
   case "$(uname -s)" in
@@ -162,9 +192,9 @@ set_sync_ignored() (
       continue
     fi
     set_ifs_pipe
-    for attribute in $psv_file_sharing_ignorance_attributes
+    for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
-      set_path_attr "$path" "$attribute" 1
+      set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
     restore_ifs
   done
@@ -989,6 +1019,8 @@ EOF
 )
 
 main() {
+  trap cleanup EXIT
+
   chdir_script
 
   if test "${ARG0BASE+set}" = "set"
