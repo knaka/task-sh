@@ -3,6 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
 
+# Update the script by replacing itself with the latest version.
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then
   temp_dir_path_5de91af="$(mktemp -d)"
@@ -16,6 +17,9 @@ fi
 
 # --------------------------------------------------------------------------
 
+unset original_state_c225b8f
+
+# Backup the current state of the shell.
 backup_state() {
   if test "${original_state_c225b8f+set}" = set
   then
@@ -25,6 +29,7 @@ backup_state() {
   original_state_c225b8f="$(set +o)"
 }
 
+# Restore the state of the shell to the state saved by `backup_state`.
 restore_state() {
   if ! test "${original_state_c225b8f+set}" = set
   then
@@ -42,6 +47,7 @@ is_windows() {
   esac
 }
 
+# Executable file extension.
 exe_ext() {
   if is_windows
   then
@@ -65,6 +71,11 @@ is_darwin() {
   return 1
 }
 
+is_mac() {
+  is_darwin
+}
+
+# Set the extra attributes of the file/directory.
 set_path_attr() (
   path="$1"
   attribute="$2"
@@ -79,11 +90,15 @@ set_path_attr() (
   elif which attr > /dev/null 2>&1
   then
     attr -s "$attribute" -V "$value" "$path"
+  else
+    echo "No command to set attribute: $attribute" >&2
+    exit 1
   fi
 )
 
 readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P"
 
+# Set the file/directory to be ignored by file sharing such as Dropbox.
 set_sync_ignored() (
   for path in "$@"
   do
@@ -100,6 +115,7 @@ set_sync_ignored() (
   done
 )
 
+# Create a directory and set it to be ignored by file sharing such as Dropbox.
 mkdir_sync_ignored() (
   for path in "$@"
   do
@@ -117,6 +133,7 @@ mkdir_sync_ignored() (
   done
 )
 
+# Set the file/directory to be ignored by file sharing such as Dropbox.
 force_sync_ignored() (
   for path in "$@"
   do
@@ -129,6 +146,7 @@ force_sync_ignored() (
   done
 )
 
+# Check if the file(s)/directory(s) is/are newer than the destination.
 newer() (
   found_than=false
   dest=
@@ -179,7 +197,7 @@ newer() (
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 )
 
-# Busybox sh seems to fail to detect proper executable if POSIX style one exists in the same directory.
+# Busybox sh seems to fail to detect proper executable if a file without executable extension exists in the same directory.
 cross_exec() {
   cleanup
   if ! is_windows
@@ -207,6 +225,7 @@ cross_exec() {
   exec "$cmd_path" "$@"
 }
 
+# Run a command preferring the Windows version if available.
 cross_run() (
   if ! is_windows
   then
@@ -226,6 +245,7 @@ cross_run() (
   "$cmd" "$@"
 )
 
+# Ensure an argument for an option.
 ensure_opt_arg() (
   if test -z "$2"
   then
@@ -236,6 +256,7 @@ ensure_opt_arg() (
   echo "$2"
 )
 
+# Open a URL in a browser.
 open_browser() (
   case "$(uname -s)" in
     Linux)
@@ -339,6 +360,7 @@ install_pkg_cmd_tabsep_args() (
 
 unset ifs_a8fded1
 
+# Save the current IFS and set it to the specified value.
 set_ifs() {
   if test -z "${ifs_a8fded1+set}" && test -n "${IFS+set}"
   then
@@ -388,6 +410,7 @@ set_ifs_default() {
   set_ifs "$(printf ' \t\n\r')"
 }
 
+# Restore the saved IFS.
 restore_ifs() {
   if test -n "${ifs_a8fded1+set}"
   then
@@ -397,16 +420,6 @@ restore_ifs() {
     IFS="$(printf ' \t\n\r')"
   fi
 }
-
-# Expects $IFS is set to the proper value for the separator for the "list" string $1.
-strjoin() (
-  delim=
-  for arg in $1
-  do
-    printf "%s%s" "$delim" "$arg"
-    delim="$2"
-  done
-)
 
 install_pkg_cmd() {
   set_ifs_tab
@@ -543,6 +556,16 @@ menu_item() (
 )
 
 # --------------------------------------------------------------------------
+# Array functions. "array string + delimiter" is used for the array representation.
+
+# Join an array with a delimiter.
+array_join() (
+  arr="$1"
+  IFS="$2"
+  delim="$3"
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | paste -sd "$delim" -
+)
 
 array_head() (
   arr="$1"
@@ -553,6 +576,10 @@ array_head() (
   echo "$1"
 )
 
+array_first() {
+  array_head "$@"
+}
+
 array_tail() (
   arr="$1"
   test -z "$arr" && return 1
@@ -562,6 +589,10 @@ array_tail() (
   shift
   echo "$*"
 )
+
+array_rest() {
+  array_tail "$@"
+}
 
 array_length() (
   arr="$1"
@@ -619,6 +650,7 @@ array_at() (
   return 1
 )
 
+# Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
 array_map() (
   reads_stdin=false
   arr="$1"
@@ -667,6 +699,7 @@ array_map() (
   done
 )
 
+# Filter an array with a command. If the command contains "_", then it is replaced with the item.
 array_filter() (
   arr="$1"
   shift
@@ -710,6 +743,7 @@ array_filter() (
   done
 )
 
+# Reduce an array with a function. If the function contains "_"s, then they are replaced with the accumulator and the item.
 array_reduce() (
   arr="$1"
   shift
@@ -841,7 +875,7 @@ array_sort() (
   printf "%s\n" $arr | if test "$#" -eq 0; then sort; else "$@"; fi | paste -sd "$IFS" -
 )
 
-if is_bsd
+if ! type shuf > /dev/null 2>&1
 then
   alias shuf='sort -R'
 fi
@@ -857,6 +891,8 @@ array_shuffle() (
 
 # --------------------------------------------------------------------------
 
+# Original directory when the script is invoked.
+
 ORIGINAL_DIR="$PWD"
 export ORIGINAL_DIR
 
@@ -864,12 +900,16 @@ chdir_original() {
   cd "$ORIGINAL_DIR" || exit 1
 }
 
+# Directory in which the main script is located.
+
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 export SCRIPT_DIR
 
 chdir_script() {
   cd "$SCRIPT_DIR" || exit 1
 }
+
+# Directory specified by the user with the `-d` option.
 
 user_specified_directory=
 
@@ -882,11 +922,13 @@ chdir_user() {
   fi
 }
 
+# Check if the working directory is in the script directory.
 in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
 
-# BusyBox sh not supports -t.
+# Create a temporary directory if required. BusyBox sh not supports -t.
+
 _temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
 temp_dir_path() {
@@ -904,18 +946,23 @@ then
   }
 fi
 
+kill_children() {
+  for i_519fa93 in $(seq 10)
+  do
+    kill "%$i_519fa93" > /dev/null 2>&1 || :
+    wait "%$i_519fa93" > /dev/null 2>&1 || :
+  done
+}
+
 csv_cleanup_handlers=
 
+# Main cleanup handler.
 cleanup() {
   rc=$?
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
   if is_windows 
   then
-    for i_519fa93 in $(seq 10)
-    do
-      kill "%$i_519fa93" > /dev/null 2>&1 || :
-      wait "%$i_519fa93" > /dev/null 2>&1 || :
-    done
+    kill_children
   else 
     for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
     do
@@ -947,9 +994,12 @@ cleanup() {
   exit "$rc"
 }
 
+# Add a cleanup handler, not replacing the existing ones.
 add_cleanup_handler() {
   csv_cleanup_handlers="$(array_prepend "$csv_cleanup_handlers" , "$1")"
 }
+
+# Verbose flag.
 
 verbose_f26120b=false 
 
@@ -1046,6 +1096,10 @@ main() {
       *)
         ;;
     esac
+  else
+    # shellcheck disable=SC2034
+    ARG0="$0"
+    ARG0BASE="$(basename "$0")"
   fi
 
   psv_task_file_paths="$(realpath "$0")"

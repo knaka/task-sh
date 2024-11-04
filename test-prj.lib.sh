@@ -163,6 +163,7 @@ test_array() (
 
   assert_eq "5,3,7" "$(array_map "Alice,Bob,Charlie" , strlen)"
 
+  # ?
   # assert_eq 'Hello, Alice!!!
   # Hello, Bob!!!
   # Hello, Charlie!!!' "$(array_each "Alice,Bob,Charlie" , printf "Hello, %s%s\n" _ "!!!")"
@@ -188,4 +189,11 @@ test_set_ifs() (
   set_ifs_pipe
   restore_ifs
   assert_eq "$IFS" "abcde"
+)
+
+test_strjoin() (
+  set -o errexit
+
+  assert_eq "hoge,fuga,,,foo,bar" "$(array_join "hoge|fuga|||foo|bar" "|" ,)"
+  assert_eq "" "$(array_join "" "|" ,)"
 )
