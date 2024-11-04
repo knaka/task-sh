@@ -17,27 +17,27 @@ fi
 
 # --------------------------------------------------------------------------
 
-unset original_state_c225b8f
+unset shell_flags_c225b8f
 
-# Backup the current state of the shell.
-backup_state() {
-  if test "${original_state_c225b8f+set}" = set
+# Backup the current shell flags.
+backup_shell_flags() {
+  if test "${shell_flags_c225b8f+set}" = set
   then
     # Fails to save the state if it was already saved. Does not nest.
     return 1
   fi
-  original_state_c225b8f="$(set +o)"
+  shell_flags_c225b8f="$(set +o)"
 }
 
-# Restore the state of the shell to the state saved by `backup_state`.
-restore_state() {
-  if ! test "${original_state_c225b8f+set}" = set
+# Restore the shell flags saved by `backup_shell_flags`.
+restore_shell_flags() {
+  if ! test "${shell_flags_c225b8f+set}" = set
   then
     # Fails to restore the state if it was not saved.
     return 1
   fi
-  eval "$original_state_c225b8f"
-  unset original_state_c225b8f
+  eval "$shell_flags_c225b8f"
+  unset shell_flags_c225b8f
 }
 
 is_windows() {

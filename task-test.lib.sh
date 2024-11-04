@@ -63,7 +63,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    backup_state
+    backup_shell_flags
     # Not to exit when each test fails.
     set +o errexit
     "test_$test_name" > "$log_file_path" 2>&1
@@ -89,7 +89,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       restore_ifs
       some_failed=true
     fi
-    restore_state
+    restore_shell_flags
   done
   if $some_failed
   then
