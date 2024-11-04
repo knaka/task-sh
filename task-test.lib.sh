@@ -35,7 +35,6 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     . "$test_file_path"
     psv_test_file_paths="${psv_test_file_paths:+$psv_test_file_paths|}$test_file_path"
   done
-  set +o errexit
   test_names=
   if test "$#" -eq 0
   then
@@ -64,8 +63,10 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       echo "Test not found: $test_name" >&2
       exit 1
     fi
+    backup_state
+    # Not to exit when each test fails.
+    set +o errexit
     "test_$test_name" > "$log_file_path" 2>&1
-    # "test_$test_name"
     if test "$?" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL"
@@ -88,6 +89,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       restore_ifs
       some_failed=true
     fi
+    restore_state
   done
   if $some_failed
   then
