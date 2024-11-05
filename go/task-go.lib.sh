@@ -4,8 +4,8 @@ test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
 
 . ./task.sh
 
-# Returns the path to the Go bin directory.
-goroot_path_() (
+# Returns the path to the Go root directory.
+goroot_path() (
   # All releases - The Go Programming Language https://go.dev/dl/
   required_min_ver=go1.23.1
 
@@ -65,16 +65,12 @@ goroot_path_() (
   echo "$goroot"
 )
 
-goroot_path() {
-  memoize 37f2e58 goroot_path_
-}
-
-# Sets the Go environment. If CGO is required, call this and then call `set_unixy_dev_env`.
+# Sets the Go environment. If CGO is required, call `set_unixy_dev_env` also.
 set_go_env() {
   first_call 1dc30dd || return 0
   GOROOT="$(goroot_path)"
   export GOROOT
-  echo Using Go compiler in "$GOROOT/bin" >&2
+  echo Using Go compiler in "$GOROOT"/bin >&2
   PATH="$(array_prepend "$PATH" : "$GOROOT"/bin)"
   export PATH
 }
@@ -83,4 +79,3 @@ subcmd_go() { # Run go command.
   set_go_env
   go "$@"
 }
-
