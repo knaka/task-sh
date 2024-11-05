@@ -209,6 +209,8 @@ test_version_comparison() (
   assert_true version_gt 1.1.1 1.1.1alpha1
   assert_true version_gt v1.5.0-patch v1.5.0
   assert_true version_gt go1.23.2 go1.20.0
+  assert_false version_gt 1.0 1.0
+  assert_true version_ge 1.0 1.0
 
   assert_eq "v1,v1.4.3,v1.5.0" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version)"
   assert_eq "v1.5.0,v1.4.3,v1" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version -r)"

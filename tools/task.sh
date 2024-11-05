@@ -488,15 +488,15 @@ get_key() (
   echo "$key"
 )
 
-memoize() (
-  cache_file_name="$1"
+memoize() {
+  cache_file_name_5f7dc05="$1"
   shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  if ! test -r "$(temp_dir_path)/$cache_file_name_5f7dc05"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name"
+    "$@" > "$(temp_dir_path)/$cache_file_name_5f7dc05"
   fi
-  cat "$(temp_dir_path)/$cache_file_name"
-)
+  cat "$(temp_dir_path)/$cache_file_name_5f7dc05"
+}
 
 memoize_silent() (
   cache_file_name="$1"
@@ -565,6 +565,10 @@ sort_version() {
 # Check if the version is greater than the specified version.
 version_gt() {
   test "$(printf '%s\n' "$@" | sort_version | head -n 1)" != "$1"
+}
+
+version_ge() {
+  test "$(printf '%s\n' "$@" | sort_version -r | head -n 1)" = "$1"
 }
 
 # --------------------------------------------------------------------------

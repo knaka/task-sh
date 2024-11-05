@@ -4,40 +4,40 @@ test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
 
 . ./task.sh
 
-# gobin returns the path to the Go bin directory.
-gobin() (
+# Returns the path to the Go bin directory.
+goroot_path_() (
   # All releases - The Go Programming Language https://go.dev/dl/
-  ver=1.23.1
+  required_min_ver=go1.23.1
 
-  if test "${GOROOT+SET}" = "SET"
+  if test "${GOROOT+set}" && type "$GOROOT"/bin/go > /dev/null 2>&1 && version_ge "$("$GOROOT"/bin/go env GOVERSION)" "$required_min_ver"
   then
-    echo "$GOROOT"/bin
+    echo "$GOROOT"
     return
   fi
-  if which go > /dev/null 2>&1
+  if which go > /dev/null 2>&1 && version_ge "$(go env GOVERSION)" "$required_min_ver"
   then
-    echo "$(go env GOROOT)"/bin
+    go env GOROOT
     return
   fi
   for dir_path in \
-    "$HOME"/sdk/go${ver} \
+    "$HOME"/sdk/${required_min_ver} \
     /usr/local/go \
     /usr/local/Cellar/go/* \
-    /"Program Files"/Go \
+    "C:/Program Files"/Go \
     "$HOME"/go
   do
-    if type "$dir_path"/bin/go > /dev/null 2>&1
+    if type "$dir_path"/bin/go > /dev/null 2>&1 && version_ge "$("$dir_path"/bin/go env GOVERSION)" "$required_min_ver"
     then
-      echo "$dir_path"/bin
+      echo "$dir_path"
       return
     fi
   done
   sdk_dir_path="$HOME"/sdk
-  goroot="$sdk_dir_path"/go${ver}
+  goroot="$sdk_dir_path"/${required_min_ver}
   case "$(uname -s)" in
-    Linux) _goos=linux;;
-    Darwin) _goos=darwin;;
-    Windows_NT) _goos=windows;;
+    Linux) goos=linux;;
+    Darwin) goos=darwin;;
+    Windows_NT) goos=windows;;
     *)
       echo "Unsupported OS: $(uname -s)" >&2
       exit 1;;
@@ -52,19 +52,35 @@ gobin() (
   mkdir -p "$sdk_dir_path"
   if is_windows
   then
-    _temp_dir_path=$(mktemp -d)
-    zip_path="$_temp_dir_path"/temp.zip
-    curl --location -o "$zip_path" "https://go.dev/dl/go$ver.$_goos-$goarch.zip"
-    (cd "$sdk_dir_path" || exit 1; unzip -q "$zip_path" >&2)
-    rm -fr "$_temp_dir_path"
+    zip_path="$(temp_dir_path)"/temp.zip
+    curl --location -o "$zip_path" "https://go.dev/dl/$required_min_ver.$goos-$goarch.zip"
+    (
+      cd "$sdk_dir_path" || exit 1
+      unzip -q "$zip_path" >&2
+    )
   else
-    curl --location -o - "https://go.dev/dl/go$ver.$_goos-$goarch.tar.gz" | (cd "$sdk_dir_path" || exit 1; tar -xzf -)
+    curl --location -o - "https://go.dev/dl/$required_min_ver.$goos-$goarch.tar.gz" | (cd "$sdk_dir_path" || exit 1; tar -xzf -)
   fi
   mv "$sdk_dir_path"/go "$goroot"
-  echo "$goroot"/bin
+  echo "$goroot"
 )
 
-subcmd_go() { # Run go command.
-  go_cmd_path="$(gobin)"/go
-  "$go_cmd_path" "$@"
+goroot_path() {
+  memoize 37f2e58 goroot_path_
 }
+
+# Sets the Go environment. If CGO is required, call this and then call `set_unixy_dev_env`.
+set_go_env() {
+  first_call 1dc30dd || return 0
+  GOROOT="$(goroot_path)"
+  export GOROOT
+  echo Using Go compiler in "$GOROOT/bin" >&2
+  PATH="$(array_prepend "$PATH" : "$GOROOT"/bin)"
+  export PATH
+}
+
+subcmd_go() { # Run go command.
+  set_go_env
+  go "$@"
+}
+
