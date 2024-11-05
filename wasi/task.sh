@@ -555,6 +555,18 @@ menu_item() (
   echo "$pre$(emph "$ch")$post"
 )
 
+# Sort version strings.
+# shellcheck disable=SC2120
+sort_version() {
+  # Version strings which are composed of three parts are sorted considering the third part as a patch version.
+  sed -E -e '/-/! { s/^([^.]+(\.[^.]+){2})$/\1_/; }' -e 's/-patch/_patch/' | sort --version-sort "$@" | sed -e 's/_$//' -e 's/_patch/-patch/'
+}
+
+# Check if the version is greater than the specified version.
+version_gt() {
+  test "$(printf '%s\n' "$@" | sort_version | head -n 1)" != "$1"
+}
+
 # --------------------------------------------------------------------------
 # Array functions. "array string + delimiter" is used for the array representation.
 

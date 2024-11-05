@@ -197,3 +197,66 @@ test_strjoin() (
   assert_eq "hoge,fuga,,,foo,bar" "$(array_join "hoge|fuga|||foo|bar" "|" ,)"
   assert_eq "" "$(array_join "" "|" ,)"
 )
+
+test_version_comparison() (
+  set -o errexit
+
+  assert_true version_gt 1.0 0.9
+  assert_true version_gt 1.1 1.0
+  assert_true version_gt 1.1 1.0.9
+  assert_true version_gt 1.1.1 1.1
+  assert_true version_gt 1.1.1 1.1.0
+  assert_true version_gt 1.1.1 1.1.1alpha1
+  assert_true version_gt v1.5.0-patch v1.5.0
+  assert_true version_gt go1.23.2 go1.20.0
+
+  assert_eq "v1,v1.4.3,v1.5.0" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version)"
+  assert_eq "v1.5.0,v1.4.3,v1" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version -r)"
+
+  cat <<EOF > "$(temp_dir_path)/versions.txt"
+v1.4.0-alpha
+v1.4.0-alpha1
+v1.4.0-beta
+v1.4.0-patch
+v1.4.0-patch2
+v1.4.0-patch9
+v1.4.0-patch10
+v1.4.0-rc1
+v1.4.0
+v1.5
+v1.4
+v1
+v1.5.0-alpha
+v1.5.0-alpha2
+v1.5.0-alpha1
+v1.5.0-beta
+v1.5.0-patch
+v1.5.0-patch1
+v1.5.0-beta2
+v1.5.0
+EOF
+  cat <<EOF > "$(temp_dir_path)/expected.txt"
+v1
+v1.4
+v1.4.0-alpha
+v1.4.0-alpha1
+v1.4.0-beta
+v1.4.0-rc1
+v1.4.0
+v1.4.0-patch
+v1.4.0-patch2
+v1.4.0-patch9
+v1.4.0-patch10
+v1.5
+v1.5.0-alpha
+v1.5.0-alpha1
+v1.5.0-alpha2
+v1.5.0-beta
+v1.5.0-beta2
+v1.5.0
+v1.5.0-patch
+v1.5.0-patch1
+EOF
+  sort_version < "$(temp_dir_path)/versions.txt" > "$(temp_dir_path)/actual.txt"
+  assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
+)
