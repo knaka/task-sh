@@ -206,7 +206,7 @@ test_version_comparison() (
   assert_true version_gt 1.1 1.0.9
   assert_true version_gt 1.1.1 1.1
   assert_true version_gt 1.1.1 1.1.0
-  assert_true version_gt 1.1.1 1.1.1alpha1
+  assert_true version_gt 1.1.1 1.1.1-alpha1
   assert_true version_gt v1.5.0-patch v1.5.0
   assert_true version_gt go1.23.2 go1.20.0
   assert_false version_gt 1.0 1.0

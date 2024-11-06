@@ -559,7 +559,8 @@ menu_item() (
 # shellcheck disable=SC2120
 sort_version() {
   # Version strings which are composed of three parts are sorted considering the third part as a patch version.
-  sed -E -e '/-/! { s/^([^.]+(\.[^.]+){2})$/\1_/; }' -e 's/-patch/_patch/' | sort --version-sort "$@" | sed -e 's/_$//' -e 's/_patch/-patch/'
+  # `--version-sort` is specific to BSD sort.
+  sed -E -e '/-/! { s/^([^.]+(\.[^.]+){2})$/\1_/; }' -e 's/-patch/_patch/' | sort -V "$@" | sed -e 's/_$//' -e 's/_patch/-patch/'
 }
 
 # Check if the version is greater than the specified version.

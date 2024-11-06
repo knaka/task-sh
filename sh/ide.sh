@@ -19,7 +19,9 @@ ide_cmd_path() {
 
 if is_windows
 then
+  echo cross_exec "$(ide_cmd_path)" "$@"
   cross_exec "$(ide_cmd_path)" "$@"
+  exit 1
 fi
 
 exec idea "$@"

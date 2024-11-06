@@ -213,3 +213,11 @@ task_once() {
   first_call 4012815 || return 0
   echo Doing Once >&2
 }
+
+task_foo() {
+  cat <<EOF | sort_version
+1.1.1
+1.0
+1.1.1alpha1
+EOF
+}

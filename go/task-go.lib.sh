@@ -68,10 +68,11 @@ goroot_path() (
 # Sets the Go environment. If CGO is required, call `set_unixy_dev_env` also.
 set_go_env() {
   first_call 1dc30dd || return 0
-  GOROOT="$(goroot_path)"
-  export GOROOT
-  echo Using Go compiler in "$GOROOT"/bin >&2
-  PATH="$(array_prepend "$PATH" : "$GOROOT"/bin)"
+  # GOROOT="$(goroot_path)"
+  # export GOROOT
+  unset GOROOT
+  echo Using Go compiler in "$(goroot_path)"/bin >&2
+  PATH="$(array_prepend "$PATH" : "$(goroot_path)"/bin)"
   export PATH
 }
 
