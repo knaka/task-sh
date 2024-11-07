@@ -34,3 +34,12 @@ assert_false() {
     return 1
   fi
 }
+
+# assert_match expected actual
+assert_match() {
+  if ! echo "$2" | grep -E -q "$1"
+  then
+    printf "Failed: \"%s\" does not match \"%s\"\n" "$2" "$1"
+    return 1
+  fi
+}
