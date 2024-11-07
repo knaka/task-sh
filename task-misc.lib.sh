@@ -104,27 +104,25 @@ task_dupcheck() ( # Check duplicate files.
   subcmd_git ls-files | while read -r path
   do
     case "$path" in
-      next/app/*) continue;;
+      (next/app/*) continue;;
     esac
     base=$(basename "$path")
     case "$base" in
-      *.rs) continue;;
-      .*) continue;;
-      Cargo.*) continue;;
-      README*) continue;;
-      package-lock.json) continue;;
-      package.json) continue;;
-      page.tsx) continue;;
-      task) continue;;
-      task-prj*.lib.sh) continue;;
-      task-project*.lib.sh) continue;;
-      tsconfig.json) continue;;
+      (*.rs) continue;;
+      (.*) continue;;
+      (Cargo.*) continue;;
+      (README*) continue;;
+      (package-lock.json) continue;;
+      (package.json) continue;;
+      (page.tsx) continue;;
+      (task) continue;;
+      (task-prj*.lib.sh) continue;;
+      (task-project*.lib.sh) continue;;
+      (tsconfig.json) continue;;
     esac
     # shellcheck disable=SC2046
     echo "$base|$(unset IFS; sha1sum "$path" | (read -r hash _; echo "$hash"))|$path"
-  done | 
-  sort | 
-  while IFS='|' read -r base hash path
+  done | sort | while IFS='|' read -r base hash path
   do
     if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
     then
