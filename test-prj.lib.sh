@@ -262,3 +262,18 @@ EOF
   sort_version < "$(temp_dir_path)/versions.txt" > "$(temp_dir_path)/actual.txt"
   assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
 )
+
+test_newline_sep() (
+  set -o errexit
+
+  mkdir -p "$(temp_dir_path)/foo/bar baz"
+  mkdir -p "$(temp_dir_path)/foo/hoge fuga"
+  set_ifs_newline
+  # shellcheck disable=SC2046
+  set -- hoge fuga $(find "$(temp_dir_path)"/foo/* -type d)
+  restore_ifs
+  for arg in "$@"
+  do
+    echo "d: $arg"
+  done
+)
