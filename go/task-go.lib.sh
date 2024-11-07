@@ -100,3 +100,4 @@ subcmd_go() { # Run go command.
   set_go_env
   go "$@"
 }
+hoge

@@ -97,47 +97,33 @@ subcmd_newer() { # Check newer files.
   newer "$@"
 }
 
-subcmd_dupcheck() ( # Check duplicate files.
-  # shellcheck disable=SC2140
-  ignore_list=":"\
-"task:"\
-"package.json:"\
-"package-lock.json:"\
-"task-project.lib.sh:"\
-"task-prj.lib.sh:"\
-"tsconfig.json:"\
-"page.tsx:"\
-"Cargo.toml:"\
-"Cargo.lock:"\
-""
-  # shellcheck disable=SC2140
-  ignore_path=":"\
-"next/app/:"\
-""
-  chdir_script
+task_dupcheck() ( # Check duplicate files.
   base_prev=
   hash_prev=
   path_prev=
-  for path in $(subcmd_git ls-files)
+  subcmd_git ls-files | while read -r path
   do
+    case "$path" in
+      next/app/*) continue;;
+    esac
     base=$(basename "$path")
     case "$base" in
-      .*) continue;;
-      README*) continue;;
       *.rs) continue;;
+      .*) continue;;
+      Cargo.*) continue;;
+      README*) continue;;
+      package-lock.json) continue;;
+      package.json) continue;;
+      page.tsx) continue;;
+      task) continue;;
+      task-prj*.lib.sh) continue;;
+      task-project*.lib.sh) continue;;
+      tsconfig.json) continue;;
     esac
-    if echo "$ignore_path" | grep -q ":$(dirname "$path")/:" > /dev/null 2>&1
-    then
-      continue
-    fi
-    if echo "$ignore_list" | grep -q ":$base:" > /dev/null 2>&1
-    then
-      continue
-    fi
-    echo "$base" "$(sha1sum "$path" | cut -d ' ' -f 1)" "$path"
-  done | sort | while read -r base hash path
+    # shellcheck disable=SC2046
+    echo "$base|$(unset IFS; sha1sum "$path" | (read -r a b; echo $a))|$path"
+  done | sort | while IFS='|' read -r base hash path
   do
-    # echo aa0accc "$base" "$hash" "$path" >&2
     if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
     then
       echo "Conflict:"
