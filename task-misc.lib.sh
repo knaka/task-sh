@@ -121,8 +121,10 @@ task_dupcheck() ( # Check duplicate files.
       tsconfig.json) continue;;
     esac
     # shellcheck disable=SC2046
-    echo "$base|$(unset IFS; sha1sum "$path" | (read -r a b; echo $a))|$path"
-  done | sort | while IFS='|' read -r base hash path
+    echo "$base|$(unset IFS; sha1sum "$path" | (read -r hash _; echo "$hash"))|$path"
+  done | 
+  sort | 
+  while IFS='|' read -r base hash path
   do
     if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
     then
