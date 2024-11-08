@@ -1039,7 +1039,7 @@ task_subcmds() ( # List subcommands.
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
   ); restore_ifs
-  if type delegate_tasks > /dev/null 2>&1 && delegate_tasks subcmds > /dev/null 2>&1
+  if type delegate_tasks >/dev/null 2>&1 && delegate_tasks subcmds >/dev/null 2>&1
   then
     set_ifs_newline; set -- "$@" $(delegate_tasks subcmds); restore_ifs
   fi
@@ -1066,7 +1066,7 @@ task_tasks() ( # List tasks.
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
   ); restore_ifs
-  if type delegate_tasks > /dev/null 2>&1 && delegate_tasks tasks > /dev/null 2>&1
+  if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
   then
     set_ifs_newline; set -- "$@" $(delegate_tasks tasks); restore_ifs
   fi
@@ -1095,13 +1095,11 @@ Options:
   -v, --verbose          Verbose mode.
 
 Subcommands:
-EOF
-  task_subcmds | sed -r -e 's/^/  /'
-  cat <<EOF
+$(task_subcmds | sed -E -e 's/^/  /')
 
 Tasks:
+$(task_tasks | sed -E -e 's/^/  /')
 EOF
-  task_tasks | sed -r -e 's/^/  /'
 )
 
 main() {
