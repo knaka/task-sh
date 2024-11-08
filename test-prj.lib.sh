@@ -203,6 +203,17 @@ test_ifs() (
   )"
   num_lines=$(echo "$lines" | wc -l | (read -r num; echo "$num"))
   assert_true test 2 -eq "$num_lines"
+
+  ifs_default
+  lines="$(
+    echo "  hoge fuga"
+    echo "foo bar  "
+  )"
+  ifs_newline
+  # shellcheck disable=SC2086
+  set -- $lines
+  ifs_restore
+  assert_eq 2 "$#"
 )
 
 test_strjoin() (
