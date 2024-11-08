@@ -39,19 +39,35 @@ bar
 baz
 EOF
 
-# POSIX shell does not support process substitution.
-longest_device=
-while IFS=' ' read -r device _ _ _ _ _ _ _ mntpnt
+# Since POSIX shell does not support process substitution, you can use command substitution within a here document instead.
+longest_device0=
+while read -r device _ _ _ _ _ _ _ mntpnt
 do
-  echo "Device: $device, Mount point: $mntpnt"
-  if test "${#device}" -gt "${#longest_device}"
+  echo "Device: $device, Mount point: $mntpnt" >&2
+  if test "${#device}" -gt "${#longest_device0}"
   then
-    longest_device=$device
+    longest_device0=$device
   fi
 done <<EOF
 $(
   df | tail -n +2
 )
 EOF
+
+echo "Longest device: $longest_device0"
+
+# "Functional" way would be better.
+exec 3>&2
+longest_device=$(
+  df | tail -n +2 | while read -r device _ _ _ _ _ _ _ mntpnt
+  do
+    echo "Device: $device, Mount point: $mntpnt" >&3
+    echo "${#device}" "$device"
+  done | sort -nr | head -n 1 | (
+    read -r _ longest_device
+    echo "$longest_device"
+  )
+)
+exec 3>&-
 
 echo "Longest device: $longest_device"
