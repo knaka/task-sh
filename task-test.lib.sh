@@ -39,7 +39,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
   if test "$#" -eq 0
   then
     temp_file_path="$(temp_dir_path)/4986280"
-    set_ifs_pipe
+    ifs_pipe
     for test_file_path in $psv_test_file_paths
     do
       grep -E -h -e "^test_[_[:alnum:]]+\(" "$test_file_path" | sed -r -e 's/^test_//' -e "s/\(\) *[{(] *(# *)?//" > "$temp_file_path"
@@ -48,7 +48,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
         test_names="${test_names:+$test_names }$test_name"
       done < "$temp_file_path"
     done
-    restore_ifs
+    ifs_restore
     for test_name in $test_names
     do
       set -- "$@" "$test_name"
@@ -72,21 +72,21 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL"
       if verbose
       then
-        set_ifs_newline
+        ifs_newline
         while read -r line
         do
           echo "  $line"
         done < "$log_file_path"
-        restore_ifs
+        ifs_restore
       fi
     else
       printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL"
-      set_ifs_newline
+      ifs_newline
       while read -r line
       do
         echo "  $line"
       done < "$log_file_path"
-      restore_ifs
+      ifs_restore
       some_failed=true
     fi
     restore_shell_flags

@@ -106,12 +106,12 @@ set_sync_ignored() (
     then
       continue
     fi
-    set_ifs_pipe
+    ifs_pipe
     for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
-    restore_ifs
+    ifs_restore
   done
 )
 
@@ -124,12 +124,12 @@ mkdir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
-    set_ifs_pipe
+    ifs_pipe
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    restore_ifs
+    ifs_restore
   done
 )
 
@@ -137,12 +137,12 @@ mkdir_sync_ignored() (
 force_sync_ignored() (
   for path in "$@"
   do
-    set_ifs_pipe
+    ifs_pipe
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    restore_ifs
+    ifs_restore
   done
 )
 
@@ -370,48 +370,52 @@ set_ifs() {
 }
 
 # For CSV.
-set_ifs_comma() {
-  set_ifs "$(printf ',')"
+ifs_comma() {
+  set_ifs ','
 }
 
 # For TSV.
-set_ifs_tab() {
+ifs_tab() {
   set_ifs "$(printf '\t')"
 }
 
 # For PSV.
-set_ifs_pipe() {
-  set_ifs "$(printf '|')"
+ifs_pipe() {
+  set_ifs '|'
 }
 
 # Mianly for paths, files, and directories.
-set_ifs_colon() {
-  set_ifs "$(printf ':')"
+ifs_colon() {
+  set_ifs ':'
 }
 
-set_ifs_path_list_sepaprator() {
-  set_ifs_colon
+ifs_path_list_sepaprator() {
+  ifs_colon
 }
 
 # To split path.
-set_ifs_slashes() {
-  set_ifs "$(printf "/\\")"
+ifs_slashes() {
+  set_ifs "/\\"
 }
 
-set_ifs_path_sepaprator() {
-  set_ifs_slashes
+ifs_path_sepaprator() {
+  ifs_slashes
 }
 
-set_ifs_newline() {
+ifs_newline() {
   set_ifs "$(printf '\n\r')"
 }
 
-set_ifs_default() {
+ifs_default() {
   set_ifs "$(printf ' \t\n\r')"
 }
 
+ifs_blank() {
+  set_ifs "$(printf ' \t')"
+}
+
 # Restore the saved IFS.
-restore_ifs() {
+ifs_restore() {
   if test -n "${ifs_a8fded1+set}"
   then
     IFS="$ifs_a8fded1"
@@ -422,18 +426,18 @@ restore_ifs() {
 }
 
 install_pkg_cmd() {
-  set_ifs_tab
+  ifs_tab
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
-  restore_ifs
+  ifs_restore
   echo "$1"
 }
 
 run_pkg_cmd() { # Run a command after ensuring it is installed.
-  set_ifs_tab
+  ifs_tab
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
-  restore_ifs
+  ifs_restore
   # echo 01d637b "$@" >&2
   cross_run "$@"
 }
@@ -542,18 +546,17 @@ emph() {
   fi
 }
 
-# Print a menu item.
-menu_item() (
-  if ! echo "$1" | grep -q -E -e '&'
-  then
-    echo "$1"
-    return
-  fi
-  pre="$(printf "%s" "$1" | sed -E -e 's/&.*//')"
-  ch="$(printf "%s" "$1" | sed -E -e 's/.*&(.).*/\1/')"
-  post="$(printf "%s" "$1" | sed -E -e 's/.*&.//')"
-  echo "$pre$(emph "$ch")$post"
-)
+menu_item() {
+  test "${1+set}" = set || return
+  test -z "$1" && return
+  set_ifs '~'
+  # shellcheck disable=SC2046
+  set -- $(echo "$1" | sed -E -e 's/&&/@57125cb@/g' -e 's/([^&]*)&([^&])(.*)/\1~\2~\3/')
+  ifs_restore
+  test "$#" -lt 3 && echo "$1" && return
+  printf "%s%s%s\n" "$1" "$(emph "$2")" "$3" | sed -E -e 's/@57125cb@/\&/g'
+}
+
 
 # Sort version strings.
 # shellcheck disable=SC2120
@@ -1001,12 +1004,12 @@ cleanup() {
     fi
   fi
 
-  set_ifs_comma
+  ifs_comma
   for cleanup_handler in $csv_cleanup_handlers
   do
     "$cleanup_handler"
   done
-  restore_ifs
+  ifs_restore
 
   exit "$rc"
 }
@@ -1031,17 +1034,17 @@ psv_task_file_paths=
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
 task_subcmds() ( # List subcommands.
-  set_ifs_pipe; set -- $psv_task_file_paths; restore_ifs
-  set_ifs_newline; set -- $(
-    restore_ifs
+  ifs_pipe; set -- $psv_task_file_paths; ifs_restore
+  ifs_newline; set -- $(
+    ifs_restore
     sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
     do
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
-  ); restore_ifs
+  ); ifs_restore
   if type delegate_tasks >/dev/null 2>&1 && delegate_tasks subcmds >/dev/null 2>&1
   then
-    set_ifs_newline; set -- "$@" $(delegate_tasks subcmds); restore_ifs
+    ifs_newline; set -- "$@" $(delegate_tasks subcmds); ifs_restore
   fi
   max_name_len="$(
     printf "%s\n" "$@" | while read -r name _
@@ -1058,17 +1061,17 @@ task_subcmds() ( # List subcommands.
 # shellcheck disable=SC2046
 # shellcheck disable=SC2086
 task_tasks() ( # List tasks.
-  set_ifs_pipe; set -- $psv_task_file_paths; restore_ifs
-  set_ifs_newline; set -- $(
-    restore_ifs
+  ifs_pipe; set -- $psv_task_file_paths; ifs_restore
+  ifs_newline; set -- $(
+    ifs_restore
     sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
     do
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
-  ); restore_ifs
+  ); ifs_restore
   if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
   then
-    set_ifs_newline; set -- "$@" $(delegate_tasks tasks); restore_ifs
+    ifs_newline; set -- "$@" $(delegate_tasks tasks); ifs_restore
   fi
   max_name_len="$(
     printf "%s\n" "$@" | while read -r name _

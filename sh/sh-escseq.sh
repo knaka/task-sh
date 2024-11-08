@@ -42,7 +42,7 @@ my_prompt() {
 
 menu_item2() {
   echo "$1" | sed -E -e 's/&&/@57125cb@/g' -e 's/([^&]*)&([^&])(.*)/\1|\2|\3/' | (
-    set_ifs_pipe
+    ifs_pipe
     read -r pre ch post
     printf "%s%s%s\n" "$pre" "$(emph "$ch")" "$post" | sed -E -e 's/@57125cb@/\&/g'
   )

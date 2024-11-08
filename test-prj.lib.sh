@@ -93,13 +93,13 @@ test_array() (
 
   result=
   delim=
-  set_ifs_comma
+  ifs_comma
   for i in $csv_words
   do
     result="$result$delim$(toupper "$i")"
     delim=,
   done
-  restore_ifs
+  ifs_restore
 
   assert_eq "HELLO,WORLD,FOO,,,BAR,BAZ" "$result"
 
@@ -174,20 +174,20 @@ test_array() (
   array_sort "abcde,abc,xyz,def" , sort -R
 )
 
-test_set_ifs() (
+test_ifs() (
   set -o errexit
 
   echo Testing set_ifs_newline
   default_ifs="$IFS"
-  set_ifs_newline
+  ifs_newline
   assert_eq "$IFS" "$(printf '\n\r')"
-  restore_ifs
+  ifs_restore
 
   echo Testing that IFS is restored
   assert_eq "$IFS" "$default_ifs"
   IFS='abcde'
-  set_ifs_pipe
-  restore_ifs
+  ifs_pipe
+  ifs_restore
   assert_eq "$IFS" "abcde"
 )
 
@@ -268,12 +268,24 @@ test_newline_sep() (
 
   mkdir -p "$(temp_dir_path)/foo/bar baz"
   mkdir -p "$(temp_dir_path)/foo/hoge fuga"
-  set_ifs_newline
+  ifs_newline
   # shellcheck disable=SC2046
   set -- hoge fuga $(find "$(temp_dir_path)"/foo/* -type d)
-  restore_ifs
+  ifs_restore
   for arg in "$@"
   do
     echo "d: $arg"
   done
+)
+
+test_menu_item() (
+  set -o errexit
+
+  assert_match ".+S.+ave" "$(menu_item "&Save")"
+  assert_match "E.+x.+it" "$(menu_item "E&xit")"
+  assert_match "Save & E.+x.+it" "$(menu_item "Save && E&xit")"
+
+  assert_eq "" "$(menu_item)"
+  assert_eq "" "$(menu_item "")"
+  assert_eq "Exit" "$(menu_item "Exit")"
 )

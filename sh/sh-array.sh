@@ -79,13 +79,13 @@ toupper() {
 
 result=
 delim=
-set_ifs_comma
+ifs_comma
 for i in $csv_words
 do
   result="$result$delim$(toupper "$i")"
   delim=,
 done
-restore_ifs
+ifs_restore
 
 assert_eq "HELLO,WORLD,FOO,,,BAR,BAZ" "$result"
 

@@ -42,10 +42,10 @@ super() {
   shift $((OPTIND - 1))
   unset OPTIND
 
-  set_ifs_newline
+  ifs_newline
   # shellcheck disable=SC2046
   set -- $(sub "$@")
-  restore_ifs
+  ifs_restore
   for arg in "$@"
   do
     echo "cp: $arg"

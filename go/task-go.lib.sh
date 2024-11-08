@@ -42,7 +42,7 @@ goroot_path() (
   psv_sdk_go_dir_paths="$(array_sort "$psv_sdk_go_dir_paths" "|" sort_version -r)"
   psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "$psv_sdk_go_dir_paths")"
   # Find the first Go SDK which fulfills the minimum version requirement.
-  set_ifs_pipe
+  ifs_pipe
   for go_dir_path in $psv_go_dir_paths
   do
     if type "$go_dir_path"/bin/go > /dev/null 2>&1 && version_ge "$("$go_dir_path"/bin/go env GOVERSION)" "$required_min_ver"
@@ -51,7 +51,7 @@ goroot_path() (
       return
     fi
   done
-  restore_ifs
+  ifs_restore
 
   # If Go SDK is not found, download and install it.
   sdk_dir_path="$HOME"/sdk
