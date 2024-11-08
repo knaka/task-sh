@@ -284,6 +284,7 @@ test_menu_item() (
   assert_match ".+S.+ave" "$(menu_item "&Save")"
   assert_match "E.+x.+it" "$(menu_item "E&xit")"
   assert_match "Save & E.+x.+it" "$(menu_item "Save && E&xit")"
+  assert_match "Hello .+I.+ am" "$(menu_item "Hello &I am")"
 
   assert_eq "" "$(menu_item)"
   assert_eq "" "$(menu_item "")"

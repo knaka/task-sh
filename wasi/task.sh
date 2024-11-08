@@ -369,6 +369,14 @@ set_ifs() {
   IFS="$1"
 }
 
+ifs_empty() {
+  set_ifs ''
+}
+
+ifs_null() {
+  set_ifs ''
+}
+
 # For CSV.
 ifs_comma() {
   set_ifs ','
@@ -549,14 +557,15 @@ emph() {
 menu_item() {
   test "${1+set}" = set || return
   test -z "$1" && return
-  set_ifs '~'
-  # shellcheck disable=SC2046
-  set -- $(echo "$1" | sed -E -e 's/&&/@57125cb@/g' -e 's/([^&]*)&([^&])(.*)/\1~\2~\3/')
-  ifs_restore
-  test "$#" -lt 3 && echo "$1" && return
-  printf "%s%s%s\n" "$1" "$(emph "$2")" "$3" | sed -E -e 's/@57125cb@/\&/g'
+  echo "$1" | sed -E -n -e 's/&&/@57125cb@/g' -e 's/([^&]*)(&([^&]))?(.*)/\1\n\3\n\4/p' | (
+    ifs_null
+    read -r pre
+    read -r ch
+    test -z "$ch" && echo "$pre" && return
+    read -r post
+    echo "$pre$(emph "$ch")$post"
+  ) | sed -E -e 's/@57125cb@/\&/g'
 }
-
 
 # Sort version strings.
 # shellcheck disable=SC2120
