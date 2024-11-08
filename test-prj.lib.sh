@@ -189,6 +189,20 @@ test_ifs() (
   ifs_pipe
   ifs_restore
   assert_eq "$IFS" "abcde"
+  unset IFS
+
+  ifs_newline
+  # shellcheck disable=SC2046
+  set -- $(printf "hoge fuga\nfoo bar\n")
+  assert_eq 2 "$#"
+  ifs_restore
+
+  lines="$(
+    echo "hoge fuga"
+    echo "foo bar"
+  )"
+  num_lines=$(echo "$lines" | wc -l | (read -r num; echo "$num"))
+  assert_true test 2 -eq "$num_lines"
 )
 
 test_strjoin() (

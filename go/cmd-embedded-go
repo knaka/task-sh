@@ -38,7 +38,7 @@ version_ge() {
   test "$(printf '%s\n' "$@" | sort -Vr | head -n 1)" = "$1"
 }
 
-# gobin returns the path to the Go bin directory.
+# Returns the path to the Go root directory.
 goroot_path() (
   # All releases - The Go Programming Language https://go.dev/dl/
   required_min_ver=1.23.0

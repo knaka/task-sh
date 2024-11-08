@@ -377,6 +377,10 @@ ifs_null() {
   set_ifs ''
 }
 
+ifs_newline() {
+  set_ifs "$(printf '\n\r')"
+}
+
 # For CSV.
 ifs_comma() {
   set_ifs ','
@@ -425,8 +429,7 @@ ifs_restore() {
     IFS="$ifs_a8fded1"
     unset ifs_a8fded1
   else
-    return 1
-    # IFS="$(printf ' \t\n\r')"
+    IFS="$(printf ' \t\n\r')"
   fi
 }
 
@@ -1039,12 +1042,9 @@ verbose() {
 psv_task_file_paths=
 
 task_subcmds() ( # List subcommands.
-  IFS=
-  # shellcheck disable=SC2046
-  set -- $(
-    unset IFS
+  lines="$(
     (
-      IFS='|'
+      ifs_pipe
       # shellcheck disable=SC2086
       sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
     ) | while read -r name desc
@@ -1055,46 +1055,41 @@ task_subcmds() ( # List subcommands.
     then
       delegate_tasks subcmds
     fi
-  )
-  unset IFS
+  )"
   max_name_len="$(
-    printf "%s\n" "$@" | while read -r name _
+    echo "$lines" | while read -r name _
     do
       echo "${#name}"
     done | sort -nr | head -1
   )"
-  printf "%s\n" "$@" | while read -r name desc
+  echo "$lines" | while read -r name desc
   do
     printf "%-${max_name_len}s  %s\n" "$name" "$desc"
   done | sort
 )
 
 task_tasks() ( # List tasks.
-  IFS=
-  # shellcheck disable=SC2046
-  set -- $(
-    unset IFS
+  lines="$(
     (
-      IFS='|'
+      ifs_pipe
       # shellcheck disable=SC2086
       sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
     ) | while read -r name desc
     do
-      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
+      echo "$name" "$desc"
     done
     if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
     then
       delegate_tasks tasks
     fi
-  )
-  unset IFS
+  )"
   max_name_len="$(
-    printf "%s\n" "$@" | while read -r name _
+    echo "$lines" | while read -r name _
     do
       echo "${#name}"
     done | sort -nr | head -1
   )"
-  printf "%s\n" "$@" | while read -r name desc
+  echo "$lines" | while read -r name desc
   do
     printf "%-${max_name_len}s  %s\n" "$name" "$desc"
   done | sort
