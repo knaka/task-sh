@@ -91,7 +91,7 @@ goroot_path() (
 set_go_env() {
   first_call 1dc30dd || return 0
   unset GOROOT
-  echo Using Go compiler in "$(goroot_path)" >&2
+  echo Using Go toolchain in "$(goroot_path)" >&2
   PATH="$(array_prepend "$PATH" : "$(goroot_path)"/bin)"
   export PATH
 }
@@ -99,4 +99,9 @@ set_go_env() {
 subcmd_go() { # Run go command.
   set_go_env
   go "$@"
+}
+
+subcmd_gofmt() { # Run gofmt command.
+  set_go_env
+  gofmt "$@"
 }

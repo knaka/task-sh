@@ -74,19 +74,19 @@ subcmd_env() ( # Show environment.
 delegate_tasks() (
   cd "$(dirname "$0")" || exit 1
   case "$1" in
-    tasks)
-      echo "exclient:build     Build client."
-      echo "exclient:deploy    Deploy client."
+    (tasks)
+      echo "exclient:build               Build client."
+      echo "exclient:deploy              Deploy client."
       ;;
-    subcmds)
+    (subcmds)
       echo "exgit       Run git command."
       echo "exdocker    Run docker command."
       ;;
-    extra:install)
+    (extra:install)
       echo Installing extra commands...
       echo Done
       ;;
-    *)
+    (*)
       echo "Unknown task: $1" >&2
       return 1
       ;;
@@ -200,10 +200,14 @@ task_once() {
   echo Doing Once >&2
 }
 
-task_foo() {
+subcmd_foo__bar() {
   cat <<EOF | sort_version
 1.1.1
 1.0
 1.1.1alpha1
 EOF
+}
+
+subcmd_bar__baz__hoge__fuga() { # Bar baz.
+  echo "Bar baz"
 }

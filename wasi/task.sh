@@ -42,8 +42,8 @@ restore_shell_flags() {
 
 is_windows() {
   case "$(uname -s)" in
-    Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
-    *) return 1 ;;
+    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
+    (*) return 1 ;;
   esac
 }
 
@@ -259,13 +259,13 @@ ensure_opt_arg() (
 # Open a URL in a browser.
 open_browser() (
   case "$(uname -s)" in
-    Linux)
+    (Linux)
       xdg-open "$1" ;;
-    Darwin)
+    (Darwin)
       open "$1" ;;
-    Windows_NT)
+    (Windows_NT)
       PowerShell -Command "Start-Process '$1'" ;;
-    *)
+    (*)
       echo "Unsupported OS: $(uname -s)" >&2
       exit 1
       ;;
@@ -290,14 +290,14 @@ install_pkg_cmd_tabsep_args() (
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      \?) exit 2;;
-      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+      (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (\?) exit 2;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
   done
   shift $((OPTIND-1))
@@ -1028,42 +1028,59 @@ verbose() {
 
 psv_task_file_paths=
 
+# shellcheck disable=SC2046
+# shellcheck disable=SC2086
 task_subcmds() ( # List subcommands.
-  chdir_script
-  delim=" delim_2ed1065 "
-  set_ifs_pipe
-  # shellcheck disable=SC2086
-  set -- $psv_task_file_paths
-  restore_ifs
-  cnt="$(grep -E -h -e "^subcmd_[_[:alnum:]]+\(" "$@" | sed -r -e 's/^subcmd_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
-  if type delegate_tasks > /dev/null 2>&1
+  set_ifs_pipe; set -- $psv_task_file_paths; restore_ifs
+  set_ifs_newline; set -- $(
+    restore_ifs
+    sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
+    do
+      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
+    done
+  ); restore_ifs
+  if type delegate_tasks > /dev/null 2>&1 && delegate_tasks subcmds > /dev/null 2>&1
   then
-    if delegate_tasks subcmds > /dev/null 2>&1
-    then
-      cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks subcmds | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
-    fi
+    set_ifs_newline; set -- "$@" $(delegate_tasks subcmds); restore_ifs
   fi
-  max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
+  max_name_len="$(
+    printf "%s\n" "$@" | while read -r name _
+    do
+      echo "${#name}"
+    done | sort -nr | head -1
+  )"
+  printf "%s\n" "$@" | sort | while read -r name desc
+  do
+    printf "%-${max_name_len}s  %s\n" "$name" "$desc"
+  done
 )
 
+# shellcheck disable=SC2046
+# shellcheck disable=SC2086
 task_tasks() ( # List tasks.
-  delim=" delim_d3984dd "
-  set_ifs_pipe
-  # shellcheck disable=SC2086
-  set -- $psv_task_file_paths
-  restore_ifs
-  cnt="$(grep -E -h -e "^task_[_[:alnum:]]+\(" "$@" | sed -E -e 's/^task_//' -e 's/([[:alnum:]]+)__/\1:/g' -e "s/\(\) *[{(] *(# *)?/$delim/")"
-  if type delegate_tasks > /dev/null 2>&1
+  set_ifs_pipe; set -- $psv_task_file_paths; restore_ifs
+  set_ifs_newline; set -- $(
+    restore_ifs
+    sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
+    do
+      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
+    done
+  ); restore_ifs
+  if type delegate_tasks > /dev/null 2>&1 && delegate_tasks tasks > /dev/null 2>&1
   then
-    if delegate_tasks tasks > /dev/null 2>&1
-    then
-      cnt="$(printf "%s\n%s" "$cnt" "$(delegate_tasks tasks | sed -r -e "s/(^[^ ]+) +/\1$delim/")")"
-    fi
+    set_ifs_newline; set -- "$@" $(delegate_tasks tasks); restore_ifs
   fi
-  max_len="$(echo "$cnt" | awk '{ if (length($1) > max_len) max_len = length($1) } END { print max_len }')"
-  echo "$cnt" | sort | awk -F"$delim" "{ printf \"%-${max_len}s  %s\n\", \$1, \$2 }"
-  )
+  max_name_len="$(
+    printf "%s\n" "$@" | while read -r name _
+    do
+      echo "${#name}"
+    done | sort -nr | head -1
+  )"
+  printf "%s\n" "$@" | sort | while read -r name desc
+  do
+    printf "%-${max_name_len}s  %s\n" "$name" "$desc"
+  done
+)
 
 usage() ( # Show help message.
   chdir_script
@@ -1095,22 +1112,22 @@ main() {
   if test "${ARG0BASE+set}" = "set"
   then
     case "$ARG0BASE" in
-      task-*)
+      (task-*)
         env="${ARG0BASE#task-}"
         case "$env" in
-          dev|development)
+          (dev|development)
             APP_ENV=development
             APP_SENV=dev
             ;;
-          prd|production)
+          (prd|production)
             APP_ENV=production
             APP_SENV=prd
             ;;
-          *) echo "Unknown environment: $env" >&2; exit 1;;
+          (*) echo "Unknown environment: $env" >&2; exit 1;;
         esac
         export APP_ENV APP_SENV
         ;;
-      *)
+      (*)
         ;;
     esac
   else
@@ -1127,9 +1144,9 @@ main() {
       continue
     fi
     case "$(basename "$task_file_path")" in
-      task-dev.sh|task-prd.sh)
-      continue
-      ;;
+      (task-dev.sh|task-prd.sh)
+        continue
+        ;;
     esac
     psv_task_file_paths="$psv_task_file_paths|$task_file_path"
     # shellcheck disable=SC1090
@@ -1148,11 +1165,11 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      h|help) shows_help=true;;
-      v|verbose) verbose_f26120b=true;;
-      \?) usage; exit 2;;
-      *) echo "Unexpected option: $OPT" >&2; exit 2;;
+      (d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (h|help) shows_help=true;;
+      (v|verbose) verbose_f26120b=true;;
+      (\?) usage; exit 2;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 2;;
     esac
   done
   shift $((OPTIND-1))
@@ -1183,7 +1200,7 @@ main() {
     task_name="$task_with_args"
     args=""
     case "$task_with_args" in
-      *\[*)
+      (*\[*)
         task_name="${task_with_args%%\[*}"
         args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
         ;;
