@@ -410,10 +410,6 @@ ifs_path_sepaprator() {
   ifs_slashes
 }
 
-ifs_newline() {
-  set_ifs "$(printf '\n\r')"
-}
-
 ifs_default() {
   set_ifs "$(printf ' \t\n\r')"
 }
@@ -429,7 +425,8 @@ ifs_restore() {
     IFS="$ifs_a8fded1"
     unset ifs_a8fded1
   else
-    IFS="$(printf ' \t\n\r')"
+    return 1
+    # IFS="$(printf ' \t\n\r')"
   fi
 }
 
@@ -554,6 +551,7 @@ emph() {
   fi
 }
 
+# Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
   test "${1+set}" = set || return
   test -z "$1" && return
@@ -1040,62 +1038,69 @@ verbose() {
 
 psv_task_file_paths=
 
-# shellcheck disable=SC2046
-# shellcheck disable=SC2086
 task_subcmds() ( # List subcommands.
-  ifs_pipe; set -- $psv_task_file_paths; ifs_restore
-  ifs_newline; set -- $(
-    ifs_restore
-    sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
+  IFS=
+  # shellcheck disable=SC2046
+  set -- $(
+    unset IFS
+    (
+      IFS='|'
+      # shellcheck disable=SC2086
+      sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
+    ) | while read -r name desc
     do
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
-  ); ifs_restore
-  if type delegate_tasks >/dev/null 2>&1 && delegate_tasks subcmds >/dev/null 2>&1
-  then
-    ifs_newline; set -- "$@" $(delegate_tasks subcmds); ifs_restore
-  fi
+    if type delegate_tasks >/dev/null 2>&1 && delegate_tasks subcmds >/dev/null 2>&1
+    then
+      delegate_tasks subcmds
+    fi
+  )
+  unset IFS
   max_name_len="$(
     printf "%s\n" "$@" | while read -r name _
     do
       echo "${#name}"
     done | sort -nr | head -1
   )"
-  printf "%s\n" "$@" | sort | while read -r name desc
+  printf "%s\n" "$@" | while read -r name desc
   do
     printf "%-${max_name_len}s  %s\n" "$name" "$desc"
-  done
+  done | sort
 )
 
-# shellcheck disable=SC2046
-# shellcheck disable=SC2086
 task_tasks() ( # List tasks.
-  ifs_pipe; set -- $psv_task_file_paths; ifs_restore
-  ifs_newline; set -- $(
-    ifs_restore
-    sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' "$@" | while read -r name desc
+  IFS=
+  # shellcheck disable=SC2046
+  set -- $(
+    unset IFS
+    (
+      IFS='|'
+      # shellcheck disable=SC2086
+      sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
+    ) | while read -r name desc
     do
       echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
-  ); ifs_restore
-  if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
-  then
-    ifs_newline; set -- "$@" $(delegate_tasks tasks); ifs_restore
-  fi
+    if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
+    then
+      delegate_tasks tasks
+    fi
+  )
+  unset IFS
   max_name_len="$(
     printf "%s\n" "$@" | while read -r name _
     do
       echo "${#name}"
     done | sort -nr | head -1
   )"
-  printf "%s\n" "$@" | sort | while read -r name desc
+  printf "%s\n" "$@" | while read -r name desc
   do
     printf "%-${max_name_len}s  %s\n" "$name" "$desc"
-  done
+  done | sort
 )
 
 usage() ( # Show help message.
-  chdir_script
   cat <<EOF
 Usage:
   $ARG0BASE [options] <subcommand> [args...]
@@ -1107,10 +1112,10 @@ Options:
   -v, --verbose          Verbose mode.
 
 Subcommands:
-$(task_subcmds | sed -E -e 's/^/  /')
+$(task_subcmds | while IFS= read -r line; do echo "  $line"; done)
 
 Tasks:
-$(task_tasks | sed -E -e 's/^/  /')
+$(task_tasks | while IFS= read -r line; do echo "  $line"; done)
 EOF
 )
 

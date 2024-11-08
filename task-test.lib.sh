@@ -72,7 +72,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL"
       if verbose
       then
-        ifs_newline
+        ifs_null
         while read -r line
         do
           echo "  $line"
@@ -81,7 +81,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       fi
     else
       printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL"
-      ifs_newline
+      ifs_null
       while read -r line
       do
         echo "  $line"

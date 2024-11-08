@@ -177,10 +177,10 @@ test_array() (
 test_ifs() (
   set -o errexit
 
-  echo Testing set_ifs_newline
+  echo Testing ifs_null
   default_ifs="$IFS"
-  ifs_newline
-  assert_eq "$IFS" "$(printf '\n\r')"
+  ifs_null
+  assert_eq "$IFS" ''
   ifs_restore
 
   echo Testing that IFS is restored
@@ -268,7 +268,7 @@ test_newline_sep() (
 
   mkdir -p "$(temp_dir_path)/foo/bar baz"
   mkdir -p "$(temp_dir_path)/foo/hoge fuga"
-  ifs_newline
+  ifs_null
   # shellcheck disable=SC2046
   set -- hoge fuga $(find "$(temp_dir_path)"/foo/* -type d)
   ifs_restore
@@ -284,7 +284,7 @@ test_menu_item() (
   assert_match ".+S.+ave" "$(menu_item "&Save")"
   assert_match "E.+x.+it" "$(menu_item "E&xit")"
   assert_match "Save & E.+x.+it" "$(menu_item "Save && E&xit")"
-  assert_match "Hello .+I.+ am" "$(menu_item "Hello &I am")"
+  assert_match "   Hello .+I.+ am" "$(menu_item "   Hello &I am")"
 
   assert_eq "" "$(menu_item)"
   assert_eq "" "$(menu_item "")"
