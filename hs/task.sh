@@ -556,16 +556,16 @@ emph() {
 
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
-  test "${1+set}" = set || return
-  test -z "$1" && return
-  echo "$1" | sed -E -n -e 's/&&/@57125cb@/g' -e 's/([^&]*)(&([^&]))?(.*)/\1\n\3\n\4/p' | (
-    ifs_null
-    read -r pre
-    read -r ch
-    test -z "$ch" && echo "$pre" && return
-    read -r post
-    echo "$pre$(emph "$ch")$post"
-  ) | sed -E -e 's/@57125cb@/\&/g'
+  test "$#" -eq 0 && return
+  # shellcheck disable=SC2016
+  eval echo \""$(
+    echo "$1" | sed -E \
+      -e 's/\$/dollar_3dd6df0/g' \
+      -e 's/&&/amp_28ff5d6/g' \
+      -e 's/&([^& ])/"$(emph "\1")"/'
+  )"\" | sed -E \
+    -e 's/amp_28ff5d6/\&/g' \
+    -e 's/dollar_3dd6df0/$/g'
 }
 
 # Sort version strings.
