@@ -732,7 +732,7 @@ install_pkg_cmd_tabsep_args() (
   done
 )
 
-csv_ifss=""
+csv_ifss=
 
 # Save the current IFS and set it to the specified value.
 set_ifs() {
