@@ -556,16 +556,8 @@ emph() {
 
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
-  test "$#" -eq 0 && return
   # shellcheck disable=SC2016
-  eval echo \""$(
-    echo "$1" | sed -E \
-      -e 's/\$/dollar_3dd6df0/g' \
-      -e 's/&&/amp_28ff5d6/g' \
-      -e 's/&([^& ])/"$(emph "\1")"/'
-  )"\" | sed -E \
-    -e 's/amp_28ff5d6/\&/g' \
-    -e 's/dollar_3dd6df0/$/g'
+  eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
 }
 
 # Sort version strings.
@@ -584,6 +576,43 @@ version_gt() {
 version_ge() {
   test "$(printf '%s\n' "$@" | sort_version -r | head -n 1)" = "$1"
 }
+
+# Left/Right-Word-Boundary regex incompatible with BSD sed // re_format(7) https://man.freebsd.org/cgi/man.cgi?query=re_format&sektion=7
+lwb='\<'
+rwb='\>'
+# shellcheck disable=SC2034
+if is_bsd
+then
+  lwb='[[:<:]]'
+  rwb='[[:>:]]'
+fi
+
+# Evaluate strings from stdin with sed(1) substitution.
+eval_with_subst_stdin() {
+  eval printf \""$(sed -E -e 's/"/\\x22/g' -e 's/\$/\\x24/g' -e 's/`/\\x60/g' -e "$1")"\"
+  echo
+}
+
+# Evaluate a string with sed(1) substitution
+eval_with_subst() {
+  echo "$1" | eval_with_subst_stdin "$2"
+}
+
+# Sort in random order.
+sort_random() {
+  if type shuf > /dev/null 2>&1
+  then
+    shuf
+  else
+    sort -R
+  fi
+}
+
+field() (
+  unset IFS
+  # shellcheck disable=SC2046
+  printf "%s\n" $(cat) | head -n "$1" | tail -n 1
+)
 
 # --------------------------------------------------------------------------
 # Array functions. "array string + delimiter" is used for the array representation.

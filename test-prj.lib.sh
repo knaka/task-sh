@@ -170,20 +170,19 @@ test_array() (
 
   assert_eq "abc,abcde,def,xyz" "$(array_sort "abcde,abc,xyz,def" ,)"
   assert_eq "xyz,def,abcde,abc" "$(array_sort "abcde,abc,xyz,def" , sort -r)"
-  # Random sort
-  array_sort "abcde,abc,xyz,def" , sort -R
+  array_sort "abcde,abc,xyz,def" , sort_random
 )
 
 test_ifs() (
   set -o errexit
 
-  echo Testing ifs_null
+  echo Testing ifs_null >&2
   default_ifs="$IFS"
   ifs_null
   assert_eq "$IFS" ''
   ifs_restore
 
-  echo Testing that IFS is restored
+  echo Testing that IFS is restored >&2
   assert_eq "$IFS" "$default_ifs"
   IFS='abcde'
   ifs_pipe
@@ -299,7 +298,7 @@ test_newline_sep() (
   ifs_restore
   for arg in "$@"
   do
-    echo "d: $arg"
+    echo "d: $arg" >&2
   done
 )
 
@@ -310,9 +309,42 @@ test_menu_item() (
   assert_match "E.+x.+it" "$(menu_item "E&xit")"
   assert_match "Save & E.+x.+it" "$(menu_item "Save && E&xit")"
   assert_match "   Hello .+I.+ am" "$(menu_item "   Hello &I am")"
-  assert_eq "" "$(menu_item)"
   assert_eq "" "$(menu_item "")"
   assert_eq "Exit" "$(menu_item "Exit")"
   # shellcheck disable=SC2016
   assert_match '.+A.+dd \$100' "$(menu_item '&Add $100')"
+)
+
+toupper_4c7e44e() {
+  echo "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+# shellcheck disable=SC2016
+test_eval_with_subst() (
+  set -o errexit
+
+  assert_eq '  foo BAR $baz ` $$ QUX' "$(eval_with_subst '  foo toupper(bar) $baz ` $$ toupper(qux)' 's/'"$lwb"'toupper\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g')"
+  assert_eq '$`"\; replaced:bar bar  "' "$(eval_with_subst '$`"\; foo bar  "' 's/foo/"$(echo replaced:bar)"/g')"
+
+  input_path="$(temp_dir_path)/input.txt"
+  cat <<'EOF' >"$input_path"
+foo toupper(bar) baz ` $ "
+toupper(hoge) fuga toupper(hare)
+EOF
+  expected_path="$(temp_dir_path)/expected.txt"
+  cat <<'EOF' >"$expected_path"
+foo BAR baz ` $ "
+HOGE fuga HARE
+EOF
+  output_path="$(temp_dir_path)/output.txt"
+  eval_with_subst_stdin 's/'"$lwb"'toupper\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g' <"$input_path" >"$output_path"
+  assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
+)
+
+test_field() (
+  set -o errexit
+
+  assert_eq "foo" "$(echo "foo bar baz" | field 1)"
+  assert_eq "bar" "$(echo "   foo      bar   baz  " | field 2)"
+  assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
 )
