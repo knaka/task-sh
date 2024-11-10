@@ -21,7 +21,7 @@ test_second() (
 test_array() (
   set -o errexit
 
-  csv_words="hello,world,foo,,,bar,baz"
+  csv_words="hello,world,foo,,,bar,baz,"
 
   # --------------------------------------------------------------------------
 
@@ -45,10 +45,14 @@ test_array() (
   assert_eq "foo,bar,baz" "$(array_append "foo,bar" , baz)"
   assert_eq "foo,bar,baz,qux" "$(array_append "foo,bar" , baz qux)"
   assert_eq "foo,bar,baz,qux" "$(array_append "foo,bar" , "baz,qux")"
+  assert_eq "foo,bar,baz," "$(array_append "foo,bar,baz" , "")"
+  a="$(array_append "foo,bar,baz" , "")"
+  # assert_eq 4 "$(array_length "$a" ,)"
 
   assert_eq "foo,bar,baz" "$(array_prepend "bar,baz" , foo)"
   assert_eq "foo,bar,baz,qux" "$(array_prepend "baz,qux" , foo bar)"
   assert_eq "foo,bar,baz,qux" "$(array_prepend "baz,qux" , "foo,bar")"
+  assert_eq ",foo,bar,baz" "$(array_prepend "foo,bar,baz" , "")"
 
   # Stack operations.
   stack="bar,baz"
@@ -176,13 +180,13 @@ test_array() (
 test_ifs() (
   set -o errexit
 
-  IFS='xyz'
+  IFS=aaa
   default_ifs="$IFS"
-  ifs_null
-  assert_eq "$IFS" ''
+  ifs_pipe
+  assert_eq "$IFS" '|'
   ifs_restore
-
   assert_eq "$IFS" "$default_ifs"
+
   ifs_pipe
   assert_eq "$IFS" '|'
   ifs_comma
@@ -192,6 +196,7 @@ test_ifs() (
   ifs_path_list_sepaprator
   assert_eq "$IFS" ':'
   ifs_restore
+  printf '%s' "$IFS" | dm
   assert_eq "$IFS" ''
   ifs_restore
   assert_eq "$IFS" ","
@@ -359,16 +364,102 @@ test_field() (
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
 )
 
-test_array_new() (
+test_unit_sep() (
   set -o errexit
 
   delim="$unit_sep"
-  a=
-  a="$(array_append "$a" "$delim" foo bar baz)"
-  ifs_us
-  for arg in $a
+  usv_items=
+  usv_items="$(array_append "$usv_items" "$unit_sep" foo bar baz)"
+  usv_items="$(array_append "$usv_items" "$unit_sep" "$(printf 'hoge\nfuga\n')" 'hare')"
+  assert_eq 5 "$(array_length "$usv_items" "$unit_sep")"
+  ifs_unit_sep
+  for arg in $usv_items
   do
-    echo "arg: $arg" >&2
+    (
+      ifs_restore
+      echo "arg: $arg" >&2
+    )
+  done
+  # shellcheck disable=SC2086
+  printf "%s\0" $usv_items | xargs -0 -n1 echo "arg2:"
+  ifs_restore
+
+  echo
+
+  usv_upper_items="$(array_map "$usv_items" "$unit_sep" toupper_4c7e44e)"
+  ifs_unit_sep
+  for arg in $usv_upper_items
+  do
+    echo "arg3: $arg" >&2
+  done
+  echo "concat:" "$(array_join "$usv_upper_items" "$unit_sep" '---')"
+  ifs_restore
+  echo "concat2:" "$(array_reduce "$usv_upper_items" "$unit_sep" '' printf '%s###%s' _ _)"
+  # shellcheck disable=SC2317
+  contains_hoge() {
+    echo "$1" | grep -q -i hoge
+  }
+  echo "filter:" "$(array_filter "$usv_upper_items" "$unit_sep" contains_hoge)"
+
+  echo
+
+  usv_items="$(array_prepend "$usv_items" "$unit_sep" "$(printf 'aaa\nbbb')")"
+  # echo e817d4d: "$usv_items" >&2
+  assert_eq 6 "$(array_length "$usv_items" "$unit_sep")"
+  while test "$(array_length "$usv_items" "$unit_sep")" -gt 0
+  do
+    item="$(array_head "$usv_items" "$unit_sep")"
+    usv_items="$(array_tail "$usv_items" "$unit_sep")"
+    echo "item: $item" >&2
+  done
+)
+
+test_array_renew() (
+  set -o errexit
+
+  assert_eq 0 "$(array_length "" ,)"
+  assert_eq "," "$(array_append "" , "")"
+  assert_eq "," "$(array_prepend "" , "")"
+
+  assert_eq 1 "$(array_length "," ,)"
+  assert_eq ",foo" "$(array_append "," , "foo")"
+  assert_eq "foo,," "$(array_prepend "," , "foo")"
+  assert_eq "" "$(array_head "," , "")"
+  assert_eq "" "$(array_tail "," ,)"
+
+  assert_eq 2 "$(array_length ",," ,)"
+  assert_eq ",,foo" "$(array_append ",," , "foo")"
+  assert_eq "foo,,," "$(array_prepend ",," , "foo")"
+  assert_eq ",,," "$(array_prepend ",," , "")"
+  assert_eq "," "$(array_tail ",," ,)"
+  assert_eq "foo" "$(array_tail ",foo" ,)"
+
+  assert_eq 1 "$(array_length "foo" ,)"
+  assert_eq 1 "$(array_length "foo," ,)"
+  assert_eq 2 "$(array_length "foo,bar" ,)"
+  assert_eq 2 "$(array_length "foo,bar," ,)"
+
+  csv_items=",foo,bar,"
+  ifs_comma
+  count=0
+  # shellcheck disable=SC2046
+  for item in $csv_items
+  do
+    echo "item: $item" >&2
+    count=$((count + 1))
   done
   ifs_restore
+  assert_eq 3 "$count"
+
+  csv_items=",foo,bar"
+  ifs_comma
+  count=0
+  # shellcheck disable=SC2046
+  for item in $csv_items
+  do
+    echo "item: $item" >&2
+    count=$((count + 1))
+  done
+  ifs_restore
+  assert_eq 3 "$count"
 )

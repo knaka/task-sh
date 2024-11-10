@@ -16,6 +16,380 @@ then
 fi
 
 # --------------------------------------------------------------------------
+# Array functions. "array string + delimiter" is used for the array representation.
+
+# Join an array with a delimiter.
+array_join() (
+  arr="$1"
+  IFS="$2"
+  delim=
+  # shellcheck disable=SC2086
+  for item in $arr
+  do
+    printf "%s%s" "$delim" "$item"
+    delim="$3"
+  done
+)
+
+array_head() (
+  arr="$1"
+  test -z "$arr" && return 1
+  IFS="$2"
+  # shellcheck disable=SC2086
+  set -- $arr
+  printf '%s' "$1"
+)
+
+array_first() {
+  array_head "$@"
+}
+
+array_tail() (
+  arr="$1"
+  # echo 298103a: "$arr" >&2
+  test -z "$arr" && return 1
+  IFS="$2"
+  # shellcheck disable=SC2086
+  set -- $arr
+  shift
+  delim=
+  unset item
+  while test "$#" -gt 0
+  do
+    item="$1"
+    shift
+    printf "%s%s" "$delim" "$item"
+    delim="$IFS"
+  done
+  if test "${item+set}" = set && test -z "$item"
+  then
+    printf "%s" "$IFS"
+  fi
+)
+
+array_rest() {
+  array_tail "$@"
+}
+
+array_length() (
+  arr="$1"
+  IFS="$2"
+  # shellcheck disable=SC2086
+  set -- $arr
+  echo "$#"
+)
+
+array_append() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  delim=
+  if test -n "$arr"
+  then
+    printf "%s" "$arr"
+    if test "${arr#"${arr%?}"}" != "$IFS"
+    then
+      delim="$IFS"
+    fi
+  fi
+  for arg in "$@"
+  do
+    if test -z "$arg"
+    then
+      printf "%s" "$IFS"
+      delim="$IFS"
+      continue
+    fi
+    for arg2 in $arg
+    do
+      printf "%s%s" "$delim" "$arg2"
+      delim="$IFS"
+    done
+  done
+)
+
+array_prepend() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  delim=
+  for arg in "$@"
+  do
+    if test -z "$arg"
+    then
+      delim="$IFS"
+      continue
+    fi
+    for arg2 in $arg
+    do
+      printf "%s%s" "$delim" "$arg2"
+      delim="$IFS"
+    done
+  done
+  printf "%s%s" "$delim" "$arr"
+)
+
+array_at() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  i=0
+  for item in $arr
+  do
+    if test "$i" -eq "$1"
+    then
+      printf '%s' "$item"
+      return
+    fi
+    i=$((i + 1))
+  done
+  return 1
+)
+
+# Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
+array_map() (
+  reads_stdin=false
+  arr="$1"
+  shift
+  if test "$arr" = "-"
+  then
+    reads_stdin=true
+    arr="$(cat)"
+  fi
+  IFS="$1"
+  shift
+  should_replace=false
+  for arg in "$@"
+  do
+    if test "$arg" = "_" || test "$arg" = "it"
+    then
+      should_replace=true
+    fi
+  done
+  delim=
+  for i in $arr
+  do
+    printf "%s" "$delim"
+    if $reads_stdin
+    then
+      printf "%s" "$(printf "%s" "$i" | "$@")"
+    elif $should_replace
+    then
+      (
+        for arg in "$@"
+        do
+          if test "$arg" = "_" || test "$arg" = "it"
+          then
+            # shellcheck disable=SC2016
+            arg='$i'
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        printf "%s" "$("$@")"
+      )
+    else
+      printf "%s" "$("$@" "$i")"
+    fi
+    delim="$IFS"
+  done
+)
+
+# Filter an array with a command. If the command contains "_", then it is replaced with the item.
+array_filter() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  should_replace=false
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      should_replace=true
+    fi
+  done
+  delim=
+  for i in $arr
+  do
+    if $should_replace
+    then
+      if ! (
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            # shellcheck disable=SC2016
+            arg="$i"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@" 
+      )
+      then
+        continue
+      fi
+    elif ! "$@" "$i"
+    then
+      continue
+    fi
+    printf "%s%s" "$delim" "$i"
+    delim="$IFS"
+  done
+)
+
+# Reduce an array with a function. If the function contains "_"s, then they are replaced with the accumulator and the item.
+array_reduce() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  acc="$1"
+  shift
+  has_place_holder=false
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      has_place_holder=true
+    fi
+  done
+  for i in $arr
+  do
+    if $has_place_holder
+    then
+      acc="$(
+        first=true
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            if $first
+            then
+              arg="$acc"
+              first=false
+            else
+              arg="$i"
+            fi
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )"
+    else
+      acc="$("$@" "$acc" "$i")"
+    fi
+  done
+  echo "$acc"
+)
+
+array_reverse() (
+  arr="$1"
+  IFS="$2"
+  # shellcheck disable=SC2086
+  set -- $arr
+  i=$#
+  delim=
+  while test "$i" -gt 0
+  do
+    eval printf "%s%s" "$delim" "\$$i"
+    delim="$IFS"
+    i=$((i - 1))
+  done
+)
+
+array_contains() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  item="$1"
+  shift
+  for i in $arr
+  do
+    if test "$i" = "$item"
+    then
+      return 0
+    fi
+  done
+  return 1
+)
+
+array_each() (
+  reads_stdin=false
+  arr="$1"
+  shift
+  if test "$arr" = "-"
+  then
+    reads_stdin=true
+    arr="$(cat)"
+  fi
+  IFS="$1"
+  shift
+  should_replace=false
+  for arg in "$@"
+  do
+    if test "$arg" = "_" || test "$arg" = "it"
+    then
+      should_replace=true
+    fi
+  done
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | while read -r i
+  do
+    if $reads_stdin
+    then
+      echo "$i" | "$@"
+    elif $should_replace
+    then
+      (
+        for arg in "$@"
+        do
+          if test "$arg" = "_" || test "$arg" = "it"
+          then
+            arg="$i"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )
+    else
+      "$@" "$i"
+    fi
+  done
+)
+
+# Sort an array. Cannot sort items which contain newlines.
+array_sort() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | if test "$#" -eq 0; then sort; else "$@"; fi | paste -sd "$IFS" -
+)
+
+if ! type shuf > /dev/null 2>&1
+then
+  alias shuf='sort -R'
+fi
+
+array_shuffle() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  # shellcheck disable=SC2086
+  printf "%s\n" $arr | shuf | paste -sd "$IFS" -
+)
+
+# --------------------------------------------------------------------------
 
 unset shell_flags_c225b8f
 
@@ -358,7 +732,7 @@ install_pkg_cmd_tabsep_args() (
   done
 )
 
-csv_ifss=
+csv_ifss=""
 
 # Save the current IFS and set it to the specified value.
 set_ifs() {
@@ -375,6 +749,10 @@ unit_sep="$(printf '\x1f')"
 readonly unit_sep
 
 ifs_us() {
+  set_ifs "$unit_sep"
+}
+
+ifs_unit_sep() {
   set_ifs "$unit_sep"
 }
 
@@ -433,7 +811,7 @@ ifs_blank() {
 
 # Restore the saved IFS.
 ifs_restore() {
-  if test "$(array_length "$csv_ifss" ,)" -eq 0
+  if test -z "$csv_ifss"
   then
     return 1
   fi
@@ -625,340 +1003,6 @@ field() (
   unset IFS
   # shellcheck disable=SC2046
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
-)
-
-# --------------------------------------------------------------------------
-# Array functions. "array string + delimiter" is used for the array representation.
-
-# Join an array with a delimiter.
-array_join() (
-  arr="$1"
-  IFS="$2"
-  delim="$3"
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | paste -sd "$delim" -
-)
-
-array_head() (
-  arr="$1"
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  echo "$1"
-)
-
-array_first() {
-  array_head "$@"
-}
-
-array_tail() (
-  arr="$1"
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  shift
-  echo "$*"
-)
-
-array_rest() {
-  array_tail "$@"
-}
-
-array_length() (
-  arr="$1"
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  echo "$#"
-)
-
-array_append() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  (
-    test -n "$arr" && echo "$arr"
-    printf "%s\n" "$@" | while read -r arr2
-    do
-      # shellcheck disable=SC2086
-      printf "%s\n" $arr2
-    done
-  ) | paste -sd "$IFS" -
-)
-
-array_prepend() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  (
-    printf "%s\n" "$@" | while read -r arr2
-    do
-      # shellcheck disable=SC2086
-      printf "%s\n" $arr2
-    done
-    test -n "$arr" && echo "$arr"
-  ) | paste -sd "$IFS" -
-)
-
-array_at() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  i=0
-  for item in $arr
-  do
-    if test "$i" -eq "$1"
-    then
-      echo "$item"
-      return
-    fi
-    i=$((i + 1))
-  done
-  return 1
-)
-
-# Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
-array_map() (
-  reads_stdin=false
-  arr="$1"
-  shift
-  if test "$arr" = "-"
-  then
-    reads_stdin=true
-    arr="$(cat)"
-  fi
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  delim=
-  for i in $arr
-  do
-    printf "%s" "$delim"
-    if $reads_stdin
-    then
-      printf "%s" "$(printf "%s" "$i" | "$@")"
-    elif $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_" || test "$arg" = "it"
-          then
-            # shellcheck disable=SC2016
-            arg='$i'
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        printf "%s" "$("$@")"
-      )
-    else
-      printf "%s" "$("$@" "$i")"
-    fi
-    delim="$IFS"
-  done
-)
-
-# Filter an array with a command. If the command contains "_", then it is replaced with the item.
-array_filter() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_"
-    then
-      should_replace=true
-    fi
-  done
-  delim=
-  for i in $arr
-  do
-    if $should_replace
-    then
-      if ! (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            # shellcheck disable=SC2016
-            arg="$i"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@" 
-      )
-      then
-        continue
-      fi
-    elif ! "$@" "$i"
-    then
-      continue
-    fi
-    printf "%s%s" "$delim" "$i"
-    delim="$IFS"
-  done
-)
-
-# Reduce an array with a function. If the function contains "_"s, then they are replaced with the accumulator and the item.
-array_reduce() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  acc="$1"
-  shift
-  has_place_holder=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_"
-    then
-      has_place_holder=true
-    fi
-  done
-  for i in $arr
-  do
-    if $has_place_holder
-    then
-      acc="$(
-        first=true
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            if $first
-            then
-              arg="$acc"
-              first=false
-            else
-              arg="$i"
-            fi
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )"
-    else
-      acc="$("$@" "$acc" "$i")"
-    fi
-  done
-  echo "$acc"
-)
-
-array_reverse() (
-  arr="$1"
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  i=$#
-  delim=
-  while test "$i" -gt 0
-  do
-    eval printf "%s%s" "$delim" "\$$i"
-    delim="$IFS"
-    i=$((i - 1))
-  done
-)
-
-array_contains() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  item="$1"
-  shift
-  for i in $arr
-  do
-    if test "$i" = "$item"
-    then
-      return 0
-    fi
-  done
-  return 1
-)
-
-array_each() (
-  reads_stdin=false
-  arr="$1"
-  shift
-  if test "$arr" = "-"
-  then
-    reads_stdin=true
-    arr="$(cat)"
-  fi
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | while read -r i
-  do
-    if $reads_stdin
-    then
-      echo "$i" | "$@"
-    elif $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_" || test "$arg" = "it"
-          then
-            arg="$i"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )
-    else
-      "$@" "$i"
-    fi
-  done
-)
-
-array_sort() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | if test "$#" -eq 0; then sort; else "$@"; fi | paste -sd "$IFS" -
-)
-
-if ! type shuf > /dev/null 2>&1
-then
-  alias shuf='sort -R'
-fi
-
-array_shuffle() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | shuf | paste -sd "$IFS" -
 )
 
 # --------------------------------------------------------------------------
