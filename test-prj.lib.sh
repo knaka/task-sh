@@ -176,19 +176,29 @@ test_array() (
 test_ifs() (
   set -o errexit
 
-  echo Testing ifs_null >&2
+  IFS='xyz'
   default_ifs="$IFS"
   ifs_null
   assert_eq "$IFS" ''
   ifs_restore
 
-  echo Testing that IFS is restored >&2
   assert_eq "$IFS" "$default_ifs"
-  IFS='abcde'
   ifs_pipe
+  assert_eq "$IFS" '|'
+  ifs_comma
+  assert_eq "$IFS" ','
+  ifs_null
+  assert_eq "$IFS" ''
+  ifs_path_list_sepaprator
+  assert_eq "$IFS" ':'
   ifs_restore
-  assert_eq "$IFS" "abcde"
-  unset IFS
+  assert_eq "$IFS" ''
+  ifs_restore
+  assert_eq "$IFS" ","
+  ifs_restore
+  assert_eq "$IFS" '|'
+  ifs_restore
+  assert_eq "$IFS" "$default_ifs"
 
   ifs_newline
   # shellcheck disable=SC2046
@@ -347,4 +357,18 @@ test_field() (
   assert_eq "foo" "$(echo "foo bar baz" | field 1)"
   assert_eq "bar" "$(echo "   foo      bar   baz  " | field 2)"
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
+)
+
+test_array_new() (
+  set -o errexit
+
+  delim="$unit_sep"
+  a=
+  a="$(array_append "$a" "$delim" foo bar baz)"
+  ifs_us
+  for arg in $a
+  do
+    echo "arg: $arg" >&2
+  done
+  ifs_restore
 )

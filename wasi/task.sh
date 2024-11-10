@@ -358,15 +358,24 @@ install_pkg_cmd_tabsep_args() (
   done
 )
 
-unset ifs_a8fded1
+csv_ifss=
 
 # Save the current IFS and set it to the specified value.
 set_ifs() {
-  if test -z "${ifs_a8fded1+set}" && test -n "${IFS+set}"
+  if test "${IFS+set}" = set
   then
-    ifs_a8fded1="$IFS"
+    csv_ifss="$(array_prepend "$csv_ifss" , "$(printf "%s" "$IFS" | base64)")"
+  else
+    csv_ifss="$(array_prepend "$csv_ifss" , none)"
   fi
   IFS="$1"
+}
+
+unit_sep="$(printf '\x1f')"
+readonly unit_sep
+
+ifs_us() {
+  set_ifs "$unit_sep"
 }
 
 ifs_empty() {
@@ -424,12 +433,16 @@ ifs_blank() {
 
 # Restore the saved IFS.
 ifs_restore() {
-  if test -n "${ifs_a8fded1+set}"
+  if test "$(array_length "$csv_ifss" ,)" -eq 0
   then
-    IFS="$ifs_a8fded1"
-    unset ifs_a8fded1
+    return 1
+  fi
+  if test "$(array_head "$csv_ifss" ,)" = none
+  then
+    unset IFS
   else
-    IFS="$(printf ' \t\n\r')"
+    IFS="$(printf "%s" "$(array_head "$csv_ifss" , | base64 -d)")"
+    csv_ifss="$(array_tail "$csv_ifss" ,)"
   fi
 }
 
