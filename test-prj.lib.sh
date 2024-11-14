@@ -367,7 +367,6 @@ test_field() (
 test_unit_sep() (
   set -o errexit
 
-  delim="$unit_sep"
   usv_items=
   usv_items="$(array_append "$usv_items" "$unit_sep" foo bar baz)"
   usv_items="$(array_append "$usv_items" "$unit_sep" "$(printf 'hoge\nfuga\n')" 'hare')"
@@ -465,4 +464,43 @@ test_array_renew() (
   done
   ifs_restore
   assert_eq 3 "$count"
+
+  assert_eq "foo,bar" "$(array_slice "foo,bar,baz" , 0 2)"
+  assert_eq "bar,baz" "$(array_slice "foo,bar,baz" , 1 3)"
+  assert_eq "foo,bar,baz" "$(array_slice "foo,bar,baz" , 0)"
+  assert_eq "bar,baz" "$(array_slice "foo,bar,baz" , 1)"
+
+  assert_eq "foo,qux,baz" "$(array_at "foo,bar,baz" , 1 qux)"
+  assert_false array_at "foo,bar,baz" , 3
+  assert_false array_at "foo,bar,baz" , 3 value
+)
+
+test_plist() (
+  set -o errexit
+
+  plist="key1,val1,key2,val2"
+
+  assert_eq "key1,key2" "$(plist_keys "$plist" ,)"
+  assert_eq "" "$(plist_keys "" ,)"
+
+  assert_eq "val1,val2" "$(plist_values "$plist" ,)"
+  assert_eq "" "$(plist_values "" ,)"
+
+  assert_eq "val2" "$(plist_get "$plist" , "key2")"
+  assert_false plist_get "$plist" , "key3"
+
+  assert_eq "key1,mod1,key2,val2" "$(plist_set "$plist" , "key1" "mod1")"
+  assert_eq "key1,val1,key2,val2,key3,val3" "$(plist_set "$plist" , "key3" "val3")"
+
+  assert_eq "key1,val1,key2," "$(plist_set "$plist" , "key2" "")"
+  assert_eq "" "$(plist_get "key1,val1,key2," , "key2")"
+
+  assert_eq "key1,val1,key2,val2,,empty" "$(plist_set "$plist" , "" "empty")"
+  assert_eq "empty" "$(plist_get "key1,val1,key2,val2,,empty" , "")"
+
+  plist2=
+  plist2=$(plist_set "$plist2" "$unit_sep" "foo bar" "FOO BAR")
+  plist2=$(plist_set "$plist2" "$unit_sep" "baz qux" "BAZ QUX")
+  assert_eq "foo bar${unit_sep}FOO BAR${unit_sep}baz qux${unit_sep}BAZ QUX" "$plist2"
+  assert_eq "BAZ QUX" "$(plist_get "$plist2" "$unit_sep" "baz qux")"
 )

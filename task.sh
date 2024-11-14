@@ -143,17 +143,62 @@ array_at() (
   shift
   IFS="$1"
   shift
+  idx="$1"
+  shift
   i=0
+  delim=
   for item in $arr
   do
-    if test "$i" -eq "$1"
+    if test "$i" -eq "$idx"
     then
-      printf '%s' "$item"
+      if test "${1+set}" = set
+      then
+        if test "$i" -gt 0
+        then
+          array_slice "$arr" "$IFS" 0 "$i"
+          delim="$IFS"
+        fi
+        printf "%s%s" "$delim" "$1"
+        delim="$IFS"
+        if test "$i" -lt "$(( $(array_length "$arr" "$IFS") - 1 ))"
+        then
+          printf "%s%s" "$delim" "$(array_slice "$arr" "$IFS" "$((i + 1))")"
+        fi
+      else
+        printf "%s" "$item"
+      fi
       return
     fi
     i=$((i + 1))
   done
   return 1
+)
+
+array_slice() (
+  arr="$1"
+  shift
+  IFS="$1"
+  shift
+  start="$1"
+  shift
+  if test "${1+set}" = set
+  then
+    end="$1"
+    shift
+  else
+    end="$(array_length "$arr" "$IFS")"
+  fi
+  i=0
+  delim=
+  for item in $arr
+  do
+    if test "$i" -ge "$start" && test "$i" -lt "$end"
+    then
+      printf "%s%s" "$delim" "$item"
+      delim="$IFS"
+    fi
+    i=$((i + 1))
+  done
 )
 
 # Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
@@ -394,6 +439,111 @@ array_shuffle() (
   shift
   # shellcheck disable=SC2086
   printf "%s\n" $arr | shuf | paste -sd "$IFS" -
+)
+
+# --------------------------------------------------------------------------
+# Associative array functions. It is represented as propty list.
+# --------------------------------------------------------------------------
+
+# Get the keys of an associative array.
+plist_keys() (
+  plist="$1"
+  shift
+  IFS="$1"
+  shift
+  delim=
+  i=0
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      printf "%s%s" "$delim" "$item"
+      delim="$IFS"
+    fi
+    i=$((i + 1))
+  done
+)
+
+# Get the values of an associative array.
+plist_values() (
+  plist="$1"
+  shift
+  IFS="$1"
+  shift
+  delim=
+  i=0
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 1
+    then
+      printf "%s%s" "$delim" "$item"
+      delim="$IFS"
+    fi
+    i=$((i + 1))
+  done
+)
+
+# Get a value from an associative array.
+plist_get() (
+  plist="$1"
+  shift
+  IFS="$1"
+  shift
+  key="$1"
+  shift
+  current_key=
+  i=-1
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      if test "$current_key" = "$key"
+      then
+        printf "%s" "$item"
+        return
+      fi
+    else
+      current_key="$item"
+    fi
+    i=$((i + 1))
+  done
+  return 1
+)
+
+# Set a value in an associative array. If the key does not exist, then it is appended.
+plist_set() (
+  plist="$1"
+  shift
+  IFS="$1"
+  shift
+  key="$1"
+  shift
+  value="$1"
+  shift
+  if array_contains "$(plist_keys "$plist" "$IFS")" "$IFS" "$key"
+  then
+    delim=
+    current_key=
+    i=-1
+    for item in $plist
+    do
+      if test $((i % 2)) -eq 0
+      then
+        if test "$current_key" = "$key"
+        then
+          printf "%s%s%s%s" "$delim" "$key" "$IFS" "$value"
+        else
+          printf "%s%s%s%s" "$delim" "$current_key" "$IFS" "$item"
+        fi
+        delim="$IFS"
+      else
+        current_key="$item"
+      fi
+      i=$((i + 1))
+    done
+  else
+    array_append "$plist" "$IFS" "$key" "$value"
+  fi
 )
 
 # --------------------------------------------------------------------------
