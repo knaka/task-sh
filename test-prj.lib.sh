@@ -326,7 +326,7 @@ toupper_4c7e44e() {
 test_eval_with_subst() (
   set -o errexit
 
-  assert_eq '  foo BAR $baz ` $$ QUX' "$(eval_with_subst '  foo toupper(bar) $baz ` $$ toupper(qux)' 's/'"$lwb"'toupper\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g')"
+  assert_eq '  foo BAR $baz ` $$ QUX' "$(eval_with_subst '  foo toupper(bar) $baz ` $$ toupper(qux)' 's/'"$lwb"'toupper'"$rwb"'\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g')"
   assert_eq '$`"\; replaced:bar bar  "' "$(eval_with_subst '$`"\; foo bar  "' 's/foo/"$(echo replaced:bar)"/g')"
 
   input_path="$(temp_dir_path)/input.txt"
