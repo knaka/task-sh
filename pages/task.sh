@@ -448,9 +448,7 @@ array_shuffle() (
 # Get the keys of an associative array.
 plist_keys() (
   plist="$1"
-  shift
-  IFS="$1"
-  shift
+  IFS="$2"
   delim=
   i=0
   for item in $plist
@@ -467,9 +465,7 @@ plist_keys() (
 # Get the values of an associative array.
 plist_values() (
   plist="$1"
-  shift
-  IFS="$1"
-  shift
+  IFS="$2"
   delim=
   i=0
   for item in $plist
@@ -486,24 +482,21 @@ plist_values() (
 # Get a value from an associative array.
 plist_get() (
   plist="$1"
-  shift
-  IFS="$1"
-  shift
-  key="$1"
-  shift
-  current_key=
-  i=-1
+  IFS="$2"
+  target_key="$3"
+  key=
+  i=0
   for item in $plist
   do
     if test $((i % 2)) -eq 0
     then
-      if test "$current_key" = "$key"
+      key="$item"
+    else
+      if test "$key" = "$target_key"
       then
         printf "%s" "$item"
         return
       fi
-    else
-      current_key="$item"
     fi
     i=$((i + 1))
   done
@@ -513,36 +506,33 @@ plist_get() (
 # Put a value in an associative array. If the key does not exist, then it is appended.
 plist_put() (
   plist="$1"
-  shift
-  IFS="$1"
-  shift
-  key="$1"
-  shift
-  value="$1"
-  shift
-  if array_contains "$(plist_keys "$plist" "$IFS")" "$IFS" "$key"
-  then
-    delim=
-    current_key=
-    i=-1
-    for item in $plist
-    do
-      if test $((i % 2)) -eq 0
+  IFS="$2"
+  target_key="$3"
+  value="$4"
+  found=false
+  delim=
+  key=
+  i=0
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      key="$item"
+    else
+      if test "$key" = "$target_key"
       then
-        if test "$current_key" = "$key"
-        then
-          printf "%s%s%s%s" "$delim" "$key" "$IFS" "$value"
-        else
-          printf "%s%s%s%s" "$delim" "$current_key" "$IFS" "$item"
-        fi
-        delim="$IFS"
+        found=true
+        printf "%s%s%s%s" "$delim" "$target_key" "$IFS" "$value"
       else
-        current_key="$item"
+        printf "%s%s%s%s" "$delim" "$key" "$IFS" "$item"
       fi
-      i=$((i + 1))
-    done
-  else
-    array_append "$plist" "$IFS" "$key" "$value"
+      delim="$IFS"
+    fi
+    i=$((i + 1))
+  done
+  if ! "$found"
+  then
+    printf "%s%s%s%s" "$delim" "$target_key" "$IFS" "$value"
   fi
 )
 

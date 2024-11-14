@@ -6,18 +6,6 @@ test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 . ./assert.lib.sh
 . ./task.sh
 
-test_first() (
-  set -o errexit
-
-  :
-)
-
-test_second() (
-  set -o errexit
-
-  :
-)
-
 test_array() (
   set -o errexit
 
@@ -478,7 +466,9 @@ test_array_renew() (
 test_plist() (
   set -o errexit
 
-  plist="key1,val1,key2,val2"
+  plist=
+  plist="$(plist_put "$plist" , "key1" "val1")"
+  plist="$(plist_put "$plist" , "key2" "val2")"
 
   assert_eq "key1,key2" "$(plist_keys "$plist" ,)"
   assert_eq "" "$(plist_keys "" ,)"
@@ -489,13 +479,13 @@ test_plist() (
   assert_eq "val2" "$(plist_get "$plist" , "key2")"
   assert_false plist_get "$plist" , "key3"
 
-  assert_eq "key1,mod1,key2,val2" "$(plist_set "$plist" , "key1" "mod1")"
-  assert_eq "key1,val1,key2,val2,key3,val3" "$(plist_set "$plist" , "key3" "val3")"
+  assert_eq "key1,mod1,key2,val2" "$(plist_put "$plist" , "key1" "mod1")"
+  assert_eq "key1,val1,key2,val2,key3,val3" "$(plist_put "$plist" , "key3" "val3")"
 
-  assert_eq "key1,val1,key2," "$(plist_set "$plist" , "key2" "")"
+  assert_eq "key1,val1,key2," "$(plist_put "$plist" , "key2" "")"
   assert_eq "" "$(plist_get "key1,val1,key2," , "key2")"
 
-  assert_eq "key1,val1,key2,val2,,empty" "$(plist_set "$plist" , "" "empty")"
+  assert_eq "key1,val1,key2,val2,,empty" "$(plist_put "$plist" , "" "empty")"
   assert_eq "empty" "$(plist_get "key1,val1,key2,val2,,empty" , "")"
 
   plist2=
