@@ -1320,7 +1320,7 @@ task_tasks() ( # List tasks.
       sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
     ) | while read -r name desc
     do
-      echo "$name" "$desc"
+      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
     done
     if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
     then

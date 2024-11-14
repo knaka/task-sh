@@ -148,17 +148,17 @@ task_start() {
   sh task.sh pages:start
 }
 
-subcmd_dev__db__exec() {
+subcmd_dev__db__exec() { # Execute SQL command in the development database.
   subcmd_wrangler d1 execute --local test-db "$@"
   # --file=./vacuum.sql
 }
 
-task_dev__db__schema() {
+task_dev__db__schema() { # Export the schema of the development database.
   mkdir -p build/
   subcmd_wrangler d1 export --local --no-data --output=build/dev-schema.sql test-db
 }
 
-task_dev__db__dump() {
+task_dev__db__dump() { # Dump the development database.
   subcmd_wrangler d1 export --local --output=/dev/stdout test-db
 }
 

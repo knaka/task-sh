@@ -2,101 +2,152 @@
 setlocal enabledelayedexpansion
 
 if "%~1" == "update-me" (
-  curl.exe --fail --location --output %TEMP%\cmd-%~nx0 https://raw.githubusercontent.com/knaka/gobin/refs/heads/main/bootstrap/cmd-gobin.cmd || exit /b !ERRORLEVEL!
+  curl.exe --fail --location --output %TEMP%\cmd-%~nx0 https://raw.githubusercontent.com/knaka/gobin/main/bootstrap/cmd-gobin.cmd
   move /y %TEMP%\cmd-%~nx0 %~f0
   exit /b 0
 )
 
 @REM All releases - The Go Programming Language https://go.dev/dl/
-set "ver=1.23.1"
+set required_min_major_ver=1
+set required_min_minor_ver=23
+set ver=!required_min_major_ver!.!required_min_minor_ver!.1
 
-set "exit_code=1"
+set exit_code=1
 
 :unique_temp_loop
 set "temp_dir_path=%TEMP%\%~n0-%RANDOM%"
 if exist "!temp_dir_path!" goto unique_temp_loop
 mkdir "!temp_dir_path!" || goto :exit
+call :to_short_path "!temp_dir_path!"
+set temp_dir_spath=!short_path!
+
+set goroot_dir_spath=
+
+call :to_short_path "C:\Program Files"
+set program_files_spath=!short_path!
+call :to_short_path "%USERPROFILE%"
+set user_profile_spath=!short_path!
 
 @REM Command in %PATH%
-where go >nul 2>&1
+where go >nul 2>&1 
 if !ERRORLEVEL! == 0 (
-    set "go_cmd_path=go"
-    goto found_go_cmd
-)
-@REM Trivial installation paths
-set "dirs=%USERPROFILE%\go\go!ver!\bin;%USERPROFILE%\sdk\go!ver!\bin;\Program Files\Go\bin"
-for %%d in ("!dirs:;=" "!") do (
-    if exist "%%d\go.exe" (
-        set "go_cmd_path=%%d\go.exe"
-        goto found_go_cmd
+  for /F "usebackq tokens=*" %%p in (`where go`) do (
+    call :to_short_path "%%p"
+    set cmd_spath=!short_path!
+    call :set_proper_goroot_dir_spath !cmd_spath!
+    if !goroot_dir_spath! neq "" (
+      goto :found_goroot
     )
+  )
 )
-@REM Download if not found
-set "goos=windows"
-if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-    set "goarch=amd64"
-) else if "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
-    set "goarch=amd64"
-) else (
-    goto :exit
-)
-set "sdk_dir_path=%USERPROFILE%\sdk"
-if not exist "!sdk_dir_path!" (
-    mkdir "!sdk_dir_path!" || goto :exit
-)
-set "zip_path=!temp_dir_path!\go.zip"
-curl.exe --fail --location -o "!zip_path!" "https://go.dev/dl/go!ver!.%goos%-%goarch%.zip" || goto :exit
-cd "!sdk_dir_path!" || goto :exit
-tar.exe -xf "!zip_path!" || goto :exit
-move /y "!sdk_dir_path!\go" "!sdk_dir_path!\go!ver!" || goto :exit
-set "go_cmd_path=!sdk_dir_path!\go!ver!\bin\go.exe"
 
-:found_go_cmd
-if not defined GOPATH (
-    set "GOPATH=%USERPROFILE%\go"
+@REM Trivial installation paths
+@REM for /D %%d in (!program_files_spath!\go !user_profile_spath!\sdk\go*) do (
+for /D %%d in (!user_profile_spath!\sdk\go*) do (
+  set cmd_spath=%%d\bin\go.exe
+  if exist !cmd_spath! (
+    call :set_proper_goroot_dir_spath !cmd_spath!
+    if !goroot_dir_spath! neq "" (
+      goto :found_goroot
+    )
+  )
 )
-if not exist "!GOPATH!\bin" (
-    mkdir !%GOPATH!\bin"
+
+@REM Download if not found
+set goos=windows
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+  set goarch=amd64
+) else if "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
+  set goarch=amd64
+) else (
+  goto :exit
+)
+set sdk_dir_spath=!user_profile_spath!\sdk
+if not exist !sdk_dir_spath! (
+  mkdir !sdk_dir_spath! || goto :exit
+)
+set zip_spath=!temp_dir_spath!\go.zip
+echo Downloading Go SDK: !ver! >&2
+curl.exe --fail --location -o !zip_spath! "https://go.dev/dl/go!ver!.%goos%-%goarch%.zip" || goto :exit
+cd !sdk_dir_spath! || goto :exit
+unzip -q !zip_spath! || goto :exit
+move /y !sdk_dir_spath!\go !sdk_dir_spath!\go!ver! || goto :exit
+set goroot_dir_spath=!sdk_dir_spath!\go!ver!
+
+:found_goroot
+
+set go_cmd_spath=!goroot_dir_spath!\bin\go.exe
+set GOROOT=
+
+if not defined GOPATH (
+  set GOPATH=!user_profile_spath!\go
+)
+
+if not exist !GOPATH!\bin (
+  mkdir !GOPATH!\bin
 )
 
 set "name=embedded-%~f0"
+set "name=!name: =_!"
 set "name=!name:\=_!"
 set "name=!name::=_!"
 set "name=!name:/=_!"
-if exist "!GOPATH!\bin\!name!.exe" (
-    xcopy /l /d /y "!GOPATH!\bin\!name!.exe" "%~f0" | findstr /b /c:"1 " >nul 2>&1
-    if !ERRORLEVEL! == 0 (
-        goto :execute
-    )
+if exist !GOPATH!\bin\!name!.exe (
+  xcopy /l /d /y !GOPATH!\bin\!name!.exe "%~f0" | findstr /b /c:"1 " >nul 2>&1
+  if !ERRORLEVEL! == 0 (
+    goto :execute
+  )
 )
 
 :build
+echo Using Go compiler: !go_cmd_spath! >&2
 for /f "usebackq tokens=1 delims=:" %%i in (`findstr /n /b :embed_53c8fd5 "%~f0"`) do set n=%%i
-set "tempfile=!temp_dir_path!\!name!.go"
-more +%n% "%~f0" > "!tempfile!"
+set tempfile=!temp_dir_spath!\!name!.go
+more +%n% "%~f0" > !tempfile!
 
-!go_cmd_path! build -o !GOPATH!\bin\!name!.exe "!tempfile!" || goto :exit
-del /q "!temp_dir_path!"
-goto :execute
+!go_cmd_spath! build -o !GOPATH!\bin\!name!.exe !tempfile! || goto :exit
+del /q !temp_dir_spath!
 
 :execute
 !GOPATH!\bin\!name!.exe %* || goto :exit
-set "exit_code=0"
+set exit_code=0
 
 :exit
-if exist "!temp_dir_path!" (
-    del /q "!temp_dir_path!"
+if exist !temp_dir_spath! (
+  del /q !temp_dir_spath!
 )
 exit /b !exit_code!
+
+:to_short_path
+set "input_path=%~1"
+for %%i in ("%input_path%") do set "short_path=%%~si"
+exit /b
+goto :eof
+
+:set_proper_goroot_dir_spath
+for /F "usebackq tokens=*" %%v in (`%1 env GOVERSION`) do (
+  set version=%%v
+  set major=!version:~2,1!
+  set minor=!version:~4,2!
+  if !major! geq !required_min_major_ver! (
+  if !minor! geq !required_min_minor_ver! (
+    for /F "useback tokens=*" %%p in (`%1 env GOROOT`) do (
+      call :to_short_path "%%p"
+      set goroot_dir_spath=!short_path!
+    )
+  )
+)
+exit /b
+goto :eof
 
 endlocal
 
 :embed_53c8fd5
-// Code generated by gen-bootstrap; DO NOT EDIT.
+// Code generated by gobin/task-project.lib.sh; DO NOT EDIT.
 
 // Latest version is available by running:
 //
-//   curl --remote-name https://raw.githubusercontent.com/knaka/gobin/main/bootstrap/gobin.go
+//   curl --remote-name https://raw.githubusercontent.com/knaka/gobin/main/bootstrap/cmd-gobin.go
 
 //go:build ignore
 
@@ -109,7 +160,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	stdlog "log"
 	"os"
 	"os/exec"
 	"path"
@@ -304,7 +354,7 @@ func PkgVerLockMap(dirPath string) (lockList PkgVerLockMapT, err error) {
 }
 
 // EnsureInstalled ensures that the program package is installed.
-func EnsureInstalled(gobinPath string, pkgPath string, ver string, tags string, log *stdlog.Logger, _ *stdlog.Logger) (cmdPkgVerPath string, err error) {
+func EnsureInstalled(gobinPath string, pkgPath string, ver string, tags string, log *log.Logger, _ *log.Logger) (cmdPkgVerPath string, err error) {
 	pkgBase := path.Base(pkgPath)
 	pkgBaseVer := pkgBase + "@" + ver
 	cmdPath := filepath.Join(gobinPath, pkgBase+exeExt())
@@ -316,29 +366,22 @@ func EnsureInstalled(gobinPath string, pkgPath string, ver string, tags string, 
 	}
 	cmdPkgVerPath = filepath.Join(gobinPath, pkgBaseVer+exeExt())
 	if _, err_ := os.Stat(cmdPkgVerPath); err_ != nil {
-		log.Printf("Installing %s@%s\n", pkgPath, ver)
+		if verbose {
+			log.Printf("Installing %s@%s\n", pkgPath, ver)
+		}
 		args := []string{"install", fmt.Sprintf("%s@%s", pkgPath, ver)}
 		if tags != "" {
 			log.Printf("Installing with tags %s\n", tags)
 			args = append(args, "-tags", tags)
 		}
-		s := getGoCmd()
-		log.Println("Running", s, args)
-		cmd := exec.Command(s, args...)
+		cmd := exec.Command(goCmdPath(), args...)
 		cmd.Env = append(os.Environ(), fmt.Sprintf("GOBIN=%s", gobinPath))
-		//cmd.Env = append(cmd.Env, "GOEXPERIMENT=rangefunc")
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		_ = os.Remove(cmdPath)
-		err = cmd.Run()
-		if err != nil {
-			return
-		}
+		v0(cmd.Run())
 		_ = os.Remove(cmdPkgVerPath)
-		err = os.Rename(cmdPath, cmdPkgVerPath)
-		if err != nil {
-			return
-		}
+		v0(os.Rename(cmdPath, cmdPkgVerPath))
 		if pkgBase == GobinCmdBase {
 			v0(os.Symlink(pkgBaseVer+exeExt(), cmdPath))
 		} else {
@@ -348,64 +391,46 @@ func EnsureInstalled(gobinPath string, pkgPath string, ver string, tags string, 
 	return
 }
 
-func GetGoroot() (gobinPath string, err error) {
-	// 1.22.7 seems not to work on Windows?
+var Goroot = sync.OnceValues(func() (gobinPath string, err error) {
+	// 1.22.7 seems not working on Windows?
 	ver := "1.23.1"
-	if goPath, err := exec.LookPath("go"); err == nil {
-		return goPath, nil
-	}
-	var dirPaths []string
-	dirPaths = append(dirPaths, "/usr/local/go")
-	dirPaths = append(dirPaths, v(filepath.Glob("/usr/local/Cellar/go/*"))...)
-	dirPaths = append(dirPaths, "/Program Files/Go")
-	for _, dirPath := range dirPaths {
-		if _, err := exec.LookPath(filepath.Join(dirPath, "bin", "go")); err == nil {
-			return dirPath, nil
-		}
-	}
 	homeDir := v(os.UserHomeDir())
 	sdkDirPath := filepath.Join(homeDir, "sdk")
-	goRoot := filepath.Join(sdkDirPath, "go"+ver)
-	goCmdPath := filepath.Join(goRoot, "bin", "go"+exeExt())
+	gorootPath := filepath.Join(sdkDirPath, "go"+ver)
+	goCmdPath := filepath.Join(gorootPath, "bin", "go"+exeExt())
 	if _, err := os.Stat(goCmdPath); err == nil {
-		return goRoot, nil
+		return gorootPath, nil
 	}
+	tempDir := v(os.MkdirTemp("", ""))
+	defer (func() { v0(os.RemoveAll(tempDir)) })()
+	arcPath := filepath.Join(tempDir, "temp.tgz")
+	url := fmt.Sprintf("https://go.dev/dl/go%s.%s-%s.tar.gz", ver, runtime.GOOS, runtime.GOARCH)
 	//goland:noinspection GoBoolExpressions
 	if runtime.GOOS == "windows" {
-		tempDir := v(os.MkdirTemp("", ""))
-		defer (func() { v0(os.RemoveAll(tempDir)) })()
-		zipPath := filepath.Join(tempDir, "temp.zip")
-		url := fmt.Sprintf("https://go.dev/dl/go%s.%s-%s.zip", ver, runtime.GOOS, runtime.GOARCH)
-		cmd := exec.Command("curl.exe", "--location", "-o", zipPath,
-			url)
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		v0(cmd.Run())
-		cmd = exec.Command("tar.exe", "-C", sdkDirPath, "-xzf", zipPath)
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		v0(cmd.Run())
-	} else {
-		cmd := exec.Command("curl", "--location", "-o", "-",
-			fmt.Sprintf("https://go.dev/dl/go%s.%s-%s.tar.gz", ver, runtime.GOOS, runtime.GOARCH))
-		cmd.Stderr = os.Stderr
-		cmd.Dir = sdkDirPath
-		v0(cmd.Run())
+		arcPath = filepath.Join(tempDir, "temp.zip")
+		url = fmt.Sprintf("https://go.dev/dl/go%s.%s-%s.zip", ver, runtime.GOOS, runtime.GOARCH)
 	}
-	//	Then rename.
-	v0(os.Rename(filepath.Join(sdkDirPath, "go"), goRoot))
-	return goRoot, nil
-}
+	cmd := exec.Command("curl"+exeExt(), "--location", "-o", arcPath, url)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	v0(cmd.Run())
+	cmd = exec.Command("tar"+exeExt(), "-C", sdkDirPath, "-xzf", arcPath)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	v0(cmd.Run())
+	v0(os.Rename(filepath.Join(sdkDirPath, "go"), gorootPath))
+	return gorootPath, nil
+})
 
-func getGoCmd() string {
-	binDirPath := filepath.Join(v(GetGoroot()), "bin")
-	//v0(os.Setenv("PATH", fmt.Sprintf("%s%c%s", binDirPath, filepath.ListSeparator, os.Getenv("PATH"))))
+var goCmdPath = sync.OnceValue(func() string {
+	binDirPath := filepath.Join(v(Goroot()), "bin")
+	v0(os.Setenv("PATH", fmt.Sprintf("%s%c%s", binDirPath, filepath.ListSeparator, os.Getenv("PATH"))))
 	cmdPath := filepath.Join(binDirPath, "go"+exeExt())
 	if verbose {
 		log.Printf("The path to the go command is %s\n", cmdPath)
 	}
 	return cmdPath
-}
+})
 
 func EnsureGobinCmdInstalled(global bool) (cmdPath string, err error) {
 	var opts []ConfDirPathOption
@@ -425,7 +450,7 @@ func EnsureGobinCmdInstalled(global bool) (cmdPath string, err error) {
 		if verbose {
 			log.Printf("Querying the latest version of %s\n", pkgPath)
 		}
-		cmd := exec.Command(getGoCmd(), "list", "-m",
+		cmd := exec.Command(goCmdPath(), "list", "-m",
 			"--json", fmt.Sprintf("%s@%s", modPath, "latest"))
 		cmd.Env = append(os.Environ(), "GO111MODULE=on")
 		cmd.Stderr = os.Stderr
@@ -441,7 +466,7 @@ func EnsureGobinCmdInstalled(global bool) (cmdPath string, err error) {
 		defer (func() { v0(writer.Close()) })()
 		_ = v(writer.WriteString(fmt.Sprintf("%s@%s\n", pkgPath, ver)))
 	}
-	return EnsureInstalled(gobinPath, pkgPath, ver, "", stdlog.Default(), stdlog.Default())
+	return EnsureInstalled(gobinPath, pkgPath, ver, "", log.Default(), log.Default())
 }
 
 func Command(name string, arg ...string) (cmd *exec.Cmd, err error) {
@@ -462,7 +487,7 @@ func RunCommand(name string, arg ...string) (execErr *exec.ExitError, err error)
 	return
 }
 
-// bootstrapMain is the main function of the bootstrap file.
+// bootstrapMain is the main function of the bootstrap command.
 func bootstrapMain() {
 outer:
 	for {
@@ -485,7 +510,7 @@ outer:
 	if errExec != nil {
 		os.Exit(errExec.ExitCode())
 	}
-	stdlog.Fatalf("Error 560d8bf: %+v", err)
+	log.Fatalf("Error 560d8bf: %+v", err)
 }
 
 var exeExt = sync.OnceValue(func() (exeExt string) {
@@ -496,21 +521,6 @@ var exeExt = sync.OnceValue(func() (exeExt string) {
 	return
 })
 
-func RemoveExeExt(path string) string {
-	//goland:noinspection GoBoolExpressions
-	if runtime.GOOS != "windows" {
-		return path
-	}
-	pathLower := strings.ToLower(path)
-	for _, ext := range []string{".exe", ".bat", ".cmd", ".com"} {
-		if strings.HasSuffix(pathLower, ext) {
-			return path[:len(path)-len(ext)]
-		}
-	}
-	return path
-}
-
 func main() {
 	bootstrapMain()
 }
-
