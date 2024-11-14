@@ -186,7 +186,7 @@ task_dev__db__migrate() {
 task_db__gen() {
   cross_run ./cmd-gobin run sqlc generate
   # To keep the trailing spaces.
-  IFS=
+  ifs_null
   # shellcheck disable=SC2043
   for file in sqlcgen/querier.ts
   do
@@ -208,7 +208,7 @@ task_db__gen() {
     done < "$file" > "$file.tmp"
     mv "$file.tmp" "$file"
   done
-  unset IFS
+  ifs_restore
 }
 
 task_db__watchgen() {
