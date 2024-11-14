@@ -1110,12 +1110,6 @@ emph() {
   fi
 }
 
-# Print a menu item with emphasis if a character is prefixed with "&".
-menu_item() {
-  # shellcheck disable=SC2016
-  eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
-}
-
 # Sort version strings.
 # shellcheck disable=SC2120
 sort_version() {
@@ -1154,6 +1148,12 @@ eval_with_subst() {
   echo "$1" | eval_with_subst_stdin "$2"
 }
 
+# Print a menu item with emphasis if a character is prefixed with "&".
+menu_item() {
+  # shellcheck disable=SC2016
+  eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
+}
+
 # Sort in random order.
 sort_random() {
   if type shuf > /dev/null 2>&1
@@ -1171,6 +1171,7 @@ field() (
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
 )
 
+# Mac does not have tac(1).
 if ! type tac > /dev/null 2>&1
 then
   tac() {
