@@ -510,8 +510,8 @@ plist_get() (
   return 1
 )
 
-# Set a value in an associative array. If the key does not exist, then it is appended.
-plist_set() (
+# Put a value in an associative array. If the key does not exist, then it is appended.
+plist_put() (
   plist="$1"
   shift
   IFS="$1"

@@ -499,8 +499,8 @@ test_plist() (
   assert_eq "empty" "$(plist_get "key1,val1,key2,val2,,empty" , "")"
 
   plist2=
-  plist2=$(plist_set "$plist2" "$unit_sep" "foo bar" "FOO BAR")
-  plist2=$(plist_set "$plist2" "$unit_sep" "baz qux" "BAZ QUX")
+  plist2=$(plist_put "$plist2" "$unit_sep" "foo bar" "FOO BAR")
+  plist2=$(plist_put "$plist2" "$unit_sep" "baz qux" "BAZ QUX")
   assert_eq "foo bar${unit_sep}FOO BAR${unit_sep}baz qux${unit_sep}BAZ QUX" "$plist2"
   assert_eq "BAZ QUX" "$(plist_get "$plist2" "$unit_sep" "baz qux")"
 )
