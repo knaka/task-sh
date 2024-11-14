@@ -17,6 +17,7 @@ fi
 
 # --------------------------------------------------------------------------
 # Array functions. "array string + delimiter" is used for the array representation.
+# --------------------------------------------------------------------------
 
 # Join an array with a delimiter.
 array_join() (
@@ -31,6 +32,7 @@ array_join() (
   done
 )
 
+# Head of an array.
 array_head() (
   arr="$1"
   test -z "$arr" && return 1
@@ -77,6 +79,11 @@ array_length() (
   # shellcheck disable=SC2086
   set -- $arr
   echo "$#"
+)
+
+array_empty() (
+  arr="$1"
+  test -z "$arr"
 )
 
 array_append() (
@@ -390,6 +397,106 @@ array_shuffle() (
 )
 
 # --------------------------------------------------------------------------
+# IFS manipulation.
+# --------------------------------------------------------------------------
+
+csv_ifss_7864a7a=
+
+readonly none_item=none_ab2d5c8
+
+# Save the current IFS and set it to the specified value.
+set_ifs() {
+  if test "${IFS+set}" = set
+  then
+    csv_ifss_7864a7a="$(array_prepend "$csv_ifss_7864a7a" , "$(printf "%s" "$IFS" | base64)")"
+  else
+    csv_ifss_7864a7a="$(array_prepend "$csv_ifss_7864a7a" , "$none_item")"
+  fi
+  IFS="$1"
+}
+
+# Restore the saved IFS.
+ifs_restore() {
+  if array_empty "$csv_ifss_7864a7a" ,
+  then
+    return 1
+  fi
+  if test "$(array_head "$csv_ifss_7864a7a" ,)" = "$none_item"
+  then
+    unset IFS
+  else
+    IFS="$(printf "%s" "$(array_head "$csv_ifss_7864a7a" , | base64 -d)")"
+  fi
+  csv_ifss_7864a7a="$(array_tail "$csv_ifss_7864a7a" ,)"
+}
+
+unit_sep="$(printf '\x1f')"
+readonly unit_sep
+
+ifs_us() {
+  set_ifs "$unit_sep"
+}
+
+ifs_unit_sep() {
+  set_ifs "$unit_sep"
+}
+
+ifs_empty() {
+  set_ifs ''
+}
+
+ifs_null() {
+  set_ifs ''
+}
+
+ifs_newline() {
+  set_ifs "$(printf '\n\r')"
+}
+
+# For CSV.
+ifs_comma() {
+  set_ifs ','
+}
+
+# For TSV.
+ifs_tab() {
+  set_ifs "$(printf '\t')"
+}
+
+# For PSV.
+ifs_pipe() {
+  set_ifs '|'
+}
+
+# Mianly for paths, files, and directories.
+ifs_colon() {
+  set_ifs ':'
+}
+
+ifs_path_list_sepaprator() {
+  ifs_colon
+}
+
+# To split path.
+ifs_slashes() {
+  set_ifs "/\\"
+}
+
+ifs_path_sepaprator() {
+  ifs_slashes
+}
+
+ifs_default() {
+  set_ifs "$(printf ' \t\n\r')"
+}
+
+ifs_blank() {
+  set_ifs "$(printf ' \t')"
+}
+
+# --------------------------------------------------------------------------
+# Utility functions.
+# --------------------------------------------------------------------------s
 
 unset shell_flags_c225b8f
 
@@ -732,98 +839,6 @@ install_pkg_cmd_tabsep_args() (
   done
 )
 
-csv_ifss=
-
-# Save the current IFS and set it to the specified value.
-set_ifs() {
-  if test "${IFS+set}" = set
-  then
-    csv_ifss="$(array_prepend "$csv_ifss" , "$(printf "%s" "$IFS" | base64)")"
-  else
-    csv_ifss="$(array_prepend "$csv_ifss" , none)"
-  fi
-  IFS="$1"
-}
-
-unit_sep="$(printf '\x1f')"
-readonly unit_sep
-
-ifs_us() {
-  set_ifs "$unit_sep"
-}
-
-ifs_unit_sep() {
-  set_ifs "$unit_sep"
-}
-
-ifs_empty() {
-  set_ifs ''
-}
-
-ifs_null() {
-  set_ifs ''
-}
-
-ifs_newline() {
-  set_ifs "$(printf '\n\r')"
-}
-
-# For CSV.
-ifs_comma() {
-  set_ifs ','
-}
-
-# For TSV.
-ifs_tab() {
-  set_ifs "$(printf '\t')"
-}
-
-# For PSV.
-ifs_pipe() {
-  set_ifs '|'
-}
-
-# Mianly for paths, files, and directories.
-ifs_colon() {
-  set_ifs ':'
-}
-
-ifs_path_list_sepaprator() {
-  ifs_colon
-}
-
-# To split path.
-ifs_slashes() {
-  set_ifs "/\\"
-}
-
-ifs_path_sepaprator() {
-  ifs_slashes
-}
-
-ifs_default() {
-  set_ifs "$(printf ' \t\n\r')"
-}
-
-ifs_blank() {
-  set_ifs "$(printf ' \t')"
-}
-
-# Restore the saved IFS.
-ifs_restore() {
-  if test -z "$csv_ifss"
-  then
-    return 1
-  fi
-  if test "$(array_head "$csv_ifss" ,)" = none
-  then
-    unset IFS
-  else
-    IFS="$(printf "%s" "$(array_head "$csv_ifss" , | base64 -d)")"
-    csv_ifss="$(array_tail "$csv_ifss" ,)"
-  fi
-}
-
 install_pkg_cmd() {
   ifs_tab
   # shellcheck disable=SC2046
@@ -999,12 +1014,22 @@ sort_random() {
   fi
 }
 
+# Get the space-separated n-th (1-based) field.
 field() (
   unset IFS
   # shellcheck disable=SC2046
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
 )
 
+if ! type tac > /dev/null 2>&1
+then
+  tac() {
+    tail -r
+  }
+fi
+
+# --------------------------------------------------------------------------
+# Main.
 # --------------------------------------------------------------------------
 
 # Original directory when the script is invoked.
@@ -1055,13 +1080,6 @@ temp_dir_path() {
   echo "$_temp_dir_path_d4a4197"
 }
 
-if ! type tac > /dev/null 2>&1
-then
-  tac() {
-    tail -r
-  }
-fi
-
 kill_children() {
   for i_519fa93 in $(seq 10)
   do
@@ -1073,7 +1091,8 @@ kill_children() {
 csv_cleanup_handlers=
 
 # Main cleanup handler.
-cleanup() {
+cleanup_79d5d1d() {
+  # Save the return code.
   rc=$?
   # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
   if is_windows 
@@ -1122,8 +1141,6 @@ verbose_f26120b=false
 verbose() {
   "$verbose_f26120b"
 }
-
-# -------------------------------------------------------------------------- 
 
 psv_task_file_paths=
 
@@ -1201,7 +1218,7 @@ EOF
 )
 
 main() {
-  trap cleanup EXIT
+  trap cleanup_79d5d1d EXIT
 
   chdir_script
 

@@ -422,6 +422,8 @@ test_array_renew() (
   assert_eq "," "$(array_prepend "" , "")"
 
   assert_eq 1 "$(array_length "," ,)"
+  assert_eq "" "$(array_head "," ,)"
+  assert_eq "" "$(array_tail "," ,)"
   assert_eq ",foo" "$(array_append "," , "foo")"
   assert_eq "foo,," "$(array_prepend "," , "foo")"
   assert_eq "" "$(array_head "," , "")"
@@ -431,6 +433,7 @@ test_array_renew() (
   assert_eq ",,foo" "$(array_append ",," , "foo")"
   assert_eq "foo,,," "$(array_prepend ",," , "foo")"
   assert_eq ",,," "$(array_prepend ",," , "")"
+  assert_eq "" "$(array_head ",," ,)"
   assert_eq "," "$(array_tail ",," ,)"
   assert_eq "foo" "$(array_tail ",foo" ,)"
 
@@ -440,8 +443,8 @@ test_array_renew() (
   assert_eq 2 "$(array_length "foo,bar," ,)"
 
   csv_items=",foo,bar,"
-  ifs_comma
   count=0
+  ifs_comma
   # shellcheck disable=SC2046
   for item in $csv_items
   do
