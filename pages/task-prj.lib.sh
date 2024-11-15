@@ -194,17 +194,15 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   # Then, rewrite the generated file.
   file_path=sqlcgen/querier.ts
   sed -E \
-    -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
-    -e "s/^(.*\.bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
-    -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
-  | while IFS= read -r line
+    -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def:\1${us}\2${us}/" -e t \
+    -e "s/^(.*\.bind\()([^)]*)(\).*)$/rewrite_bind:\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^(.*)$/nop:\1${us}/" <"$file_path" \
+  | while IFS=: read -r op data
   do
     IFS="$us"
     # shellcheck disable=SC2086
-    set -- $line
+    set -- $data
     unset IFS
-    op="$1"
-    shift
     case "$op" in
       (rewrite_null_def)
         echo "$1?$2";;
