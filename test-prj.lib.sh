@@ -517,26 +517,25 @@ test_sed_usv() (
   cat <<'EOF' >"$input_path"
 foo bar baz
 other lines
-hoge fuga hare
 123 456 789
 
 hello world
+hoge fuga hare
+012 345 678 900
 EOF
   output_path="$(temp_dir_path)/output.txt"
   sed -E \
-    -e 's/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})/case1\x1f\1\x1f\2\x1f\3\x1f/' -e t \
-    -e 's/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})/case2\x1f\1\x1f\2\x1f\3\x1f/' -e t \
-    -e 's/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})/case3\x1f\1\x1f\2\x1f\3\x1f/' -e t \
-    -e 's/^(.*)$/else\x1f\1\x1f/' < "$input_path" \
-  | while IFS= read -r line
+    -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1:\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2:\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})$/case3:\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^(.*)$/nop:\1${us}/" <"$input_path" \
+  | while IFS=: read -r op line
   do
-    IFS="$unit_sep"
+    IFS="$us"
     # shellcheck disable=SC2086
     set -- $line
     unset IFS 
-    pattern="$1"
-    shift
-    case "$pattern" in
+    case "$op" in
       (case1)
         echo "a: $1 $2 $3" >&2
         ;;
@@ -546,11 +545,11 @@ EOF
       (case3)
         echo "c: $1 $2 $3" >&2
         ;;
-      (else)
+      (nop)
         echo "z: $1" >&2
         ;;
       (*)
-        echo "unknown: $line" >&2
+        echo "Unhandled operation: $op" >&2
         ;;
     esac  
   done
