@@ -188,20 +188,12 @@ task_dev__db__migrate() { # Apply the schema changes to the development database
   subcmd_dev__db__exec --file=build/dev-diff.sql
 }
 
-rewrite_args() (
-  usv_args="$(array_string_split "$unit_sep" "$1" ", *")"
-  delim=
-  ifs_unit_sep
-  for arg in $usv_args
-  do
-    printf '%stypeof %s === "undefined"? null: %s' "$delim" "$arg" "$arg"
-    delim=", "
-  done
-  ifs_restore
-)
-
 task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   cross_run ./cmd-gobin run sqlc generate
+  # shellcheck disable=SC2317
+  rewrite_args() {
+    echo "$1," | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, *$//'
+  }
   # To keep the trailing spaces.
   ifs_null
   # shellcheck disable=SC2043
@@ -212,7 +204,7 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
       # Nullable is NULL if not specified (= undefined). Not to specify `null` explicitly.
       line_mod="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
       test "$line" != "$line_mod" && echo "$line_mod" && continue
-      # Replace `bind` method parameters with undefined check.
+      # Replace `bind` method parameters with “undefined” check.
       # shellcheck disable=SC2016
       line_mod="$(echo "$line" | sed -E -e 's/^(.*\.bind)\((.*)\)(.*)$/\1("$(rewrite_args "\2")")\3/')"
       test "$line" != "$line_mod" && eval echo \""$line_mod"\" && continue

@@ -17,15 +17,13 @@ rewrite_args() (
   ifs_restore
 )
 
+rewrite_args2() (
+  echo "$1," | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, *$//'
+)
+
 test_eval() (
   set +o errexit
 
   assert_eq 'typeof A === "undefined"? null: A, typeof B === "undefined"? null: B' "$(rewrite_args "A, B")"
-  assert_eq 'typeof args.nullableId === "undefined"? null: args.nullableId, typeof args.nullableUsername === "undefined"? null: args.nullableUsername' "$(rewrite_args 'args.nullableId, args.nullableUsername')"
-
-  eval_with_subst_stdin \
-    's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/' \
-    's/^(.*\.bind)\((.*)\)(.*)$/\1("$(rewrite_args "\2")")\3/' \
-  < sqlcgen/querier.ts > querier.ts.real
-
+  assert_eq 'typeof args.nullableId === "undefined"? null: args.nullableId, typeof args.nullableUsername === "undefined"? null: args.nullableUsername' "$(rewrite_args2 'args.nullableId, args.nullableUsername')"
 )
