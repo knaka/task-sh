@@ -577,18 +577,18 @@ ifs_restore() {
   csv_ifss_7864a7a="$(array_tail "$csv_ifss_7864a7a" ,)"
 }
 
-unit_sep="$(printf '\x1f')"
+unit_sep=""
 readonly unit_sep
-
-us="$unit_sep"
-readonly us
-
-ifs_us() {
-  set_ifs "$unit_sep"
-}
 
 ifs_unit_sep() {
   set_ifs "$unit_sep"
+}
+
+us=""
+readonly us
+
+ifs_us() {
+  set_ifs "$us"
 }
 
 ifs_empty() {
@@ -1229,12 +1229,12 @@ in_script_dir() {
 
 # Create a temporary directory if required. BusyBox sh not supports -t.
 
-_temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
+_temp_dir_path_d4a4197=
 
 temp_dir_path() {
-  if ! test -d "$_temp_dir_path_d4a4197"
+  if test -z "$_temp_dir_path_d4a4197"
   then
-    mkdir -p "$_temp_dir_path_d4a4197"
+    _temp_dir_path_d4a4197="$(mktemp -d)"
   fi
   echo "$_temp_dir_path_d4a4197"
 }

@@ -193,6 +193,7 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   cross_run ./cmd-gobin run sqlc generate
   # Then, rewrite the generated file.
   file_path=sqlcgen/querier.ts
+  temp_path="$(temp_dir_path)"/f695a83
   sed -E \
     -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def:\1${us}\2${us}/" -e t \
     -e "s/^(.*\.bind\()([^)]*)(\).*)$/rewrite_bind:\1${us}\2${us}\3${us}/" -e t \
@@ -214,8 +215,8 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
         echo Unhandled operation: "$op" >&2
         exit 1;;
     esac
-  done >"$file_path.tmp"
-  mv "$file_path.tmp" "$file_path"
+  done >"$temp_path"
+  mv "$temp_path" "$file_path"
 }
 
 task_db__watchgen() { # Watch the SQL files and generate the database access layer (./sqlcgen/*).
