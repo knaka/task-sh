@@ -188,6 +188,18 @@ task_dev__db__migrate() { # Apply the schema changes to the development database
   subcmd_dev__db__exec --file=build/dev-diff.sql
 }
 
+rewrite_args() (
+  usv_args="$(array_string_split "$unit_sep" "$1" ", *")"
+  delim=
+  ifs_unit_sep
+  for arg in $usv_args
+  do
+    printf '%stypeof %s === "undefined"? null: %s' "$delim" "$arg" "$arg"
+    delim=", "
+  done
+  ifs_restore
+)
+
 task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   cross_run ./cmd-gobin run sqlc generate
   # To keep the trailing spaces.
@@ -198,17 +210,12 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
     while read -r line
     do
       # Nullable is NULL if not specified (= undefined). Not to specify `null` explicitly.
-      if echo "$line" | grep -q -E -e "\| null;"
-      then
-        line="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
-      fi
+      line_mod="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
+      test "$line" != "$line_mod" && echo "$line_mod" && continue
       # Replace `bind` method parameters with undefined check.
-      if echo "$line" | grep -q -E -e "\.bind\("
-      then
-        params="$(echo "$line" | sed -n -E -e 's/^.*\.bind\((.*)\).*$/\1/p')"
-        params="$(echo "$params" | sed -e "s/, */\n/g" | sed -E -e 's/(.+)/typeof \1 === "undefined"? null: \1/' | paste -s - | sed -e 's/\t/, /')"
-        line="$(echo "$line" | sed -E -e "s/\.bind\(.*\)/.bind($params)/")"
-      fi
+      # shellcheck disable=SC2016
+      line_mod="$(echo "$line" | sed -E -e 's/^(.*\.bind)\((.*)\)(.*)$/\1("$(rewrite_args "\2")")\3/')"
+      test "$line" != "$line_mod" && eval echo \""$line_mod"\" && continue
       echo "$line"
     done < "$file_path" > "$file_path.tmp"
     mv "$file_path.tmp" "$file_path"

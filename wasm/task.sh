@@ -441,6 +441,13 @@ array_shuffle() (
   printf "%s\n" $arr | shuf | paste -sd "$IFS" -
 )
 
+array_string_split() (
+  delim="$1"
+  s="$2"
+  delim_pattern="$3"
+  echo "$s" | sed "s/$delim_pattern/$delim/g"
+)
+
 # --------------------------------------------------------------------------
 # Associative array functions. It is represented as propty list.
 # --------------------------------------------------------------------------
@@ -1127,15 +1134,23 @@ then
   rwb='[[:>:]]'
 fi
 
-# Evaluate strings from stdin with sed(1) substitution.
+# Evaluate strings from stdin with sed(1) substitution(s).
 eval_with_subst_stdin() {
-  eval printf \""$(sed -E -e 's/"/\\x22/g' -e 's/\$/\\x24/g' -e 's/`/\\x60/g' -e "$1")"\"
+  for arg in "$@"
+  do
+    set -- "$@" "-e" "$arg"
+    shift
+  done
+  eval printf \""$(sed -E -e 's/"/\\x22/g' -e 's/\$/\\x24/g' -e 's/`/\\x60/g' "$@")"\"
   echo
 }
 
-# Evaluate a string with sed(1) substitution
+# Evaluate a string with sed(1) substitution(s).
 eval_with_subst() {
-  echo "$1" | eval_with_subst_stdin "$2"
+  echo "$1" | (
+    shift
+    eval_with_subst_stdin "$@"
+  )
 }
 
 # Print a menu item with emphasis if a character is prefixed with "&".

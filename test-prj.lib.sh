@@ -88,7 +88,7 @@ test_array() (
   ifs_comma
   for i in $csv_words
   do
-    result="$result$delim$(toupper "$i")"
+    result="$result$delim$(t"$i")"
     delim=,
   done
   ifs_restore
@@ -322,6 +322,10 @@ toupper_4c7e44e() {
   echo "$1" | tr '[:lower:]' '[:upper:]'
 }
 
+tolower_542075d() {
+  echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
 # shellcheck disable=SC2016
 test_eval_with_subst() (
   set -o errexit
@@ -342,6 +346,10 @@ EOF
   output_path="$(temp_dir_path)/output.txt"
   eval_with_subst_stdin 's/'"$lwb"'toupper\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g' <"$input_path" >"$output_path"
   assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
+
+  assert_eq 'foo BAR BAZ qux' "$(eval_with_subst 'foo toupper(bar) BAZ tolower(QUX)' \
+    's/'"$lwb"'toupper'"$rwb"'\(([[:alpha:]]+)\)/"$(toupper_4c7e44e "\1")"/g' \
+    's/'"$lwb"'tolower'"$rwb"'\(([[:alpha:]]+)\)/"$(tolower_542075d "\1")"/g')"
 )
 
 test_field() (
@@ -493,4 +501,11 @@ test_plist() (
   plist2=$(plist_put "$plist2" "$unit_sep" "baz qux" "BAZ QUX")
   assert_eq "foo bar${unit_sep}FOO BAR${unit_sep}baz qux${unit_sep}BAZ QUX" "$plist2"
   assert_eq "BAZ QUX" "$(plist_get "$plist2" "$unit_sep" "baz qux")"
+)
+
+test_split() (
+  set -o errexit
+
+  assert_eq "foo,bar,baz" "$(array_string_split , "foo, bar,  baz" ", *")"
+  assert_eq "foo${unit_sep}bar${unit_sep}baz" "$(array_string_split "$unit_sep" "foo, bar,  baz" ", *")"
 )
