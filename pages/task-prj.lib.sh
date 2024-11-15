@@ -213,6 +213,7 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
       (nop)
         echo "$1";;
       (*)
+        echo Unhandled operation: "$op" >&2
         exit 1;;
     esac
   done >"$file_path.tmp"
