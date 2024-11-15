@@ -509,3 +509,49 @@ test_split() (
   assert_eq "foo,bar,baz" "$(array_string_split , "foo, bar,  baz" ", *")"
   assert_eq "foo${unit_sep}bar${unit_sep}baz" "$(array_string_split "$unit_sep" "foo, bar,  baz" ", *")"
 )
+
+test_sed_usv() (
+  set -o errexit
+
+  input_path="$(temp_dir_path)/input.txt"
+  cat <<'EOF' >"$input_path"
+foo bar baz
+other lines
+hoge fuga hare
+123 456 789
+
+hello world
+EOF
+  output_path="$(temp_dir_path)/output.txt"
+  sed -E \
+    -e 's/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})/case1\x1f\1\x1f\2\x1f\3\x1f/' -e t \
+    -e 's/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})/case2\x1f\1\x1f\2\x1f\3\x1f/' -e t \
+    -e 's/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})/case3\x1f\1\x1f\2\x1f\3\x1f/' -e t \
+    -e 's/^(.*)$/else\x1f\1\x1f/' < "$input_path" \
+  | while IFS= read -r line
+  do
+    IFS="$unit_sep"
+    # shellcheck disable=SC2086
+    set -- $line
+    unset IFS 
+    pattern="$1"
+    shift
+    case "$pattern" in
+      (case1)
+        echo "a: $1 $2 $3" >&2
+        ;;
+      (case2)
+        echo "b: $1 $2 $3" >&2
+        ;;
+      (case3)
+        echo "c: $1 $2 $3" >&2
+        ;;
+      (else)
+        echo "z: $1" >&2
+        ;;
+      (*)
+        echo "unknown: $line" >&2
+        ;;
+    esac  
+  done
+)

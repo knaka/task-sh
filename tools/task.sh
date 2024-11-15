@@ -580,6 +580,9 @@ ifs_restore() {
 unit_sep="$(printf '\x1f')"
 readonly unit_sep
 
+us="$unit_sep"
+readonly us
+
 ifs_us() {
   set_ifs "$unit_sep"
 }

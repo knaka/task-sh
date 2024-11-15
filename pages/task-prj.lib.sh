@@ -189,30 +189,34 @@ task_dev__db__migrate() { # Apply the schema changes to the development database
 }
 
 task_db__gen() { # Generate the database access layer (./sqlcgen/*).
+  # Generate the database access layer.
   cross_run ./cmd-gobin run sqlc generate
-  # shellcheck disable=SC2317
-  rewrite_args() {
-    echo "$1," | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, *$//'
-  }
-  # To keep the trailing spaces.
-  ifs_null
-  # shellcheck disable=SC2043
-  for file_path in sqlcgen/querier.ts
+  # Then, rewrite the generated file.
+  file_path=sqlcgen/querier.ts
+  sed -E \
+    -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
+    -e "s/^(.*\.bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
+  | while IFS= read -r line
   do
-    while read -r line
-    do
-      # Nullable is NULL if not specified (= undefined). Not to specify `null` explicitly.
-      line_mod="$(echo "$line" | sed -E -e 's/([_[:alnum:]]+)(: .* \| null;)/\1?\2/')"
-      test "$line" != "$line_mod" && echo "$line_mod" && continue
-      # Replace `bind` method parameters with “undefined” check.
-      # shellcheck disable=SC2016
-      line_mod="$(echo "$line" | sed -E -e 's/^(.*\.bind)\((.*)\)(.*)$/\1("$(rewrite_args "\2")")\3/')"
-      test "$line" != "$line_mod" && eval echo \""$line_mod"\" && continue
-      echo "$line"
-    done < "$file_path" > "$file_path.tmp"
-    mv "$file_path.tmp" "$file_path"
-  done
-  ifs_restore
+    IFS="$us"
+    # shellcheck disable=SC2086
+    set -- $line
+    unset IFS
+    op="$1"
+    shift
+    case "$op" in
+      (rewrite_null_def)
+        echo "$1?$2";;
+      (rewrite_bind)
+        echo "$1$(echo "$2, " | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, $//')$3";;
+      (nop)
+        echo "$1";;
+      (*)
+        exit 1;;
+    esac
+  done >"$file_path.tmp"
+  mv "$file_path.tmp" "$file_path"
 }
 
 task_db__watchgen() { # Watch the SQL files and generate the database access layer (./sqlcgen/*).
