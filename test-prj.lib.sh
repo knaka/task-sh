@@ -525,16 +525,18 @@ hoge fuga hare
 EOF
   output_path="$(temp_dir_path)/output.txt"
   sed -E \
-    -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1:\1${us}\2${us}\3${us}/" -e t \
-    -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2:\1${us}\2${us}\3${us}/" -e t \
-    -e "s/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})$/case3:\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1${us}\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2${us}\1${us}\2${us}\3${us}/" -e t \
+    -e "s/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})$/case3${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^(.*)$/nop:\1${us}/" <"$input_path" \
-  | while IFS=: read -r op line
+  | while IFS= read -r line
   do
     IFS="$us"
     # shellcheck disable=SC2086
     set -- $line
-    unset IFS 
+    unset IFS
+    op="$1"
+    shift
     case "$op" in
       (case1)
         echo "a: $1 $2 $3" >&2
