@@ -88,7 +88,7 @@ test_array() (
   ifs_comma
   for i in $csv_words
   do
-    result="$result$delim$(t"$i")"
+    result="$result$delim$(toupper "$i")"
     delim=,
   done
   ifs_restore
@@ -286,7 +286,7 @@ v1.5.0
 v1.5.0-patch
 v1.5.0-patch1
 EOF
-  sort_version < "$(temp_dir_path)/versions.txt" > "$(temp_dir_path)/actual.txt"
+  sort_version <"$(temp_dir_path)/versions.txt" >"$(temp_dir_path)/actual.txt"
   assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
 )
 
@@ -319,11 +319,11 @@ test_menu_item() (
 )
 
 toupper_4c7e44e() {
-  echo "$1" | tr '[:lower:]' '[:upper:]'
+  printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
 
 tolower_542075d() {
-  echo "$1" | tr '[:upper:]' '[:lower:]'
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 # shellcheck disable=SC2016
@@ -554,5 +554,65 @@ EOF
         echo "Unhandled operation: $op" >&2
         ;;
     esac  
-  done
+  done >"$output_path"
+  cat "$output_path"
 )
+
+# Parse with sed(1) and execute the commands.
+test_sed_usv_global() (
+  set -o errexit
+
+  input_path="$(temp_dir_path)/input.txt"
+  cat <<'EOF' >"$input_path"
+foo toupper(bar) baz toupper(qux) HOGE tolower(FUGA)
+other lines
+EOF
+  output_path="$(temp_dir_path)/output.txt"
+  sed -E \
+    -e "s/${lwb}toupper${rwb}\(([[:alpha:]]+)\)/${us}toupper_4c7e44e:\1${us}/g" \
+    -e "s/${lwb}tolower${rwb}\(([[:alpha:]]+)\)/${us}tolower_542075d:\1${us}/g" \
+    -e "s/^(.*${us}[[:alnum:]_]+:.*)$/call${us}\1${us}/" -e t \
+    -e "s/^(.*)$/nop${us}\1${us}/" <"$input_path" \
+  | while IFS= read -r line
+  do
+    IFS="$us"
+    # shellcheck disable=SC2086
+    set -- $line
+    unset IFS
+    op="$1"
+    shift
+    case "$op" in
+      (call)
+        for arg in "$@"
+        do 
+          case "$arg" in
+            (toupper_4c7e44e:*|tolower_542075d:*)
+              echo "$arg" | (
+                IFS=: read -r cmd param
+                "$cmd" "$param"
+              )
+              ;;
+            (*)
+              printf "%s" "$arg"
+              ;;
+          esac
+        done
+        echo
+        ;;
+      (nop)
+        echo "$1"
+        ;;
+      (*)
+        echo "Unhandled operation: $op" >&2
+        ;;
+    esac
+  done >"$output_path"
+  # cat "$output_path" >&2
+  expected_path="$(temp_dir_path)/expected.txt"
+  cat <<'EOF' >"$expected_path"
+foo BAR baz QUX HOGE fuga
+other lines
+EOF
+  assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
+)
+
