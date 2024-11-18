@@ -543,40 +543,40 @@ other lines
 EOF
   output_path="$(temp_dir_path)/output.txt"
   sed -E \
-    -e "s/${lwb}toupper${rwb}\(([[:alpha:]]+)\)/${us}toupper_4c7e44e:\1${us}/g" \
-    -e "s/${lwb}tolower${rwb}\(([[:alpha:]]+)\)/${us}tolower_542075d:\1${us}/g" \
-    -e "s/^(.*${us}[[:alnum:]_]+:.*)$/call${us}\1${us}/" -e t \
-    -e "s/^(.*)$/nop${us}\1${us}/" <"$input_path" \
+    -e "s/${lwb}toupper${rwb}\(([[:alpha:]]+)\)/${is1}toupper_4c7e44e${is2}\1${is1}/g" \
+    -e "s/${lwb}tolower${rwb}\(([[:alpha:]]+)\)/${is1}tolower_542075d${is2}\1${is1}/g" \
+    -e "s/^(.*${is1}[[:alnum:]_]+${is2}.*)$/call${is1}\1${is1}/" -e t \
+    -e "s/^(.*)$/nop${is1}\1${is1}/" <"$input_path" \
   | while IFS= read -r line
   do
-    IFS="$us"
+    IFS="$is1"
     # shellcheck disable=SC2086
     set -- $line
     unset IFS
     op="$1"
     shift
     case "$op" in
-      (call)
+      call)
         for arg in "$@"
         do 
           case "$arg" in
-            (toupper_4c7e44e:*|tolower_542075d:*)
+            *${is2}*)
               echo "$arg" | (
-                IFS=: read -r cmd param
+                IFS="$is2" read -r cmd param
                 "$cmd" "$param"
               )
               ;;
-            (*)
+            *)
               printf "%s" "$arg"
               ;;
           esac
         done
         echo
         ;;
-      (nop)
+      nop)
         echo "$1"
         ;;
-      (*)
+      *)
         echo "Unhandled operation: $op" >&2
         ;;
     esac
@@ -589,4 +589,3 @@ other lines
 EOF
   assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
 )
-
