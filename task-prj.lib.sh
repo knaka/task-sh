@@ -4,6 +4,7 @@ set -o nounset -o errexit
 test "${guard_a8ac234+set}" = set && return 0; guard_a8ac234=x
 
 . ./task.sh
+. ./task-docker.lib.sh
 
 repl_usage() {
   echo "exit: Exit the program."
@@ -34,4 +35,9 @@ subcmd_exec() { # Execute a command in task.sh context.
   "$@"
   echo "Exit status: $?" >&2
   restore_shell_flags
+}
+
+task_docker__test() {
+  task_docker__start
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file test.Dockerfile .)" ./task test
 }

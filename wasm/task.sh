@@ -730,7 +730,7 @@ set_path_attr() (
     PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'" &
   elif which attr > /dev/null 2>&1
   then
-    attr -s "$attribute" -V "$value" "$path"
+    attr -s "$attribute" -V "$value" "$path" >/dev/null 2>&1
   else
     echo "No command to set attribute: $attribute" >&2
     exit 1
@@ -942,7 +942,7 @@ install_pkg_cmd_tabsep_args() (
     esac
   done
   shift $((OPTIND-1))
-  unset OPTIND
+  # unset OPTIND
 
   cmd_path="$cmd_name"
   if is_windows
@@ -1147,29 +1147,25 @@ then
   rwb='[[:>:]]'
 fi
 
-# Evaluate strings from stdin with sed(1) substitution(s).
-eval_with_subst_stdin() {
-  for arg in "$@"
-  do
-    set -- "$@" "-e" "$arg"
-    shift
-  done
-  eval printf \""$(sed -E -e 's/"/\\x22/g' -e 's/\$/\\x24/g' -e 's/`/\\x60/g' "$@")"\"
-  echo
-}
-
-# Evaluate a string with sed(1) substitution(s).
-eval_with_subst() {
-  echo "$1" | (
-    shift
-    eval_with_subst_stdin "$@"
-  )
-}
-
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
   # shellcheck disable=SC2016
-  eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
+  # eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
+  echo "$1" | sed -E \
+    -e 's/&&/@ampersand_ff37f3a@/g' \
+    -e "s/^([^&]*)(&([^& ]))?(.*)$/\1${is1}\3${is1}\4/" \
+  | (
+    IFS="$is1" read -r pre char_to_emph post
+    if test -n "$char_to_emph"
+    then
+      printf "%s" "$pre"
+      emph "$char_to_emph"
+      printf "%s" "$post"
+    else
+      printf "%s" "$pre"
+    fi
+  ) \
+  | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
 }
 
 # Sort in random order.
@@ -1455,7 +1451,7 @@ main() {
     esac
   done
   shift $((OPTIND-1))
-  unset OPTIND
+  # unset OPTIND
 
   if $shows_help || test "${1+set}" != "set"
   then
