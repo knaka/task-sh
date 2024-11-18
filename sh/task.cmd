@@ -27,6 +27,7 @@ if not exist !bin_dir_path! (
 )
 set cmd_path=!bin_dir_path!\!cmd_name!
 if not exist !cmd_path! (
+  echo "Downloading BusyBox for Windows." >&2
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b !ERRORLEVEL!
 )
 
