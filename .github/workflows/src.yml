@@ -23,5 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Environment Variables
         run: env
+      - name: System Info
+        run: systeminfo
       - name: Run Test
         run: .\task.cmd test
