@@ -29,5 +29,6 @@ jobs:
       #   run: "Get-ChildItem Env:"
       - name: Environment Variables
         run: set
+        shell: cmd
       - name: Run Test
         run: .\task.cmd test
