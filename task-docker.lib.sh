@@ -47,3 +47,19 @@ task_docker__start() { # Start Docker.
     return 1
   fi
 }
+
+task_docker__stop() { # Stop Docker.
+  if ! task_docker__status >/dev/null 2>&1
+  then
+    echo "Docker is not running." >&2
+    return 0
+  fi
+  echo "Docker is running. Stopping Docker." >&2
+  if is_darwin
+  then
+    killall Docker || killall "Docker Desktop"
+  else
+    echo "Not implemented."
+    return 1
+  fi
+}
