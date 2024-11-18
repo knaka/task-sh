@@ -22,8 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Environment Variables
-        run: env
+        run: Get-ChildItem Env:
       - name: System Info
-        run: systeminfo
+        run: "$()""
       - name: Run Test
         run: .\task.cmd test
