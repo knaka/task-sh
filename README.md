@@ -1,5 +1,3 @@
-# src
+# src [![src](https://github.com/knaka/src/actions/workflows/src.yml/badge.svg)](https://github.com/knaka/src/actions/workflows/src.yml)
 
-Source files.
-
-![Test Status](https://github.com/knaka/src/actions/workflows/src.yml/badge.svg)
+Cross-platform sources and tasks written in /bin/sh.
