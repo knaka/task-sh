@@ -5,7 +5,7 @@ test "${guard_3b8c583+set}" = set && return 0; guard_3b8c583=-
 
 . ./task.sh
 
-subcmd_docker() (
+subcmd_docker() ( # Run a Docker command.
   if ! type docker > /dev/null 2>&1
   then
     echo "Docker is not installed. Exiting." >&2
@@ -19,11 +19,11 @@ subcmd_docker() (
   docker "$@"
 )
 
-task_docker__status() {
+task_docker__status() { # Show the status of Docker.
   subcmd_docker info
 }
 
-task_docker__start() {
+task_docker__start() { # Start Docker.
   if task_docker__status >/dev/null 2>&1
   then
     echo "Docker is already running." >&2

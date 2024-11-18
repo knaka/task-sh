@@ -118,6 +118,8 @@ task_dupcheck() ( # Check duplicate files.
       (task) continue;;
       (task-prj*.lib.sh) continue;;
       (task-project*.lib.sh) continue;;
+      (test-prj*.lib.sh) continue;;
+      (test-project*.lib.sh) continue;;
       (tsconfig.json) continue;;
     esac
     # shellcheck disable=SC2046

@@ -37,7 +37,11 @@ subcmd_exec() { # Execute a command in task.sh context.
   restore_shell_flags
 }
 
-task_docker__test() {
+subcmd_docker__run() { # Run a command in a Docker container.
   task_docker__start
-  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file test.Dockerfile .)" ./task test
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file test.Dockerfile .)" "$@"
+}
+
+task_docker__test() { # Run tests in a Docker container.
+  subcmd_docker__run ./task tests
 }
