@@ -30,6 +30,7 @@ task_docker__start() { # Start Docker.
     return 0
   fi
   echo "Docker is not running. Starting Docker." >&2
+  # Restart Docker from command line - Docker Desktop - Docker Community Forums https://forums.docker.com/t/restart-docker-from-command-line/9420/9
   if is_darwin
   then
     # open --background -a Docker
@@ -66,6 +67,7 @@ task_docker__stop() { # Stop Docker.
     return 0
   fi
   echo "Docker is running. Stopping Docker." >&2
+  # Restart Docker from command line - Docker Desktop - Docker Community Forums https://forums.docker.com/t/restart-docker-from-command-line/9420/9
   if is_darwin
   then
     # osascript -e 'quit app "Docker"'

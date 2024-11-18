@@ -45,18 +45,13 @@ task_client__deploy() ( # [args...] Deploy client.
 )
 
 task_task_cmd__copy() ( # Copy task.cmd to each directory.
-  chdir_script
-  for dir in *
+  for path in */task*.cmd
   do
-    if ! test -d "$dir"
+    if ! test -e "$path"
     then
       continue
     fi
-    if ! test -r "$dir"/task.cmd
-    then
-      continue
-    fi
-    cp -f task.cmd "$dir"/task.cmd
+    cp -f task.cmd "$path"
   done
 )
 
@@ -101,7 +96,9 @@ task_dupcheck() ( # Check duplicate files.
   base_prev=
   hash_prev=
   path_prev=
-  subcmd_git ls-files | while read -r path
+  # subcmd_git ls-files \
+  find . -maxdepth 2 -type f \
+  | while IFS= read -r path
   do
     case "$path" in
       (next/app/*) continue;;
@@ -123,8 +120,10 @@ task_dupcheck() ( # Check duplicate files.
       (tsconfig.json) continue;;
     esac
     # shellcheck disable=SC2046
-    echo "$base|$(sha1sum "$path" | (read -r hash _; echo "$hash"))|$path"
-  done | sort | while IFS='|' read -r base hash path
+    echo "$base|$(sha1sum "$path" | field 1)|$path"
+  done \
+  | sort \
+  | while IFS='|' read -r base hash path
   do
     if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
     then
@@ -138,25 +137,25 @@ task_dupcheck() ( # Check duplicate files.
   done
 )
 
-task_task_cmd__rename_copy() (
-  for dest in */*.cmd
-  do
-    if ! test -r "$dest"
-    then
-      continue
-    fi
-    if test "$(dirname "$dest")" = "cmd"
-    then
-      continue
-    fi
-    case "$(basename "$dest")" in
-      go-embedded.cmd)
-        continue
-        ;;
-    esac
-    cp -f task.cmd "$dest"
-  done
-)
+# task_cmd__rename_copy() (
+#   for dest in */*.cmd
+#   do
+#     if ! test -r "$dest"
+#     then
+#       continue
+#     fi
+#     if test "$(dirname "$dest")" = "cmd"
+#     then
+#       continue
+#     fi
+#     case "$(basename "$dest")" in
+#       go-embedded.cmd)
+#         continue
+#         ;;
+#     esac
+#     cp -f task.cmd "$dest"
+#   done
+# )
 
 task_task_sh__copy() (
   chdir_script

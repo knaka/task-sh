@@ -1149,8 +1149,6 @@ fi
 
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
-  # shellcheck disable=SC2016
-  # eval_with_subst "$(echo "$1" | sed -E -e 's/&&/\\x26/g')" 's/&([^& ])/"$(emph "\1")"/'
   echo "$1" | sed -E \
     -e 's/&&/@ampersand_ff37f3a@/g' \
     -e "s/^([^&]*)(&([^& ]))?(.*)$/\1${is1}\3${is1}\4/" \
@@ -1158,14 +1156,11 @@ menu_item() {
     IFS="$is1" read -r pre char_to_emph post
     if test -n "$char_to_emph"
     then
-      printf "%s" "$pre"
-      emph "$char_to_emph"
-      printf "%s" "$post"
+      printf "%s%s%s" "$pre" "$(emph "$char_to_emph")" "$post"
     else
       printf "%s" "$pre"
     fi
-  ) \
-  | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
+  ) | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
 }
 
 # Sort in random order.
