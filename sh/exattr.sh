@@ -15,7 +15,8 @@ then
       continue
     fi
     path="$(realpath "$path")"
-    for attrib in $file_sharing_ignorance_attributes
+    ifs_pipe
+    for attrib in $psv_file_sharing_ignorance_attributes
     do
       # Remove trailing backslashes.
       printf "%s:%s " "$path" "$attrib":
@@ -26,6 +27,7 @@ then
         echo "-"
       fi
     done
+    ifs_restore
   done
   exit 0
 fi
