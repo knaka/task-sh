@@ -27,6 +27,6 @@ jobs:
         run: systeminfo
       - name: Environment Variables
         run: "Get-ChildItem Env:"
-        shell: pwsh
       - name: Run Test
         run: .\task.cmd test
+        shell: cmd
