@@ -3,37 +3,25 @@ on:
   push:
     branches:
       - main
-    # tags:
-    #   - v*
-  # pull_request:
-  #   types:
-  #     - opened
-  #     - synchronize
-  #     - reopened
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Env
+      - name: Environment Variables
         run: env
-      - name: Install xattr
-        run: sudo apt-get install -y xattr
-      - name: Run
-        run: ./task test
-  test-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Env
-        run: env
-      - name: Run
+      - name: Run Test
         run: ./task test
   test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Env
+      - name: Environment Variables
         run: env
-      - name: Run
+      - name: Run Test
         run: .\task.cmd test
