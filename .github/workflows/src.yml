@@ -13,6 +13,8 @@ jobs:
           - macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Uname
+        run: uname -a
       - name: Environment Variables
         run: env
       - name: Run Test
@@ -21,10 +23,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: System Info
+        run: systeminfo
       - name: Environment Variables
         run: "Get-ChildItem Env:"
         shell: pwsh
-      - name: System Info
-        run: "$()""
       - name: Run Test
         run: .\task.cmd test
