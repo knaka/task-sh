@@ -15,17 +15,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: env
+      - name: Env
         run: env
       - name: Install xattr
         run: sudo apt-get install -y xattr
+      - name: Run
+        run: ./task test
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Env
+        run: env
       - name: Run
         run: ./task test
   test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: env
+      - name: Env
         run: env
       - name: Run
         run: .\task.cmd test
