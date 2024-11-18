@@ -1,4 +1,4 @@
-name: sqldef
+name: src
 on:
   push:
     branches:
@@ -15,7 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: env
+        run: env
       - name: Install xattr
         run: sudo apt-get install -y xattr
       - name: Run
         run: ./task test
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: env
+        run: env
+      - name: Run
+        run: .\task.cmd test

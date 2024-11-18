@@ -5,7 +5,10 @@ test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
 . ./task.sh
 
-set_sync_ignored "$SCRIPT_DIR"/.git
+if test "${GITHUB_ACTIONS:-}" = "true"
+then
+  set_sync_ignored "$SCRIPT_DIR"/.git
+fi
 
 subcmd_git() ( # Run git command.
   chdir_script
