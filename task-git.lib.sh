@@ -5,7 +5,7 @@ test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
 . ./task.sh
 
-if test "${GITHUB_ACTIONS:-}" = "true"
+if test "${GITHUB_ACTIONS:-}" != "true"
 then
   set_sync_ignored "$SCRIPT_DIR"/.git
 fi
