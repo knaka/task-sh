@@ -29,4 +29,3 @@ jobs:
         run: "Get-ChildItem Env:"
       - name: Run Test
         run: .\task.cmd test
-        shell: cmd
