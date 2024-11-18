@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Environment Variables
         run: "Get-ChildItem Env:"
+        shell: pwsh
       - name: System Info
         run: "$()""
       - name: Run Test
