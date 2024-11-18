@@ -11,7 +11,7 @@ if "%~1" == "update-me" (
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
 set ver=FRP-5467-g9376eebd8
 if "%PROCESSOR_ARCHITECTURE%" == "x86" (
-  echo "WARNING: Your environment is 32-bit. Not all features are supported." >&2
+  echo WARNING: Your environment is 32-bit. Not all features are supported. >&2
   set arch=32
 ) else if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
   set arch=64u
@@ -27,7 +27,7 @@ if not exist !bin_dir_path! (
 )
 set cmd_path=!bin_dir_path!\!cmd_name!
 if not exist !cmd_path! (
-  echo "Downloading BusyBox for Windows." >&2
+  echo Downloading BusyBox for Windows. >&2
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b !ERRORLEVEL!
 )
 
