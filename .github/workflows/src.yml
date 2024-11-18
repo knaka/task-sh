@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Environment Variables
-        run: Get-ChildItem Env:
+        run: "Get-ChildItem Env:"
       - name: System Info
         run: "$()""
       - name: Run Test
