@@ -195,7 +195,7 @@ test_plist() (
   set -o errexit
 
   IFS=,
-  local csvpl=
+  csvpl=
   csvpl="$(ifsv_put "$csvpl" "key1" "val1")"
   csvpl="$(ifsv_put "$csvpl" "key2" "val2")"
 
@@ -218,7 +218,7 @@ test_plist() (
   assert_eq "empty" "$(ifsv_get "key1,val1,key2,val2,,empty" "")"
 
   IFS="$us"
-  local usvpl=
+  usvpl=
   usvpl=$(ifsv_put "$usvpl" "foo bar" "FOO BAR")
   usvpl=$(ifsv_put "$usvpl" "baz qux" "BAZ QUX")
   assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$usvpl"
