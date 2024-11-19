@@ -179,9 +179,8 @@ ifsv_reduce() {
       has_place_holder=true
     fi
   done
-  local item
   first_place_holder=true
-  for item in $arr
+  for item_103130b in $arr
   do
     if $has_place_holder
     then
@@ -195,7 +194,7 @@ ifsv_reduce() {
               arg2="$acc"
               first_place_holder=false
             else
-              arg2="$item"
+              arg2="$item_103130b"
             fi
           fi
           set -- "$@" "$arg2"
@@ -204,7 +203,7 @@ ifsv_reduce() {
         "$@"
       )"
     else
-      acc="$("$@" "$acc" "$item")"
+      acc="$("$@" "$acc" "$item_103130b")"
     fi
   done
   printf "%s" "$acc"
