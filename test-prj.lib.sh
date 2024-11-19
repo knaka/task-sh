@@ -81,7 +81,6 @@ test_ifsv_filter() (
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n _)"
   assert_eq "4,5,6,7," "$(IFS=, ifsv_filter "1,2,3,4,5,6,7," test _ -gt 3)"
-  echo hoge
 )
 
 test_ifsv_reduce() (
@@ -191,40 +190,42 @@ test_field() (
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
 )
 
+# Test plist functions.
 test_plist() (
   set -o errexit
 
   IFS=,
-  plist=
-  plist="$(ifsv_plist_put "$plist" "key1" "val1")"
-  plist="$(ifsv_plist_put "$plist" "key2" "val2")"
+  local csvpl=
+  csvpl="$(ifsv_put "$csvpl" "key1" "val1")"
+  csvpl="$(ifsv_put "$csvpl" "key2" "val2")"
 
-  assert_eq "key1,key2," "$(ifsv_plist_keys "$plist")"
-  assert_eq "" "$(ifsv_plist_keys "")"
+  assert_eq "key1,key2," "$(ifsv_keys "$csvpl")"
+  assert_eq "" "$(ifsv_keys "")"
 
-  assert_eq "val1,val2," "$(ifsv_plist_values "$plist")"
-  assert_eq "" "$(ifsv_plist_values "")"
+  assert_eq "val1,val2," "$(ifsv_values "$csvpl")"
+  assert_eq "" "$(ifsv_values "")"
 
-  assert_eq "val2" "$(ifsv_plist_get "$plist" "key2")"
-  assert_false ifsv_plist_get "$plist" "key3"
+  assert_eq "val2" "$(ifsv_get "$csvpl" "key2")"
+  assert_false ifsv_get "$csvpl" "key3"
 
-  assert_eq "key1,mod1,key2,val2," "$(ifsv_plist_put "$plist" "key1" "mod1")"
-  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsv_plist_put "$plist" "key3" "val3")"
+  assert_eq "key1,mod1,key2,val2," "$(ifsv_put "$csvpl" "key1" "mod1")"
+  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsv_put "$csvpl" "key3" "val3")"
 
-  assert_eq "key1,val1,key2,," "$(ifsv_plist_put "$plist" "key2" "")"
-  assert_eq "" "$(ifsv_plist_get "key1,val1,key2," "key2")"
+  assert_eq "key1,val1,key2,," "$(ifsv_put "$csvpl" "key2" "")"
+  assert_eq "" "$(ifsv_get "key1,val1,key2," "key2")"
 
-  assert_eq "key1,val1,key2,val2,,empty," "$(ifsv_plist_put "$plist" "" "empty")"
-  assert_eq "empty" "$(ifsv_plist_get "key1,val1,key2,val2,,empty" "")"
+  assert_eq "key1,val1,key2,val2,,empty," "$(ifsv_put "$csvpl" "" "empty")"
+  assert_eq "empty" "$(ifsv_get "key1,val1,key2,val2,,empty" "")"
 
   IFS="$us"
-  plist2=
-  plist2=$(ifsv_plist_put "$plist2" "foo bar" "FOO BAR")
-  plist2=$(ifsv_plist_put "$plist2" "baz qux" "BAZ QUX")
-  assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$plist2"
-  assert_eq "BAZ QUX" "$(ifsv_plist_get "$plist2" "baz qux")"
+  local usvpl=
+  usvpl=$(ifsv_put "$usvpl" "foo bar" "FOO BAR")
+  usvpl=$(ifsv_put "$usvpl" "baz qux" "BAZ QUX")
+  assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$usvpl"
+  assert_eq "BAZ QUX" "$(ifsv_get "$usvpl" "baz qux")"
 )
 
+# Split the text.
 test_split() (
   set -o errexit
 
@@ -232,6 +233,7 @@ test_split() (
   assert_eq "foo${us}bar${us}baz" "$(echo "foo, bar,  baz" | sed -E -e "s/, */${us}/g")"
 )
 
+# Parse with sed(1) and process the text.
 test_sed_usv() (
   set -o errexit
 
@@ -250,7 +252,7 @@ EOF
     -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})$/case3${us}\1${us}\2${us}\3${us}/" -e t \
-    -e "s/^(.*)$/nop:\1${us}/" <"$input_path" \
+    -e "s/^(.*)$/nop${us}\1${us}/" <"$input_path" \
   | while IFS= read -r line
   do
     IFS="$us"
@@ -261,23 +263,35 @@ EOF
     shift
     case "$op" in
       (case1)
-        echo "a: $1 $2 $3" >&2
+        echo "a: $1 $2 $3"
         ;;
       (case2)
-        echo "b: $1 $2 $3" >&2
+        echo "b: $1 $2 $3"
         ;;
       (case3)
-        echo "c: $1 $2 $3" >&2
+        echo "c: $1 $2 $3"
         ;;
       (nop)
-        echo "z: $1" >&2
+        echo "z: $1"
         ;;
       (*)
         echo "Unhandled operation: $op" >&2
         ;;
     esac  
   done >"$output_path"
-  cat "$output_path"
+  
+  expected_path="$(temp_dir_path)/expected.txt"
+  cat <<'EOF' >"$expected_path"
+a: foo bar baz
+z: other lines
+c: 123 456 789
+z: 
+z: hello world
+b: hoge fuga hare
+z: 012 345 678 900
+EOF
+
+  assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
 )
 
 # Parse with sed(1) and execute the commands.
@@ -338,6 +352,7 @@ EOF
   assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
 )
 
+# Test IFS push/pop functions.
 test_ifs() (
   set -o errexit
 

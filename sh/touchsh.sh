@@ -31,6 +31,7 @@ fi
 unique_id="$(sh "$(dirname "$0")"/rand7.sh)"
 cat <<EOF > "$1"
 #!/bin/sh
+# shellcheck disable=SC3043
 test "\${guard_${unique_id}+set}" = set && return 0; guard_${unique_id}=x
 set -o nounset -o errexit
 EOF

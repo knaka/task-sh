@@ -16,9 +16,10 @@ then
 fi
 
 # --------------------------------------------------------------------------
-# Array functions. "array string + delimiter" is used for the array representation.
+# IFS-separated value functions.
 # --------------------------------------------------------------------------
 
+# Join IFS-separated values with a delimiter.
 ifsv_join() {
   local out_delim="$2"
   # shellcheck disable=SC2086
@@ -32,33 +33,11 @@ ifsv_join() {
   done
 }
 
-# Join an array with a delimiter.
-array_join() (
-  arr="$1"
-  IFS="$2"
-  delim=
-  # shellcheck disable=SC2086
-  for item in $arr
-  do
-    printf "%s%s" "$delim" "$item"
-    delim="$3"
-  done
-)
-
 # Head of IFSV.
 ifsv_head() {
   # shellcheck disable=SC2086
   set -- $1
   printf "%s" "$1"
-}
-
-# Head of an array.
-array_head() (
-  IFS="$2" ifsv_head "$1"
-)
-
-array_first() {
-  array_head "$@"
 }
 
 ifsv_tail() {
@@ -71,106 +50,17 @@ ifsv_tail() {
   fi
 }
 
-array_tail() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  ifsv_tail "$arr"
-)
-
-array_rest() {
-  array_tail "$@"
-}
-
 ifsv_length() {
   # shellcheck disable=SC2086
   set -- $1
   echo "$#"
 }
 
-array_length() (
-  arr="$1"
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  echo "$#"
-)
-
 ifsv_empty() {
   test -z "$1"
 }
 
-array_empty() (
-  arr="$1"
-  test -z "$arr"
-)
-
-array_append() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  ifsv_append "$arr" "$@"
-)
-
-ifsv_prepend() {
-  arr_608c396="$1"
-  shift
-  test $# -gt 0 && printf "%s$IFS" "$@"
-  set -- "$arr_608c396"
-  if test -n "$1" -a "${1#"${1%?}"}" != "$IFS"
-  then
-    printf "%s$IFS" "$1"
-  else
-    printf "%s" "$1"
-  fi
-}
-
-array_prepend() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  ifsv_prepend "$arr" "$@"
-)
-
-array_at() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  idx="$1"
-  shift
-  i=0
-  delim=
-  for item in $arr
-  do
-    if test "$i" -eq "$idx"
-    then
-      if test "${1+set}" = set
-      then
-        if test "$i" -gt 0
-        then
-          array_slice "$arr" "$IFS" 0 "$i"
-          delim="$IFS"
-        fi
-        printf "%s%s" "$delim" "$1"
-        delim="$IFS"
-        if test "$i" -lt "$(( $(array_length "$arr" "$IFS") - 1 ))"
-        then
-          printf "%s%s" "$delim" "$(array_slice "$arr" "$IFS" "$((i + 1))")"
-        fi
-      else
-        printf "%s" "$item"
-      fi
-      return
-    fi
-    i=$((i + 1))
-  done
-  return 1
-)
-
+# Get an item at a specified index.
 ifsv_at() {
   local i=0
   local item
@@ -195,33 +85,7 @@ ifsv_at() {
   done
 }
 
-array_slice() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  start="$1"
-  shift
-  if test "${1+set}" = set
-  then
-    end="$1"
-    shift
-  else
-    end="$(array_length "$arr" "$IFS")"
-  fi
-  i=0
-  delim=
-  for item in $arr
-  do
-    if test "$i" -ge "$start" && test "$i" -lt "$end"
-    then
-      printf "%s%s" "$delim" "$item"
-      delim="$IFS"
-    fi
-    i=$((i + 1))
-  done
-)
-
+# Map IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
 ifsv_map() {
   local arr="$1"
   shift
@@ -259,55 +123,7 @@ ifsv_map() {
   done
 }
 
-# Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
-array_map() (
-  reads_stdin=false
-  arr="$1"
-  shift
-  if test "$arr" = "-"
-  then
-    reads_stdin=true
-    arr="$(cat)"
-  fi
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  delim=
-  for i in $arr
-  do
-    printf "%s" "$delim"
-    if $reads_stdin
-    then
-      printf "%s" "$(printf "%s" "$i" | "$@")"
-    elif $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_" || test "$arg" = "it"
-          then
-            # shellcheck disable=SC2016
-            arg='$i'
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        printf "%s" "$("$@")"
-      )
-    else
-      printf "%s" "$("$@" "$i")"
-    fi
-    delim="$IFS"
-  done
-)
-
+# Filter IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
 ifsv_filter() {
   local arr="$1"
   shift
@@ -348,50 +164,7 @@ ifsv_filter() {
   done
 }
 
-# Filter an array with a command. If the command contains "_", then it is replaced with the item.
-array_filter() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_"
-    then
-      should_replace=true
-    fi
-  done
-  delim=
-  for i in $arr
-  do
-    if $should_replace
-    then
-      if ! (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            # shellcheck disable=SC2016
-            arg="$i"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@" 
-      )
-      then
-        continue
-      fi
-    elif ! "$@" "$i"
-    then
-      continue
-    fi
-    printf "%s%s" "$delim" "$i"
-    delim="$IFS"
-  done
-)
-
+# Reduce IFS-separated values with a function. If the function contains "_", then it is replaced with the accumulator and the item.
 ifsv_reduce() {
   local arr="$1"
   shift
@@ -438,129 +211,22 @@ ifsv_reduce() {
   printf "%s" "$acc"
 }
 
-# Reduce an array with a function. If the function contains "_"s, then they are replaced with the accumulator and the item.
-array_reduce() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  acc="$1"
-  shift
-  has_place_holder=false
-  for arg in "$@"
+# Check if an IFS-separated value contains a specified item.
+ifsv_contains() {
+  local arr="$1"
+  local target="$2"
+  local item
+  for item in $arr
   do
-    if test "$arg" = "_"
+    if test "$item" = "$target"
     then
-      has_place_holder=true
-    fi
-  done
-  for i in $arr
-  do
-    if $has_place_holder
-    then
-      acc="$(
-        first=true
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            if $first
-            then
-              arg="$acc"
-              first=false
-            else
-              arg="$i"
-            fi
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )"
-    else
-      acc="$("$@" "$acc" "$i")"
-    fi
-  done
-  echo "$acc"
-)
-
-array_reverse() (
-  arr="$1"
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  i=$#
-  delim=
-  while test "$i" -gt 0
-  do
-    eval printf "%s%s" "$delim" "\$$i"
-    delim="$IFS"
-    i=$((i - 1))
-  done
-)
-
-array_contains() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  item="$1"
-  shift
-  for i in $arr
-  do
-    if test "$i" = "$item"
-    then
-      return 0
+      return
     fi
   done
   return 1
-)
+}
 
-array_each() (
-  reads_stdin=false
-  arr="$1"
-  shift
-  if test "$arr" = "-"
-  then
-    reads_stdin=true
-    arr="$(cat)"
-  fi
-  IFS="$1"
-  shift
-  should_replace=false
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | while read -r i
-  do
-    if $reads_stdin
-    then
-      echo "$i" | "$@"
-    elif $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_" || test "$arg" = "it"
-          then
-            arg="$i"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )
-    else
-      "$@" "$i"
-    fi
-  done
-)
-
+# Sort IFS-separated values.
 ifsv_sort() {
   local arr="$1"
   if test -z "$arr"
@@ -587,35 +253,17 @@ ifsv_sort() {
   printf "%s$IFS" "$@"
 }
 
-# Sort an array. Cannot sort items which contain newlines.
-array_sort() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | if test "$#" -eq 0; then sort; else "$@"; fi | paste -sd "$IFS" -
-)
-
 if ! type shuf > /dev/null 2>&1
 then
   alias shuf='sort -R'
 fi
 
-array_shuffle() (
-  arr="$1"
-  shift
-  IFS="$1"
-  shift
-  # shellcheck disable=SC2086
-  printf "%s\n" $arr | shuf | paste -sd "$IFS" -
-)
-
 # --------------------------------------------------------------------------
 # Associative array functions. It is represented as propty list.
 # --------------------------------------------------------------------------
 
-ifsv_plist_get() {
+# Get a value from an associative array implemented as a property list.
+ifsv_get() {
   local plist="$1"
   local target_key="$2"
   local key=
@@ -637,7 +285,8 @@ ifsv_plist_get() {
   return 1
 }
 
-ifsv_plist_keys() {
+# Keys of an associative array implemented as a property list.
+ifsv_keys() {
   local plist="$1"
   local i=0
   local item
@@ -651,24 +300,8 @@ ifsv_plist_keys() {
   done
 }
 
-# Get the keys of an associative array.
-plist_keys() (
-  plist="$1"
-  IFS="$2"
-  delim=
-  i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      printf "%s%s" "$delim" "$item"
-      delim="$IFS"
-    fi
-    i=$((i + 1))
-  done
-)
-
-ifsv_plist_values() {
+# Values of an associative array implemented as a property list.
+ifsv_values() {
   local plist="$1"
   local i=0
   local item
@@ -682,48 +315,8 @@ ifsv_plist_values() {
   done
 }
 
-# Get the values of an associative array.
-plist_values() (
-  plist="$1"
-  IFS="$2"
-  delim=
-  i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 1
-    then
-      printf "%s%s" "$delim" "$item"
-      delim="$IFS"
-    fi
-    i=$((i + 1))
-  done
-)
-
-# Get a value from an associative array.
-plist_get() (
-  plist="$1"
-  IFS="$2"
-  target_key="$3"
-  key=
-  i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        printf "%s" "$item"
-        return
-      fi
-    fi
-    i=$((i + 1))
-  done
-  return 1
-)
-
-ifsv_plist_put() {
+# Put a value in an associative array implemented as a property list.
+ifsv_put() {
   local plist="$1"
   local target_key="$2"
   local value="$3"
@@ -753,84 +346,15 @@ ifsv_plist_put() {
   fi
 }
 
-# Put a value in an associative array. If the key does not exist, then it is appended.
-plist_put() (
-  plist="$1"
-  IFS="$2"
-  target_key="$3"
-  value="$4"
-  found=false
-  delim=
-  key=
-  i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        found=true
-        printf "%s%s%s%s" "$delim" "$target_key" "$IFS" "$value"
-      else
-        printf "%s%s%s%s" "$delim" "$key" "$IFS" "$item"
-      fi
-      delim="$IFS"
-    fi
-    i=$((i + 1))
-  done
-  if ! "$found"
-  then
-    printf "%s%s%s%s" "$delim" "$target_key" "$IFS" "$value"
-  fi
-)
-
 # --------------------------------------------------------------------------
 # IFS manipulation.
 # --------------------------------------------------------------------------
 
-csv_ifss_7864a7a=
-
-readonly none_item=none_ab2d5c8
-
-# Save the current IFS and set it to the specified value.
-set_ifs() {
-  if test "${IFS+set}" = set
-  then
-    csv_ifss_7864a7a="$(array_prepend "$csv_ifss_7864a7a" , "$(printf "%s" "$IFS" | base64)")"
-  else
-    csv_ifss_7864a7a="$(array_prepend "$csv_ifss_7864a7a" , "$none_item")"
-  fi
-  IFS="$1"
-}
-
-# Restore the saved IFS.
-ifs_restore() {
-  if array_empty "$csv_ifss_7864a7a" ,
-  then
-    return 1
-  fi
-  if test "$(array_head "$csv_ifss_7864a7a" ,)" = "$none_item"
-  then
-    unset IFS
-  else
-    IFS="$(printf "%s" "$(array_head "$csv_ifss_7864a7a" , | base64 -d)")"
-  fi
-  csv_ifss_7864a7a="$(array_tail "$csv_ifss_7864a7a" ,)"
-}
-
+# shellcheck disable=SC2034
 readonly unit_sep=""
 
-ifs_unit_sep() {
-  set_ifs "$unit_sep"
-}
-
+# shellcheck disable=SC2034
 readonly us=""
-
-ifs_us() {
-  set_ifs "$us"
-}
 
 # shellcheck disable=SC2034
 readonly is1=""
@@ -844,57 +368,21 @@ readonly is3=""
 # shellcheck disable=SC2034
 readonly is4=""
 
-ifs_empty() {
-  set_ifs ''
-}
-
-ifs_null() {
-  set_ifs ''
-}
-
 ifs_newline() {
-  set_ifs "$(printf '\n\r')"
-}
-
-# For CSV.
-ifs_comma() {
-  set_ifs ','
-}
-
-# For TSV.
-ifs_tab() {
-  set_ifs "$(printf '\t')"
-}
-
-# For PSV.
-ifs_pipe() {
-  set_ifs '|'
-}
-
-# Mianly for paths, files, and directories.
-ifs_colon() {
-  set_ifs ':'
-}
-
-ifs_path_list_sepaprator() {
-  ifs_colon
+  printf '\n\r'
 }
 
 # To split path.
 ifs_slashes() {
-  set_ifs "/\\"
-}
-
-ifs_path_sepaprator() {
-  ifs_slashes
+  printf "/\\"
 }
 
 ifs_default() {
-  set_ifs "$(printf ' \t\n\r')"
+  printf ' \t\n\r'
 }
 
 ifs_blank() {
-  set_ifs "$(printf ' \t')"
+  printf ' \t'
 }
 
 csv_ifss_6b672ac=
@@ -1059,9 +547,10 @@ force_sync_ignored() (
 )
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
-newer() (
-  found_than=false
-  dest=
+newer() {
+  local found_than=false
+  local dest=
+  local arg
   for arg in "$@"
   do
     shift
@@ -1107,7 +596,7 @@ newer() (
     return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
-)
+}
 
 # Busybox sh seems to fail to detect proper executable if a file without executable extension exists in the same directory.
 cross_exec() {
@@ -1120,7 +609,7 @@ cross_exec() {
   then
     exit 1
   fi
-  cmd_path="$1"
+  local cmd_path="$1"
   shift
   if type "$cmd_path.exe" >/dev/null 2>&1
   then
@@ -1138,14 +627,15 @@ cross_exec() {
 }
 
 # Run a command preferring the Windows version if available.
-cross_run() (
+cross_run() {
   if ! is_windows
   then
     "$@"
     return $?
   fi
-  cmd="$1"
+  local cmd="$1"
   shift
+  local ext
   for ext in .exe .cmd .bat
   do
     if type "$cmd$ext" > /dev/null 2>&1
@@ -1155,10 +645,10 @@ cross_run() (
     fi
   done
   "$cmd" "$@"
-)
+}
 
 # Ensure an argument for an option.
-ensure_opt_arg() (
+ensure_opt_arg() {
   if test -z "$2"
   then
     echo "No argument for option --$1." >&2
@@ -1166,10 +656,10 @@ ensure_opt_arg() (
     exit 2
   fi
   echo "$2"
-)
+}
 
 # Open a URL in a browser.
-open_browser() (
+open_browser() {
   case "$(uname -s)" in
     (Linux)
       xdg-open "$1" ;;
@@ -1182,7 +672,7 @@ open_browser() (
       exit 1
       ;;
   esac
-)
+}
 
 # Ensure a package is installed and return the command and arguments separated by tabs.
 install_pkg_cmd_tabsep_args() (
@@ -1550,19 +1040,20 @@ cleanup_79d5d1d() {
     fi
   fi
 
-  ifs_comma
+  push_ifs
+  IFS=,
   for cleanup_handler in $csv_cleanup_handlers
   do
     "$cleanup_handler"
   done
-  ifs_restore
+  pop_ifs
 
   exit "$rc"
 }
 
 # Add a cleanup handler, not replacing the existing ones.
 add_cleanup_handler() {
-  csv_cleanup_handlers="$(IFS=, ifsv_prepend "$csv_cleanup_handlers" "$1")"
+  csv_cleanup_handlers="$csv_cleanup_handlers$1,"
 }
 
 # Verbose flag.
@@ -1591,10 +1082,13 @@ task_subcmds() ( # List subcommands.
     fi
   )"
   max_name_len="$(
-    echo "$lines" | while read -r name _
+    echo "$lines" \
+    | while read -r name _
     do
       echo "${#name}"
-    done | sort -nr | head -1
+    done \
+    | sort -nr \
+    | head -1
   )"
   echo "$lines" | while read -r name desc
   do
@@ -1618,10 +1112,13 @@ task_tasks() ( # List tasks.
     fi
   )"
   max_name_len="$(
-    echo "$lines" | while read -r name _
+    echo "$lines" \
+    | while read -r name _
     do
       echo "${#name}"
-    done | sort -nr | head -1
+    done \
+    | sort -nr \
+    | head -1
   )"
   echo "$lines" | while read -r name desc
   do
