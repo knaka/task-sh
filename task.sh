@@ -81,10 +81,20 @@ array_length() (
   echo "$#"
 )
 
+ifsv_length() {
+  # shellcheck disable=SC2086
+  set -- $1
+  echo "$#"
+}
+
 array_empty() (
   arr="$1"
   test -z "$arr"
 )
+
+ifsv_empty() {
+  test -z "$1"
+}
 
 array_append() (
   arr="$1"
@@ -116,6 +126,34 @@ array_append() (
   done
 )
 
+ifsv_append() {
+  arr_3b4e508="$1"
+  shift
+  delim_43ffc0f=
+  if test -n "$arr_3b4e508"
+  then
+    printf "%s" "$arr_3b4e508"
+    if test "${arr_3b4e508#"${arr_3b4e508%?}"}" != "$IFS"
+    then
+      delim_43ffc0f="$IFS"
+    fi
+  fi
+  for arg_52e31a2 in "$@"
+  do
+    if test -z "$arg_52e31a2"
+    then
+      printf "%s" "$IFS"
+      delim_43ffc0f="$IFS"
+      continue
+    fi
+    for arg_ae426da in $arg_52e31a2
+    do
+      printf "%s%s" "$delim_43ffc0f" "$arg_ae426da"
+      delim_43ffc0f="$IFS"
+    done
+  done
+}
+
 array_prepend() (
   arr="$1"
   shift
@@ -138,10 +176,64 @@ array_prepend() (
   printf "%s%s" "$delim" "$arr"
 )
 
+ifsv_prepend() {
+  arr_a57f0d7="$1"
+  shift
+  delim_b3c60c7=
+  for arg_6451f04 in "$@"
+  do
+    if test -z "$arg_6451f04"
+    then
+      delim_b3c60c7="$IFS"
+      continue
+    fi
+    for arg2_918a9ae in $arg_6451f04
+    do
+      printf "%s%s" "$delim_b3c60c7" "$arg2_918a9ae"
+      delim_b3c60c7="$IFS"
+    done
+  done
+  printf "%s%s" "$delim_b3c60c7" "$arr_a57f0d7"
+}
+
 array_at() (
   arr="$1"
   shift
   IFS="$1"
+  shift
+  idx="$1"
+  shift
+  i=0
+  delim=
+  for item in $arr
+  do
+    if test "$i" -eq "$idx"
+    then
+      if test "${1+set}" = set
+      then
+        if test "$i" -gt 0
+        then
+          array_slice "$arr" "$IFS" 0 "$i"
+          delim="$IFS"
+        fi
+        printf "%s%s" "$delim" "$1"
+        delim="$IFS"
+        if test "$i" -lt "$(( $(array_length "$arr" "$IFS") - 1 ))"
+        then
+          printf "%s%s" "$delim" "$(array_slice "$arr" "$IFS" "$((i + 1))")"
+        fi
+      else
+        printf "%s" "$item"
+      fi
+      return
+    fi
+    i=$((i + 1))
+  done
+  return 1
+)
+
+ifsv_at() (
+  arr="$1"
   shift
   idx="$1"
   shift
@@ -249,6 +341,12 @@ array_map() (
     delim="$IFS"
   done
 )
+
+ifsv_map() {
+  arr_7704ded="$1"
+  shift
+  array_map "$arr_7704ded" "$IFS" "$@"
+}
 
 # Filter an array with a command. If the command contains "_", then it is replaced with the item.
 array_filter() (

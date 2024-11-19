@@ -589,3 +589,24 @@ other lines
 EOF
   assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
 )
+
+# IFS-separated value functions.
+test_ifsv() (
+  set -o errexit
+
+  unset IFS
+  assert_eq 1 "$(ifsv_length "foo,bar,")"
+  # assert_false ifsv_append "foo,bar," "" "baz"
+
+  IFS=,
+  assert_eq 0 "$(ifsv_length "")"
+  assert_eq 1 "$(ifsv_length ",")"
+  assert_eq 1 "$(ifsv_length "foo,")"
+  assert_eq 2 "$(ifsv_length "foo,bar")"
+  assert_eq 2 "$(ifsv_length "foo,bar,")"
+
+  assert_eq "foo,bar,,baz" "$(ifsv_append "foo,bar" "" "baz")"
+  assert_eq ",baz,foo,bar" "$(ifsv_prepend "foo,bar" "" "baz")"
+  assert_eq "bar" "$(ifsv_at "foo,bar,baz" 1)"
+  assert_eq "qux,bar,baz" "$(ifsv_at "foo,bar,baz" 0 "qux")"
+)
