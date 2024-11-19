@@ -1,7 +1,7 @@
 #!/bin/sh
-set -o nounset -o errexit
-
+# shellcheck disable=SC3043
 test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
+set -o nounset -o errexit
 
 # Update the script by replacing itself with the latest version.
 if test "${1+SET}" = SET && test "$1" = "update-me"
@@ -19,6 +19,19 @@ fi
 # Array functions. "array string + delimiter" is used for the array representation.
 # --------------------------------------------------------------------------
 
+ifsv_join() {
+  local out_delim="$2"
+  # shellcheck disable=SC2086
+  set -- $1
+  local delim=
+  local arg=
+  for arg in "$@"
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim="$out_delim"
+  done
+}
+
 # Join an array with a delimiter.
 array_join() (
   arr="$1"
@@ -32,45 +45,48 @@ array_join() (
   done
 )
 
+# Head of IFSV.
+ifsv_head() {
+  # shellcheck disable=SC2086
+  set -- $1
+  printf "%s" "$1"
+}
+
 # Head of an array.
 array_head() (
-  arr="$1"
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  printf '%s' "$1"
+  IFS="$2" ifsv_head "$1"
 )
 
 array_first() {
   array_head "$@"
 }
 
+ifsv_tail() {
+  # shellcheck disable=SC2086
+  set -- $1
+  shift
+  if test $# -gt 0
+  then
+    printf "%s$IFS" "$@"
+  fi
+}
+
 array_tail() (
   arr="$1"
-  # echo 298103a: "$arr" >&2
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
   shift
-  delim=
-  unset item
-  while test "$#" -gt 0
-  do
-    item="$1"
-    shift
-    printf "%s%s" "$delim" "$item"
-    delim="$IFS"
-  done
-  if test "${item+set}" = set && test -z "$item"
-  then
-    printf "%s" "$IFS"
-  fi
+  IFS="$1"
+  shift
+  ifsv_tail "$arr"
 )
 
 array_rest() {
   array_tail "$@"
+}
+
+ifsv_length() {
+  # shellcheck disable=SC2086
+  set -- $1
+  echo "$#"
 }
 
 array_length() (
@@ -80,6 +96,10 @@ array_length() (
   set -- $arr
   echo "$#"
 )
+
+ifsv_empty() {
+  test -z "$1"
+}
 
 array_empty() (
   arr="$1"
@@ -91,51 +111,28 @@ array_append() (
   shift
   IFS="$1"
   shift
-  delim=
-  if test -n "$arr"
-  then
-    printf "%s" "$arr"
-    if test "${arr#"${arr%?}"}" != "$IFS"
-    then
-      delim="$IFS"
-    fi
-  fi
-  for arg in "$@"
-  do
-    if test -z "$arg"
-    then
-      printf "%s" "$IFS"
-      delim="$IFS"
-      continue
-    fi
-    for arg2 in $arg
-    do
-      printf "%s%s" "$delim" "$arg2"
-      delim="$IFS"
-    done
-  done
+  ifsv_append "$arr" "$@"
 )
+
+ifsv_prepend() {
+  arr_608c396="$1"
+  shift
+  test $# -gt 0 && printf "%s$IFS" "$@"
+  set -- "$arr_608c396"
+  if test -n "$1" -a "${1#"${1%?}"}" != "$IFS"
+  then
+    printf "%s$IFS" "$1"
+  else
+    printf "%s" "$1"
+  fi
+}
 
 array_prepend() (
   arr="$1"
   shift
   IFS="$1"
   shift
-  delim=
-  for arg in "$@"
-  do
-    if test -z "$arg"
-    then
-      delim="$IFS"
-      continue
-    fi
-    for arg2 in $arg
-    do
-      printf "%s%s" "$delim" "$arg2"
-      delim="$IFS"
-    done
-  done
-  printf "%s%s" "$delim" "$arr"
+  ifsv_prepend "$arr" "$@"
 )
 
 array_at() (
@@ -174,6 +171,30 @@ array_at() (
   return 1
 )
 
+ifsv_at() {
+  local i=0
+  local item
+  for item in $1
+  do
+    if test "$i" = "$2"
+    then
+      if test "${3+set}" = set
+      then
+        printf "%s%s" "$3" "$IFS"
+      else
+        printf "%s" "$item"
+        return
+      fi
+    else
+      if test "${3+set}" = set
+      then
+        printf "%s%s" "$item" "$IFS"
+      fi
+    fi
+    i=$((i + 1))
+  done
+}
+
 array_slice() (
   arr="$1"
   shift
@@ -200,6 +221,43 @@ array_slice() (
     i=$((i + 1))
   done
 )
+
+ifsv_map() {
+  local arr="$1"
+  shift
+  local should_replace=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_" || test "$arg" = "it"
+    then
+      should_replace=true
+    fi
+  done
+  local i=0
+  local item
+  for item in $arr
+  do
+    if $should_replace
+    then
+      (
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            arg="$item"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        printf "%s%s" "$("$@")" "$IFS"
+      )
+    else
+      printf "%s%s" "$("$@" "$item")" "$IFS"
+    fi
+    i=$((i + 1))
+  done
+}
 
 # Map an array a command. If the command contains "_", then it is replaced with the item. If the array is "-", then the items are read from stdin.
 array_map() (
@@ -250,6 +308,46 @@ array_map() (
   done
 )
 
+ifsv_filter() {
+  local arr="$1"
+  shift
+  local should_replace=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      should_replace=true
+    fi
+  done
+  local item
+  for item in $arr
+  do
+    if $should_replace
+    then
+      if ! (
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            arg="$item"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )
+      then
+        continue
+      fi
+    elif ! "$@" "$item"
+    then
+      continue
+    fi
+    printf "%s%s" "$item" "$IFS"
+  done
+}
+
 # Filter an array with a command. If the command contains "_", then it is replaced with the item.
 array_filter() (
   arr="$1"
@@ -293,6 +391,52 @@ array_filter() (
     delim="$IFS"
   done
 )
+
+ifsv_reduce() {
+  local arr="$1"
+  shift
+  local acc="$1"
+  shift
+  local has_place_holder=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      has_place_holder=true
+    fi
+  done
+  local item
+  for item in $arr
+  do
+    if $has_place_holder
+    then
+      acc="$(
+        local first_place_holder=true
+        local arg
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            if $first_place_holder
+            then
+              arg="$acc"
+              first_place_holder=false
+            else
+              arg="$item"
+            fi
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )"
+    else
+      acc="$("$@" "$acc" "$item")"
+    fi
+  done
+  printf "%s" "$acc"
+}
 
 # Reduce an array with a function. If the function contains "_"s, then they are replaced with the accumulator and the item.
 array_reduce() (
@@ -417,6 +561,32 @@ array_each() (
   done
 )
 
+ifsv_sort() {
+  local arr="$1"
+  if test -z "$arr"
+  then
+    return
+  fi
+  shift
+  local vers
+  # shellcheck disable=SC2086
+  vers="$(
+    printf "%s\n" $arr | \
+    if test "$#" -eq 0
+    then
+      sort
+    else
+      "$@"
+    fi
+  )"
+  push_ifs
+  IFS="$(printf '\n\r')"
+  # shellcheck disable=SC2086
+  set -- $vers
+  pop_ifs
+  printf "%s$IFS" "$@"
+}
+
 # Sort an array. Cannot sort items which contain newlines.
 array_sort() (
   arr="$1"
@@ -441,16 +611,45 @@ array_shuffle() (
   printf "%s\n" $arr | shuf | paste -sd "$IFS" -
 )
 
-array_string_split() (
-  delim="$1"
-  s="$2"
-  delim_pattern="$3"
-  echo "$s" | sed "s/$delim_pattern/$delim/g"
-)
-
 # --------------------------------------------------------------------------
 # Associative array functions. It is represented as propty list.
 # --------------------------------------------------------------------------
+
+ifsv_plist_get() {
+  local plist="$1"
+  local target_key="$2"
+  local key=
+  local i=0
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      key="$item"
+    else
+      if test "$key" = "$target_key"
+      then
+        printf "%s" "$item"
+        return
+      fi
+    fi
+    i=$((i + 1))
+  done
+  return 1
+}
+
+ifsv_plist_keys() {
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      printf "%s%s" "$item" "$IFS"
+    fi
+    i=$((i + 1))
+  done
+}
 
 # Get the keys of an associative array.
 plist_keys() (
@@ -468,6 +667,20 @@ plist_keys() (
     i=$((i + 1))
   done
 )
+
+ifsv_plist_values() {
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 1
+    then
+      printf "%s%s" "$item" "$IFS"
+    fi
+    i=$((i + 1))
+  done
+}
 
 # Get the values of an associative array.
 plist_values() (
@@ -509,6 +722,36 @@ plist_get() (
   done
   return 1
 )
+
+ifsv_plist_put() {
+  local plist="$1"
+  local target_key="$2"
+  local value="$3"
+  local found=false
+  local key=
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      key="$item"
+    else
+      if test "$key" = "$target_key"
+      then
+        found=true
+        printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
+      else
+        printf "%s%s%s%s" "$key" "$IFS" "$item" "$IFS"
+      fi
+    fi
+    i=$((i + 1))
+  done
+  if ! "$found"
+  then
+    printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
+  fi
+}
 
 # Put a value in an associative array. If the key does not exist, then it is appended.
 plist_put() (
@@ -654,6 +897,35 @@ ifs_blank() {
   set_ifs "$(printf ' \t')"
 }
 
+csv_ifss_6b672ac=
+
+# Push IFS to the stack.
+push_ifs() {
+  if test "${IFS+set}" = set
+  then
+    csv_ifss_6b672ac="$(printf "%s" "$IFS" | base64),$csv_ifss_6b672ac"
+  else
+    csv_ifss_6b672ac=",$csv_ifss_6b672ac"
+  fi
+}
+
+# Pop IFS from the stack.
+pop_ifs() {
+  if test -z "$csv_ifss_6b672ac"
+  then
+    return 1
+  fi
+  local v
+  v="$(IFS=, ifsv_head "$csv_ifss_6b672ac")"
+  if test -z "$v"
+  then
+    unset IFS
+  else
+    IFS="$(printf "%s" "$v" | base64 -d)"
+  fi
+  csv_ifss_6b672ac="$(IFS=, ifsv_tail "$csv_ifss_6b672ac")"
+}
+
 # --------------------------------------------------------------------------
 # Utility functions.
 # --------------------------------------------------------------------------s
@@ -737,7 +1009,7 @@ set_path_attr() (
   fi
 )
 
-readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P"
+readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P|"
 
 # Set the file/directory to be ignored by file sharing such as Dropbox.
 set_sync_ignored() (
@@ -747,12 +1019,11 @@ set_sync_ignored() (
     then
       continue
     fi
-    ifs_pipe
+    IFS='|'
     for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
-    ifs_restore
   done
 )
 
@@ -1291,7 +1562,7 @@ cleanup_79d5d1d() {
 
 # Add a cleanup handler, not replacing the existing ones.
 add_cleanup_handler() {
-  csv_cleanup_handlers="$(array_prepend "$csv_cleanup_handlers" , "$1")"
+  csv_cleanup_handlers="$(IFS=, ifsv_prepend "$csv_cleanup_handlers" "$1")"
 }
 
 # Verbose flag.
@@ -1307,7 +1578,7 @@ psv_task_file_paths=
 task_subcmds() ( # List subcommands.
   lines="$(
     (
-      ifs_pipe
+      IFS="|"
       # shellcheck disable=SC2086
       sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
     ) | while read -r name desc
@@ -1334,7 +1605,7 @@ task_subcmds() ( # List subcommands.
 task_tasks() ( # List tasks.
   lines="$(
     (
-      ifs_pipe
+      IFS="|"
       # shellcheck disable=SC2086
       sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths
     ) | while read -r name desc
@@ -1409,7 +1680,7 @@ main() {
     ARG0BASE="$(basename "$0")"
   fi
 
-  psv_task_file_paths="$(realpath "$0")"
+  psv_task_file_paths="$(realpath "$0")|"
   for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
     if ! test -r "$task_file_path"
@@ -1421,7 +1692,7 @@ main() {
         continue
         ;;
     esac
-    psv_task_file_paths="$psv_task_file_paths|$task_file_path"
+    psv_task_file_paths="$psv_task_file_paths$task_file_path|"
     # shellcheck disable=SC1090
     . "$task_file_path"
   done

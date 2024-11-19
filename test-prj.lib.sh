@@ -1,219 +1,108 @@
 #!/bin/sh
-set -o nounset -o errexit
-
+# shellcheck disable=SC3043
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
+set -o nounset -o errexit
 
 . ./assert.lib.sh
 . ./task.sh
 
-test_array() (
+# While `local` is undefined in POSIX shell, it is available on Ubuntu (dash alias), MacOS (bash alias) and Windows BusyBox (ash alias).
+test_local_var() (
   set -o errexit
 
-  csv_words="hello,world,foo,,,bar,baz,"
+  # shellcheck disable=SC2317
+  func_to_update_global() {
+    foo_ae5f2b3=xyz
+    assert_eq "xyz" "$foo_ae5f2b3"
+  }
 
-  # --------------------------------------------------------------------------
+  foo_ae5f2b3=abc
+  func_to_update_global
+  assert_eq "xyz" "$foo_ae5f2b3"
 
-  assert_eq "foo" "$(array_head "foo,bar,baz" ,)"
-  assert_eq "bar,baz," "$(array_tail "foo,bar,baz" ,)"
+  # shellcheck disable=SC2317
+  func_to_update_local() {
+    local foo_ae5f2b3
+    foo_ae5f2b3=xyz
+    assert_eq "xyz" "$foo_ae5f2b3"
+  }
 
-  assert_eq 3 "$(array_length "foo,bar,baz" ,)"
-  assert_eq 0 "$(array_length "" ,)"
-
-  assert_eq "foo,bar,baz," "$(array_append "foo,bar" , baz)"
-  assert_eq "foo,bar,baz,qux," "$(array_append "foo,bar" , baz qux)"
-  assert_eq "foo,bar,baz,qux," "$(array_append "foo,bar" , "baz,qux")"
-  assert_eq "foo,bar,baz,," "$(array_append "foo,bar,baz" , "")"
-  assert_eq 4 "$(array_length "$(array_append "foo,bar,baz" , "")" ,)"
-
-  assert_eq "foo,bar,baz," "$(array_prepend "bar,baz" , foo)"
-  assert_eq "foo,bar,baz,qux," "$(array_prepend "baz,qux" , foo bar)"
-  assert_eq "foo,bar,baz,qux," "$(array_prepend "baz,qux" , "foo,bar")"
-  assert_eq ",foo,bar,baz," "$(array_prepend "foo,bar,baz" , "")"
-
-  # Stack operations.
-  stack="bar,baz,"
-  stack="$(array_prepend "$stack" , foo)"
-  assert_eq "foo,bar,baz," "$stack"
-  item="$(array_head "$stack" ,)"
-  stack="$(array_tail "$stack" ,)"
-  assert_eq "foo" "$item"
-  assert_eq "bar,baz," "$stack"
-
-  # assert_eq "bar" "$(array_at "foo,bar,baz" , 1)"
-  # if array_at "foo,bar,baz" , 3
-  # then
-  #   echo "array_at failed to return false for an out-of-bounds index" >&2
-  #   exit 1
-  # fi
-  # if array_at "" , 0
-  # then
-  #   echo "array_at failed to return false for an empty list" >&2
-  #   exit 1
-  # fi
-
-  # assert_eq "baz,bar,foo" "$(array_reverse "foo,bar,baz" ,)"
-
-  # assert_true array_contains 'foo,bar,baz' , foo
-  # assert_false array_contains 'foo,bar,baz' , qux
-
-  # # --------------------------------------------------------------------------
-
-  # assert_eq "HELLO,WORLD,FOO,,,BAR,BAZ" "$(
-  #   # shellcheck disable=SC2317
-  #   toupper() { echo "$1" | tr '[:lower:]' '[:upper:]'; }
-  #   array_map "$csv_words" "," toupper
-  # )"
-
-  # # If `-` is passed as the list, then the items are read from stdin.
-  # assert_eq "FOO,,BAR,BAZ" "$(echo "foo,,bar,baz" | array_map - "," tr '[:lower:]' '[:upper:]')"
-
-  # toupper() {
-  #   echo "$1" | tr '[:lower:]' '[:upper:]'
-  # }
-
-  # result=
-  # delim=
-  # ifs_comma
-  # for i in $csv_words
-  # do
-  #   result="$result$delim$(toupper "$i")"
-  #   delim=,
-  # done
-  # ifs_restore
-
-  # assert_eq "HELLO,WORLD,FOO,,,BAR,BAZ" "$result"
-
-  # # --------------------------------------------------------------------------
-
-  # assert_eq "foo,bar,baz" "$(array_filter "foo,,bar,baz" , test -n _)"
-
-  # greater_than_3() {
-  #   # shellcheck disable=SC2317
-  #   test "$1" -gt 3
-  # }
-
-  # assert_eq "4 5 6 7" "$(array_filter "1 2 3 4 5 6 7" " " greater_than_3)"
-
-  # assert_eq "4 5 6 7" "$(array_filter "1 2 3 4 5 6 7" " " test _ -gt 3)"
-
-  # assert_eq "4 5 6 7" "$(
-  #   # shellcheck disable=SC2317
-  #   gt3() { test "$1" -gt 3; }
-  #   array_filter "1 2 3 4 5 6 7" " " gt3
-  # )"
-
-  # add() (
-  #   echo $(( $1 + $2 ))
-  # )
-
-  # assert_eq 3 "$(add 1 2)"
-  # assert_eq 10 "$(array_reduce "1,2,3,4" "," 0 add)"
-
-  # # shellcheck disable=SC1102
-  # # shellcheck disable=SC2005
-  # # shellcheck disable=SC2086
-  # # shellcheck disable=SC2046
-  # # shellcheck disable=SC2317
-  # rpn() { echo $(($1 $3 $2)); }
-  # assert_eq 10 "$(array_reduce "4|3|2|1" "|" 0 rpn _ _ '+')"
-  # assert_eq 24 "$(array_reduce "4|3|2|1" "|" 1 rpn _ _ '*')"
-
-  # assert_eq 24 "$(
-  #   # shellcheck disable=SC2317
-  #   _206d735() (echo $(( $1 * $2 )))
-  #   array_reduce "1,2,3,4" "," 1 _206d735
-  # )"
-
-  # psv_reduce() (
-  #   psv="$1"
-  #   shift
-  #   init="$1"
-  #   shift
-  #   array_reduce "$psv" "|" "$init" "$@"
-  # )
-
-  # psv="100|200|300|400"
-
-  # assert_eq 1000 "$(psv_reduce "$psv" 0 rpn _ _ '+')"
-
-  # strlen() {
-  #   # shellcheck disable=SC2317
-  #   echo "${#1}"
-  # }
-
-  # assert_eq "5,3,7" "$(array_map "Alice,Bob,Charlie" , strlen)"
-
-  # # ?
-  # # assert_eq 'Hello, Alice!!!
-  # # Hello, Bob!!!
-  # # Hello, Charlie!!!' "$(array_each "Alice,Bob,Charlie" , printf "Hello, %s%s\n" _ "!!!")"
-
-  # assert_eq "abc,abcde,def,xyz" "$(array_sort "abcde,abc,xyz,def" ,)"
-  # assert_eq "xyz,def,abcde,abc" "$(array_sort "abcde,abc,xyz,def" , sort -r)"
-  # array_sort "abcde,abc,xyz,def" , sort_random
+  foo_ae5f2b3=abc
+  func_to_update_local
+  assert_eq "abc" "$foo_ae5f2b3"
 )
 
-test_ifs() (
+# IFS-separated value functions.
+test_ifsv() (
   set -o errexit
 
-  IFS=aaa
-  default_ifs="$IFS"
-  ifs_pipe
-  echo 3c72a46
-  ifs_restore
-  echo c8746f0
-  # assert_eq "$IFS" '|'
-  # ifs_restore
-  # assert_eq "$IFS" "$default_ifs"
+  IFS=,
+  assert_eq 0 "$(ifsv_length "")"
+  assert_eq 1 "$(ifsv_length ",")"
+  assert_eq 1 "$(ifsv_length "foo,")"
+  assert_eq 2 "$(ifsv_length "foo,bar")"
+  assert_eq 2 "$(ifsv_length "foo,bar,")"
 
-  # ifs_pipe
-  # assert_eq "$IFS" '|'
-  # ifs_comma
-  # assert_eq "$IFS" ','
-  # ifs_null
-  # assert_eq "$IFS" ''
-  # ifs_path_list_sepaprator
-  # assert_eq "$IFS" ':'
-  # ifs_restore
-  # # printf '%s' "$IFS" | dm
-  # assert_eq "$IFS" ''
-  # ifs_restore
-  # assert_eq "$IFS" ","
-  # ifs_restore
-  # assert_eq "$IFS" '|'
-  # ifs_restore
-  # assert_eq "$IFS" "$default_ifs"
+  assert_eq "foo" "$(ifsv_head "foo,bar,baz")"
+  assert_eq "bar,baz," "$(ifsv_tail "foo,bar,baz")"
+  assert_eq "" "$(ifsv_tail "foo")"
+  assert_eq "" "$(ifsv_tail "foo,")"
 
-  # ifs_newline
-  # # shellcheck disable=SC2046
-  # set -- $(printf "hoge fuga\nfoo bar\n")
-  # assert_eq 2 "$#"
-  # ifs_restore
+  assert_eq "" "$(ifsv_tail , "foo")"
+  assert_eq "" "$(ifsv_tail , "foo,")"
 
-  # lines="$(
-  #   echo "hoge fuga"
-  #   echo "foo bar"
-  # )"
-  # num_lines=$(echo "$lines" | wc -l | (read -r num; echo "$num"))
-  # assert_true test 2 -eq "$num_lines"
+  assert_eq "bar" "$(ifsv_at "foo,bar,baz" 1)"
+  assert_eq "qux,bar,baz," "$(ifsv_at "foo,bar,baz" 0 "qux")"
 
-  # ifs_default
-  # lines="$(
-  #   echo "  hoge fuga"
-  #   echo "foo bar  "
-  # )"
-  # ifs_newline
-  # # shellcheck disable=SC2086
-  # set -- $lines
-  # ifs_restore
-  # assert_eq 2 "$#"
+  assert_eq "foo-bar-baz" "$(ifsv_join "foo,bar,baz" "-")"
+  assert_eq "foo-bar-baz-" "$(ifsv_join "foo,bar,baz,," "-")" 
 )
 
-test_strjoin() (
+toupper_4c7e44e() {
+  printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+tolower_542075d() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+test_ifsv_map() (
   set -o errexit
 
-  assert_eq "hoge,fuga,,,foo,bar" "$(array_join "hoge|fuga|||foo|bar" "|" ,)"
-  assert_eq "" "$(array_join "" "|" ,)"
+  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e)"
+  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e _)"
+  assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d)"
+  assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d _)"
+)
+
+test_ifsv_filter() (
+  set -o errexit
+
+  assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n)"
+  assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n _)"
+  assert_eq "4,5,6,7," "$(IFS=, ifsv_filter "1,2,3,4,5,6,7," test _ -gt 3)"
+  echo hoge
+)
+
+test_ifsv_reduce() (
+  set -o errexit
+
+  # shellcheck disable=SC2317
+  add() (
+    echo $(( $1 + $2 ))
+  )
+
+  assert_eq 10 "$(IFS=, ifsv_reduce "1,2,3,4" 0 add)"
+
+  # shellcheck disable=SC1102
+  # shellcheck disable=SC2005
+  # shellcheck disable=SC2086
+  # shellcheck disable=SC2046
+  # shellcheck disable=SC2317
+  rpn() { echo $(($1 $3 $2)); }
+  assert_eq 10 "$(IFS="|" ifsv_reduce "4|3|2|1" 0 rpn _ _ '+')"
+  assert_eq 24 "$(IFS="|" ifsv_reduce "4|3|2|1" 1 rpn _ _ '*')"
+
 )
 
 test_version_comparison() (
@@ -230,8 +119,8 @@ test_version_comparison() (
   assert_false version_gt 1.0 1.0
   assert_true version_ge 1.0 1.0
 
-  assert_eq "v1,v1.4.3,v1.5.0" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version)"
-  assert_eq "v1.5.0,v1.4.3,v1" "$(array_sort "v1.5.0,v1,v1.4.3" , sort_version -r)"
+  assert_eq "v1,v1.4.3,v1.5.0," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version)"
+  assert_eq "v1.5.0,v1.4.3,v1," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version -r)"
 
   cat <<EOF > "$(temp_dir_path)/versions.txt"
 v1.4.0-alpha
@@ -281,21 +170,6 @@ EOF
   assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
 )
 
-test_newline_sep() (
-  set -o errexit
-
-  mkdir -p "$(temp_dir_path)/foo/bar baz"
-  mkdir -p "$(temp_dir_path)/foo/hoge fuga"
-  ifs_null
-  # shellcheck disable=SC2046
-  set -- hoge fuga $(find "$(temp_dir_path)"/foo/* -type d)
-  ifs_restore
-  for arg in "$@"
-  do
-    echo "d: $arg" >&2
-  done
-)
-
 test_menu_item() (
   set -o errexit
 
@@ -309,14 +183,6 @@ test_menu_item() (
   assert_match '.+A.+dd \$100' "$(menu_item '&Add $100')"
 )
 
-toupper_4c7e44e() {
-  printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
-}
-
-tolower_542075d() {
-  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
-}
-
 test_field() (
   set -o errexit
 
@@ -325,154 +191,45 @@ test_field() (
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
 )
 
-test_unit_sep() (
-  set -o errexit
-
-  usv_items=
-  usv_items="$(array_append "$usv_items" "$unit_sep" foo bar baz)"
-  usv_items="$(array_append "$usv_items" "$unit_sep" "$(printf 'hoge\nfuga\n')" 'hare')"
-  assert_eq 5 "$(array_length "$usv_items" "$unit_sep")"
-  ifs_unit_sep
-  for arg in $usv_items
-  do
-    (
-      ifs_restore
-      echo "arg: $arg" >&2
-    )
-  done
-  # shellcheck disable=SC2086
-  printf "%s\0" $usv_items | xargs -0 -n1 echo "arg2:"
-  ifs_restore
-
-  echo
-
-  usv_upper_items="$(array_map "$usv_items" "$unit_sep" toupper_4c7e44e)"
-  ifs_unit_sep
-  for arg in $usv_upper_items
-  do
-    echo "arg3: $arg" >&2
-  done
-  echo "concat:" "$(array_join "$usv_upper_items" "$unit_sep" '---')"
-  ifs_restore
-  echo "concat2:" "$(array_reduce "$usv_upper_items" "$unit_sep" '' printf '%s###%s' _ _)"
-  # shellcheck disable=SC2317
-  contains_hoge() {
-    echo "$1" | grep -q -i hoge
-  }
-  echo "filter:" "$(array_filter "$usv_upper_items" "$unit_sep" contains_hoge)"
-
-  echo
-
-  usv_items="$(array_prepend "$usv_items" "$unit_sep" "$(printf 'aaa\nbbb')")"
-  # echo e817d4d: "$usv_items" >&2
-  assert_eq 6 "$(array_length "$usv_items" "$unit_sep")"
-  while test "$(array_length "$usv_items" "$unit_sep")" -gt 0
-  do
-    item="$(array_head "$usv_items" "$unit_sep")"
-    usv_items="$(array_tail "$usv_items" "$unit_sep")"
-    echo "item: $item" >&2
-  done
-)
-
-# test_array_renew() (
-#   set -o errexit
-
-#   assert_eq 0 "$(array_length "" ,)"
-#   assert_eq "," "$(array_append "" , "")"
-#   assert_eq "," "$(array_prepend "" , "")"
-
-#   assert_eq 1 "$(array_length "," ,)"
-#   assert_eq "" "$(array_head "," ,)"
-#   assert_eq "" "$(array_tail "," ,)"
-#   assert_eq ",foo," "$(array_append "," , "foo")"
-#   assert_eq "foo,," "$(array_prepend "," , "foo")"
-#   assert_eq "" "$(array_head "," , "")"
-#   assert_eq "" "$(array_tail "," ,)"
-
-#   assert_eq 2 "$(array_length ",," ,)"
-#   assert_eq ",,foo" "$(array_append ",," , "foo")"
-#   assert_eq "foo,,," "$(array_prepend ",," , "foo")"
-#   assert_eq ",,," "$(array_prepend ",," , "")"
-#   assert_eq "" "$(array_head ",," ,)"
-#   assert_eq "," "$(array_tail ",," ,)"
-#   assert_eq "foo" "$(array_tail ",foo" ,)"
-
-#   assert_eq 1 "$(array_length "foo" ,)"
-#   assert_eq 1 "$(array_length "foo," ,)"
-#   assert_eq 2 "$(array_length "foo,bar" ,)"
-#   assert_eq 2 "$(array_length "foo,bar," ,)"
-
-#   csv_items=",foo,bar,"
-#   count=0
-#   ifs_comma
-#   # shellcheck disable=SC2046
-#   for item in $csv_items
-#   do
-#     echo "item: $item" >&2
-#     count=$((count + 1))
-#   done
-#   ifs_restore
-#   assert_eq 3 "$count"
-
-#   csv_items=",foo,bar"
-#   ifs_comma
-#   count=0
-#   # shellcheck disable=SC2046
-#   for item in $csv_items
-#   do
-#     echo "item: $item" >&2
-#     count=$((count + 1))
-#   done
-#   ifs_restore
-#   assert_eq 3 "$count"
-
-#   assert_eq "foo,bar" "$(array_slice "foo,bar,baz" , 0 2)"
-#   assert_eq "bar,baz" "$(array_slice "foo,bar,baz" , 1 3)"
-#   assert_eq "foo,bar,baz" "$(array_slice "foo,bar,baz" , 0)"
-#   assert_eq "bar,baz" "$(array_slice "foo,bar,baz" , 1)"
-
-#   assert_eq "foo,qux,baz" "$(array_at "foo,bar,baz" , 1 qux)"
-#   assert_false array_at "foo,bar,baz" , 3
-#   assert_false array_at "foo,bar,baz" , 3 value
-# )
-
 test_plist() (
   set -o errexit
 
+  IFS=,
   plist=
-  plist="$(plist_put "$plist" , "key1" "val1")"
-  plist="$(plist_put "$plist" , "key2" "val2")"
+  plist="$(ifsv_plist_put "$plist" "key1" "val1")"
+  plist="$(ifsv_plist_put "$plist" "key2" "val2")"
 
-  assert_eq "key1,key2" "$(plist_keys "$plist" ,)"
-  assert_eq "" "$(plist_keys "" ,)"
+  assert_eq "key1,key2," "$(ifsv_plist_keys "$plist")"
+  assert_eq "" "$(ifsv_plist_keys "")"
 
-  assert_eq "val1,val2" "$(plist_values "$plist" ,)"
-  assert_eq "" "$(plist_values "" ,)"
+  assert_eq "val1,val2," "$(ifsv_plist_values "$plist")"
+  assert_eq "" "$(ifsv_plist_values "")"
 
-  assert_eq "val2" "$(plist_get "$plist" , "key2")"
-  assert_false plist_get "$plist" , "key3"
+  assert_eq "val2" "$(ifsv_plist_get "$plist" "key2")"
+  assert_false ifsv_plist_get "$plist" "key3"
 
-  assert_eq "key1,mod1,key2,val2" "$(plist_put "$plist" , "key1" "mod1")"
-  assert_eq "key1,val1,key2,val2,key3,val3" "$(plist_put "$plist" , "key3" "val3")"
+  assert_eq "key1,mod1,key2,val2," "$(ifsv_plist_put "$plist" "key1" "mod1")"
+  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsv_plist_put "$plist" "key3" "val3")"
 
-  assert_eq "key1,val1,key2," "$(plist_put "$plist" , "key2" "")"
-  assert_eq "" "$(plist_get "key1,val1,key2," , "key2")"
+  assert_eq "key1,val1,key2,," "$(ifsv_plist_put "$plist" "key2" "")"
+  assert_eq "" "$(ifsv_plist_get "key1,val1,key2," "key2")"
 
-  assert_eq "key1,val1,key2,val2,,empty" "$(plist_put "$plist" , "" "empty")"
-  assert_eq "empty" "$(plist_get "key1,val1,key2,val2,,empty" , "")"
+  assert_eq "key1,val1,key2,val2,,empty," "$(ifsv_plist_put "$plist" "" "empty")"
+  assert_eq "empty" "$(ifsv_plist_get "key1,val1,key2,val2,,empty" "")"
 
+  IFS="$us"
   plist2=
-  plist2=$(plist_put "$plist2" "$unit_sep" "foo bar" "FOO BAR")
-  plist2=$(plist_put "$plist2" "$unit_sep" "baz qux" "BAZ QUX")
-  assert_eq "foo bar${unit_sep}FOO BAR${unit_sep}baz qux${unit_sep}BAZ QUX" "$plist2"
-  assert_eq "BAZ QUX" "$(plist_get "$plist2" "$unit_sep" "baz qux")"
+  plist2=$(ifsv_plist_put "$plist2" "foo bar" "FOO BAR")
+  plist2=$(ifsv_plist_put "$plist2" "baz qux" "BAZ QUX")
+  assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$plist2"
+  assert_eq "BAZ QUX" "$(ifsv_plist_get "$plist2" "baz qux")"
 )
 
 test_split() (
   set -o errexit
 
-  assert_eq "foo,bar,baz" "$(array_string_split , "foo, bar,  baz" ", *")"
-  assert_eq "foo${unit_sep}bar${unit_sep}baz" "$(array_string_split "$unit_sep" "foo, bar,  baz" ", *")"
+  assert_eq "foo,bar,baz" "$(echo "foo, bar,  baz" | sed -E -e "s/, *"/,/g)"
+  assert_eq "foo${us}bar${us}baz" "$(echo "foo, bar,  baz" | sed -E -e "s/, */${us}/g")"
 )
 
 test_sed_usv() (
@@ -547,27 +304,27 @@ EOF
     op="$1"
     shift
     case "$op" in
-      call)
+      (call)
         for arg in "$@"
         do 
           case "$arg" in
-            *${is2}*)
+            (*${is2}*)
               echo "$arg" | (
                 IFS="$is2" read -r cmd param
                 "$cmd" "$param"
               )
               ;;
-            *)
+            (*)
               printf "%s" "$arg"
               ;;
           esac
         done
         echo
         ;;
-      nop)
+      (nop)
         echo "$1"
         ;;
-      *)
+      (*)
         echo "Unhandled operation: $op" >&2
         ;;
     esac
@@ -581,49 +338,22 @@ EOF
   assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
 )
 
-# IFS-separated value functions.
-test_ifsv() (
+test_ifs() (
   set -o errexit
 
   unset IFS
-  assert_eq 1 "$(ifsv_length "foo,bar,")"
 
+  push_ifs
   IFS=,
-  assert_eq 0 "$(ifsv_length "")"
-  assert_eq 1 "$(ifsv_length ",")"
-  assert_eq 1 "$(ifsv_length "foo,")"
-  assert_eq 2 "$(ifsv_length "foo,bar")"
-  assert_eq 2 "$(ifsv_length "foo,bar,")"
+  assert_eq "," "$IFS"
 
-  assert_eq "foo" "$(ifsv_head "foo,bar,baz")"
-  assert_eq "bar,baz," "$(ifsv_tail "foo,bar,baz")"
-  assert_eq "" "$(ifsv_tail "foo")"
-  assert_eq "" "$(ifsv_tail "foo,")"
+  push_ifs
+  IFS=:
+  assert_eq ":" "$IFS"
 
-  assert_eq "" "$(array_tail , "foo")"
-  assert_eq "" "$(array_tail , "foo,")"
+  pop_ifs
+  assert_eq "," "$IFS"
 
-  assert_eq "foo,bar," "$(ifsv_append "" "foo" "bar")"
-  assert_eq "foo,bar,,baz," "$(ifsv_append "foo,bar" "" "baz")"
-  assert_eq ",baz,foo,bar," "$(ifsv_prepend "foo,bar" "" "baz")"
-
-  assert_eq "bar" "$(ifsv_at "foo,bar,baz" 1)"
-  assert_eq "qux,bar,baz," "$(ifsv_at "foo,bar,baz" 0 "qux")"
-
-  assert_eq "foo-bar-baz" "$(ifsv_join "foo,bar,baz" "-")"
-  assert_eq "foo-bar-baz--" "$(ifsv_join "foo,bar,baz,," "-")" 
-)
-
-func_to_update() {
-  # shellcheck disable=SC3043
-  local foo_ae5f2b3=xyz
-  assert_eq "xyz" "$foo_ae5f2b3"
-}
-
-test_local_var() (
-  set -o errexit
-
-  foo_ae5f2b3=abc
-  func_to_update
-  assert_eq "abc" "$foo_ae5f2b3"
+  pop_ifs
+  assert_true test "${IFS+set}" != set
 )

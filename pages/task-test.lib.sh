@@ -21,10 +21,9 @@ else
   BOLD=""
 fi
 
-psv_test_file_paths=
-
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
-  set +o errexit
+  psv_test_file_paths=
+  # Source all the test functions in the test files.
   for test_file_path in "$SCRIPT_DIR"/test-*.sh
   do
     if ! test -r "$test_file_path"
@@ -33,26 +32,27 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     fi
     # shellcheck disable=SC1090
     . "$test_file_path"
-    psv_test_file_paths="${psv_test_file_paths:+$psv_test_file_paths|}$test_file_path"
+    psv_test_file_paths="$psv_test_file_paths$test_file_path|"
   done
-  test_names=
+  # If not test names are provided, run all tests.
   if test "$#" -eq 0
   then
-    temp_file_path="$(temp_dir_path)/4986280"
-    ifs_pipe
-    for test_file_path in $psv_test_file_paths
-    do
-      grep -E -h -e "^test_[_[:alnum:]]+\(" "$test_file_path" | sed -r -e 's/^test_//' -e "s/\(\) *[{(] *(# *)?//" > "$temp_file_path"
-      while read -r test_name
+    push_ifs
+    IFS=,
+    # shellcheck disable=SC2046
+    set -- $(
+      IFS='|'
+      for test_file_path in $psv_test_file_paths
       do
-        test_names="${test_names:+$test_names }$test_name"
-      done < "$temp_file_path"
-    done
-    ifs_restore
-    for test_name in $test_names
-    do
-      set -- "$@" "$test_name"
-    done
+        sed -E -n -e 's/^test_([_[:alnum:]]+)\(\).*/\1/p' "$test_file_path" \
+        | while IFS= read -r test_name
+        do
+          printf "%s," "$test_name"
+        done \
+        | sort
+      done
+    )
+    pop_ifs
   fi
   some_failed=false
   log_file_path="$(temp_dir_path)/485d347"
@@ -69,24 +69,20 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     "test_$test_name" > "$log_file_path" 2>&1
     if test "$?" -eq 0
     then
-      printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL"
+      printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL" >&2
       if verbose
       then
-        ifs_null
-        while read -r line
+        while IFS= read -r line
         do
           echo "  $line"
         done < "$log_file_path"
-        ifs_restore
       fi
     else
-      printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL"
-      ifs_null
-      while read -r line
+      printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL" >&2
+      while IFS= read -r line
       do
         echo "  $line"
       done < "$log_file_path"
-      ifs_restore
       some_failed=true
     fi
     restore_shell_flags

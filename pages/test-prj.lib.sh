@@ -6,15 +6,16 @@ set -o nounset -o errexit
 . ./task.sh
 
 rewrite_args() (
-  usv_args="$(array_string_split "$unit_sep" "$1" ", *")"
+  usv_args="$(echo "$1" | sed -E -e "s/, */${us}/g")"
   delim=
-  ifs_unit_sep
+  push_ifs
+  IFS="${us}"
   for arg in $usv_args
   do
     printf '%stypeof %s === "undefined"? null: %s' "$delim" "$arg" "$arg"
     delim=", "
   done
-  ifs_restore
+  pop_ifs
 )
 
 rewrite_args2() (

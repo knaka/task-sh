@@ -14,19 +14,19 @@ goroot_path() (
   # $GOROOT
   if test "${GOROOT+set}" = set
   then
-    psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "$(realpath "$GOROOT")")"
+    psv_go_dir_paths="$psv_go_dir_paths$(realpath "$GOROOT")|"
   fi
   # `go` command
   if type go > /dev/null 2>&1
   then
-    psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "$(realpath "$(go env GOROOT)")")"
+    psv_go_dir_paths="$psv_go_dir_paths$(realpath "$(go env GOROOT)")|"
   fi
   # System-wide installation
   if is_windows
   then
-    psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "C:/Program Files/Go")"
+    psv_go_dir_paths="${psv_go_dir_paths}C:/Program Files/Go|"
   else
-    psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "/usr/local/go")"
+    psv_go_dir_paths="${psv_go_dir_paths}/usr/local/go|"
   fi
   # Automatically installed SDKs
   psv_sdk_go_dir_paths=
@@ -36,13 +36,14 @@ goroot_path() (
     then
       continue
     fi
-    psv_sdk_go_dir_paths="$(array_append "$psv_sdk_go_dir_paths" "|" "$dir_path")"
+    psv_sdk_go_dir_paths="$psv_sdk_go_dir_paths$dir_path|"
   done
   # Sort the SDKs in descending order.
-  psv_sdk_go_dir_paths="$(array_sort "$psv_sdk_go_dir_paths" "|" sort_version -r)"
-  psv_go_dir_paths="$(array_append "$psv_go_dir_paths" "|" "$psv_sdk_go_dir_paths")"
+  psv_sdk_go_dir_paths="$(ifsv_sort "$psv_sdk_go_dir_paths" sort_version -r)"
+  psv_go_dir_paths="$psv_go_dir_paths$psv_sdk_go_dir_paths"
   # Find the first Go SDK which fulfills the minimum version requirement.
-  ifs_pipe
+  push_ifs
+  IFS="|"
   for go_dir_path in $psv_go_dir_paths
   do
     if type "$go_dir_path"/bin/go > /dev/null 2>&1 && version_ge "$("$go_dir_path"/bin/go env GOVERSION)" "$required_min_ver"
@@ -51,7 +52,7 @@ goroot_path() (
       return
     fi
   done
-  ifs_restore
+  pop_ifs
 
   # If Go SDK is not found, download and install it.
   sdk_dir_path="$HOME"/sdk
@@ -92,8 +93,8 @@ set_go_env() {
   first_call 1dc30dd || return 0
   unset GOROOT
   echo Using Go toolchain in "$(goroot_path)" >&2
-  PATH="$(array_prepend "$PATH" : "$(goroot_path)"/bin)"
-  export PATH
+  PATH="$(goroot_path)"/bin:"$PATH"
+  export PAT
 }
 
 subcmd_go() { # Run go command.
