@@ -180,25 +180,25 @@ ifsv_reduce() {
     fi
   done
   local item
-  local first_place_holder=true
+  first_place_holder=true
   for item in $arr
   do
     if $has_place_holder
     then
       acc="$(
-        for arg in "$@"
+        for arg2 in "$@"
         do
-          if test "$arg" = "_"
+          if test "$arg2" = "_"
           then
             if $first_place_holder
             then
-              arg="$acc"
+              arg2="$acc"
               first_place_holder=false
             else
-              arg="$item"
+              arg2="$item"
             fi
           fi
-          set -- "$@" "$arg"
+          set -- "$@" "$arg2"
           shift
         done
         "$@"
