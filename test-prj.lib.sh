@@ -611,5 +611,19 @@ test_ifsv() (
   assert_eq "qux,bar,baz," "$(ifsv_at "foo,bar,baz" 0 "qux")"
 
   assert_eq "foo-bar-baz" "$(ifsv_join "foo,bar,baz" "-")"
-  assert_eq "foo-bar-baz--" "$(ifsv_join "foo,bar,baz,," "-")"
+  assert_eq "foo-bar-baz--" "$(ifsv_join "foo,bar,baz,," "-")" 
+)
+
+func_to_update() {
+  # shellcheck disable=SC3043
+  local foo_ae5f2b3=xyz
+  assert_eq "xyz" "$foo_ae5f2b3"
+}
+
+test_local_var() (
+  set -o errexit
+
+  foo_ae5f2b3=abc
+  func_to_update
+  assert_eq "abc" "$foo_ae5f2b3"
 )
