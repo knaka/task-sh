@@ -19,6 +19,22 @@ fi
 # Array functions. "array string + delimiter" is used for the array representation.
 # --------------------------------------------------------------------------
 
+ifsv_join() (
+  new_delim="$2"
+  delim=
+  # shellcheck disable=SC2086
+  set -- $1
+  for arg in "$@"
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim="$new_delim"
+  done
+  if test -z "$arg"
+  then
+    printf "%s" "$delim"
+  fi
+)
+
 # Join an array with a delimiter.
 array_join() (
   arr="$1"
@@ -32,45 +48,46 @@ array_join() (
   done
 )
 
+# Head of IFSV.
+ifsv_head() {
+  # shellcheck disable=SC2086
+  set -- $1
+  printf "%s" "$1"
+}
+
 # Head of an array.
 array_head() (
-  arr="$1"
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
-  printf '%s' "$1"
+  IFS="$2" ifsv_head "$1"
 )
 
 array_first() {
   array_head "$@"
 }
 
+ifsv_tail() {
+  # shellcheck disable=SC2086
+  set -- $1
+  shift
+  test $# -gt 0 && printf "%s$IFS" "$@"
+  :
+}
+
 array_tail() (
   arr="$1"
-  # echo 298103a: "$arr" >&2
-  test -z "$arr" && return 1
-  IFS="$2"
-  # shellcheck disable=SC2086
-  set -- $arr
   shift
-  delim=
-  unset item
-  while test "$#" -gt 0
-  do
-    item="$1"
-    shift
-    printf "%s%s" "$delim" "$item"
-    delim="$IFS"
-  done
-  if test "${item+set}" = set && test -z "$item"
-  then
-    printf "%s" "$IFS"
-  fi
+  IFS="$1"
+  shift
+  ifsv_tail "$arr"
 )
 
 array_rest() {
   array_tail "$@"
+}
+
+ifsv_length() {
+  # shellcheck disable=SC2086
+  set -- $1
+  echo "$#"
 }
 
 array_length() (
@@ -81,10 +98,8 @@ array_length() (
   echo "$#"
 )
 
-ifsv_length() {
-  # shellcheck disable=SC2086
-  set -- $1
-  echo "$#"
+ifsv_empty() {
+  test -z "$1"
 }
 
 array_empty() (
@@ -92,8 +107,15 @@ array_empty() (
   test -z "$arr"
 )
 
-ifsv_empty() {
-  test -z "$1"
+ifsv_append() {
+  if test -n "$1" -a "${1#"${1%?}"}" != "$IFS"
+  then
+    printf "%s$IFS" "$1"
+  else
+    printf "%s" "$1"
+  fi
+  shift
+  test "$#" -gt 0 && printf "%s$IFS" "$@"
 }
 
 array_append() (
@@ -101,57 +123,20 @@ array_append() (
   shift
   IFS="$1"
   shift
-  delim=
-  if test -n "$arr"
-  then
-    printf "%s" "$arr"
-    if test "${arr#"${arr%?}"}" != "$IFS"
-    then
-      delim="$IFS"
-    fi
-  fi
-  for arg in "$@"
-  do
-    if test -z "$arg"
-    then
-      printf "%s" "$IFS"
-      delim="$IFS"
-      continue
-    fi
-    for arg2 in $arg
-    do
-      printf "%s%s" "$delim" "$arg2"
-      delim="$IFS"
-    done
-  done
+  ifsv_append "$arr" "$@"
 )
 
-ifsv_append() {
-  arr_3b4e508="$1"
+ifsv_prepend() {
+  arr_608c396="$1"
   shift
-  delim_43ffc0f=
-  if test -n "$arr_3b4e508"
+  test $# -gt 0 && printf "%s$IFS" "$@"
+  set -- "$arr_608c396"
+  if test -n "$1" -a "${1#"${1%?}"}" != "$IFS"
   then
-    printf "%s" "$arr_3b4e508"
-    if test "${arr_3b4e508#"${arr_3b4e508%?}"}" != "$IFS"
-    then
-      delim_43ffc0f="$IFS"
-    fi
+    printf "%s$IFS" "$1"
+  else
+    printf "%s" "$1"
   fi
-  for arg_52e31a2 in "$@"
-  do
-    if test -z "$arg_52e31a2"
-    then
-      printf "%s" "$IFS"
-      delim_43ffc0f="$IFS"
-      continue
-    fi
-    for arg_ae426da in $arg_52e31a2
-    do
-      printf "%s%s" "$delim_43ffc0f" "$arg_ae426da"
-      delim_43ffc0f="$IFS"
-    done
-  done
 }
 
 array_prepend() (
@@ -159,42 +144,8 @@ array_prepend() (
   shift
   IFS="$1"
   shift
-  delim=
-  for arg in "$@"
-  do
-    if test -z "$arg"
-    then
-      delim="$IFS"
-      continue
-    fi
-    for arg2 in $arg
-    do
-      printf "%s%s" "$delim" "$arg2"
-      delim="$IFS"
-    done
-  done
-  printf "%s%s" "$delim" "$arr"
+  ifsv_prepend "$arr" "$@"
 )
-
-ifsv_prepend() {
-  arr_a57f0d7="$1"
-  shift
-  delim_b3c60c7=
-  for arg_6451f04 in "$@"
-  do
-    if test -z "$arg_6451f04"
-    then
-      delim_b3c60c7="$IFS"
-      continue
-    fi
-    for arg2_918a9ae in $arg_6451f04
-    do
-      printf "%s%s" "$delim_b3c60c7" "$arg2_918a9ae"
-      delim_b3c60c7="$IFS"
-    done
-  done
-  printf "%s%s" "$delim_b3c60c7" "$arr_a57f0d7"
-}
 
 array_at() (
   arr="$1"
@@ -232,39 +183,28 @@ array_at() (
   return 1
 )
 
-ifsv_at() (
-  arr="$1"
-  shift
-  idx="$1"
-  shift
-  i=0
-  delim=
-  for item in $arr
+ifsv_at() {
+  i_e76c8aa=0
+  for item_fb21cf7 in $1
   do
-    if test "$i" -eq "$idx"
+    if test "$i_e76c8aa" = "$2"
     then
-      if test "${1+set}" = set
+      if test "${3+set}" = set
       then
-        if test "$i" -gt 0
-        then
-          array_slice "$arr" "$IFS" 0 "$i"
-          delim="$IFS"
-        fi
-        printf "%s%s" "$delim" "$1"
-        delim="$IFS"
-        if test "$i" -lt "$(( $(array_length "$arr" "$IFS") - 1 ))"
-        then
-          printf "%s%s" "$delim" "$(array_slice "$arr" "$IFS" "$((i + 1))")"
-        fi
+        printf "%s%s" "$3" "$IFS"
       else
-        printf "%s" "$item"
+        printf "%s" "$item_fb21cf7"
+        return
       fi
-      return
+    else
+      if test "${3+set}" = set
+      then
+        printf "%s%s" "$item_fb21cf7" "$IFS"
+      fi
     fi
-    i=$((i + 1))
+    i_e76c8aa=$((i_e76c8aa + 1))
   done
-  return 1
-)
+}
 
 array_slice() (
   arr="$1"
@@ -341,12 +281,6 @@ array_map() (
     delim="$IFS"
   done
 )
-
-ifsv_map() {
-  arr_7704ded="$1"
-  shift
-  array_map "$arr_7704ded" "$IFS" "$@"
-}
 
 # Filter an array with a command. If the command contains "_", then it is replaced with the item.
 array_filter() (
@@ -845,12 +779,11 @@ set_sync_ignored() (
     then
       continue
     fi
-    ifs_pipe
+    IFS='|'
     for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
-    ifs_restore
   done
 )
 
@@ -1389,7 +1322,7 @@ cleanup_79d5d1d() {
 
 # Add a cleanup handler, not replacing the existing ones.
 add_cleanup_handler() {
-  csv_cleanup_handlers="$(array_prepend "$csv_cleanup_handlers" , "$1")"
+  csv_cleanup_handlers="$(IFS=, ifsv_prepend "$csv_cleanup_handlers" "$1")"
 }
 
 # Verbose flag.
