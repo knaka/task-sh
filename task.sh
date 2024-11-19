@@ -180,13 +180,12 @@ ifsv_reduce() {
     fi
   done
   local item
+  local first_place_holder=true
   for item in $arr
   do
     if $has_place_holder
     then
       acc="$(
-        local first_place_holder=true
-        local arg
         for arg in "$@"
         do
           if test "$arg" = "_"
