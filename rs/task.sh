@@ -240,8 +240,8 @@ ifsv_sort() {
   local vers
   # shellcheck disable=SC2086
   vers="$(
-    printf "%s\n" $arr | \
-    if test "$#" -eq 0
+    printf "%s\n" $arr \
+    | if test "$#" -eq 0
     then
       sort
     else
@@ -249,11 +249,15 @@ ifsv_sort() {
     fi
   )"
   push_ifs
-  IFS="$(printf '\n\r')"
+  IFS="$(ifs_newline)"
   # shellcheck disable=SC2086
   set -- $vers
   pop_ifs
-  printf "%s$IFS" "$@"
+  local item
+  for item in "$@"
+  do
+    printf "%s%s" "$item" "$IFS"
+  done
 }
 
 if ! type shuf > /dev/null 2>&1
