@@ -40,11 +40,12 @@ subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
 
 # shellcheck disable=SC2120
 task_worker__build() { # Build the worker files into a JS file.
-  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js
+  mkdir -p public/functions/api
+  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=./functions/api/[[catchall]].js
 }
 
 task_worker__depbuild() { # Build the worker files if the source files are newer than the output files.
-  if newer worker/ --than public/_worker.js
+  if newer worker/ --than ./functions/api/[[catchall]].js
   then
     task_worker__build
   fi
@@ -228,7 +229,7 @@ task_start() { # Launch the Pages preview server.
 
 task_worker__watchbuild() { # Watch the worker files and build them into JS files.
   # "forever" to keep the process running even after the stdin is closed.
-  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=public/_worker.js --watch=forever
+  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=./functions/api/[[catchall]].js --watch=forever
 }
 
 task_db__watchgen() { # Watch the SQL files and generate the database access layer (./sqlcgen/*).
