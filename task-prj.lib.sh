@@ -61,3 +61,7 @@ task_key() { # Read a key press and show its code.
   key="$(get_key)"
   printf "Key %02x pressed.\n" "'$key"
 }
+
+task_nop() { # Do nothing.
+  :
+}

@@ -28,5 +28,7 @@ jobs:
       - name: Environment Variables
         run: set
         shell: cmd
+      - name: Load BusyBox
+        run: .\task.cmd nop
       - name: Run Test
         run: .\task.cmd test
