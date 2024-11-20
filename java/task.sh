@@ -1268,6 +1268,16 @@ main() {
     subcmd_"$subcmd" "$@"
     exit $?
   fi
+  case "$subcmd" in
+    (subcmd_*)
+      if type "$subcmd" > /dev/null 2>&1
+      then
+        shift
+        "$subcmd" "$@"
+        exit $?
+      fi
+      ;;
+  esac
 
   for task_with_args in "$@"
   do
@@ -1280,19 +1290,27 @@ main() {
         ;;
     esac
     task_name="$(echo "$task_name" | sed -r -e 's/:/__/g')"
-    if ! type task_"$task_name" > /dev/null 2>&1
+    if type task_"$task_name" > /dev/null 2>&1
     then
-      if type delegate_tasks > /dev/null 2>&1
-      then
-        verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
-        delegate_tasks "$@"
-        continue
-      fi
-      echo "Unknown task: $task_name" >&2
-      exit 1
+      # shellcheck disable=SC2086
+      task_"$task_name" $args
+      continue
     fi
-    # shellcheck disable=SC2086
-    task_"$task_name" $args
+    case "$task_name" in
+      (task_*)
+        # shellcheck disable=SC2086
+        "$task_name" $args
+        continue
+        ;;
+    esac
+    if type delegate_tasks > /dev/null 2>&1
+    then
+      verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
+      delegate_tasks "$@"
+      continue
+    fi
+    echo "Unknown task: $task_name" >&2
+    exit 1
   done
 }
 
