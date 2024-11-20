@@ -857,17 +857,17 @@ get_key() {
 }
 
 memoize() {
-  cache_file_name_5f7dc05="$1"
+  local cache_file_name="$1"
   shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name_5f7dc05"
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name_5f7dc05"
+    "$@" > "$(temp_dir_path)/$cache_file_name"
   fi
-  cat "$(temp_dir_path)/$cache_file_name_5f7dc05"
+  cat "$(temp_dir_path)/$cache_file_name"
 }
 
 memoize_silent() (
-  cache_file_name="$1"
+  local cache_file_name="$1"
   shift
   if ! test -r "$(temp_dir_path)/$cache_file_name"
   then
