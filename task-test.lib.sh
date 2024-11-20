@@ -30,6 +30,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     then
       continue
     fi
+    verbose && echo Reading test file: "$test_file_path" >&2
     # shellcheck disable=SC1090
     . "$test_file_path"
     psv_test_file_paths="$psv_test_file_paths$test_file_path|"
@@ -38,24 +39,26 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
   if test "$#" -eq 0
   then
     push_ifs
-    IFS=,
+    unset IFS
     # shellcheck disable=SC2046
     set -- $(
       IFS='|'
       for test_file_path in $psv_test_file_paths
       do
+        unset
         sed -E -n -e 's/^test_([_[:alnum:]]+)\(\).*/\1/p' "$test_file_path" \
-        | while IFS= read -r test_name
+        | while read -r test_name
         do
-          printf "%s," "$test_name"
-        done \
-        | sort
-      done
+          echo "$test_name"
+        done
+      done \
+      | shuf # Randomize the order of tests.
     )
     pop_ifs
   fi
   some_failed=false
   log_file_path="$(temp_dir_path)/485d347"
+  verbose && echo "Running tests: $*" >&2
   for test_name in "$@"
   do
     if ! type "test_$test_name" 2>/dev/null | grep -q -E -e 'function$'

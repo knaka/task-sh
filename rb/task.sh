@@ -19,6 +19,37 @@ fi
 # IFS-separated value functions.
 # --------------------------------------------------------------------------
 
+# Head of IFSV.
+ifsv_head() {
+  test $# -eq 0 && return 1
+  # shellcheck disable=SC2086
+  set -- $1
+  printf "%s" "$1"
+}
+
+# Tail of IFSV.
+ifsv_tail() {
+  test $# -eq 0 && return 1
+  # shellcheck disable=SC2086
+  set -- $1
+  shift
+  local item
+  for item in "$@"
+  do
+    printf "%s%s" "$item" "$IFS"
+  done
+}
+
+ifsv_length() {
+  # shellcheck disable=SC2086
+  set -- $1
+  echo "$#"
+}
+
+ifsv_empty() {
+  test -z "$1"
+}
+
 # Join IFS-separated values with a delimiter.
 ifsv_join() {
   local out_delim="$2"
@@ -31,33 +62,6 @@ ifsv_join() {
     printf "%s%s" "$delim" "$arg"
     delim="$out_delim"
   done
-}
-
-# Head of IFSV.
-ifsv_head() {
-  # shellcheck disable=SC2086
-  set -- $1
-  printf "%s" "$1"
-}
-
-ifsv_tail() {
-  # shellcheck disable=SC2086
-  set -- $1
-  shift
-  if test $# -gt 0
-  then
-    printf "%s$IFS" "$@"
-  fi
-}
-
-ifsv_length() {
-  # shellcheck disable=SC2086
-  set -- $1
-  echo "$#"
-}
-
-ifsv_empty() {
-  test -z "$1"
 }
 
 # Get an item at a specified index.
@@ -404,13 +408,13 @@ pop_ifs() {
   fi
   local v
   v="$(IFS=, ifsv_head "$csv_ifss_6b672ac")"
-  if test -z "$v"
-  then
-    unset IFS
-  else
-    IFS="$(printf "%s" "$v" | base64 -d)"
-  fi
   csv_ifss_6b672ac="$(IFS=, ifsv_tail "$csv_ifss_6b672ac")"
+  if test -n "$v"
+  then
+    IFS="$(printf "%s" "$v" | base64 -d)"
+  else
+    unset IFS
+  fi
 }
 
 # --------------------------------------------------------------------------
@@ -447,6 +451,14 @@ is_windows() {
   esac
 }
 
+is_linux() {
+  if test "$(uname -s)" = "Linux"
+  then
+    return 0
+  fi
+  return 1
+}
+
 # Executable file extension.
 exe_ext() {
   if is_windows
@@ -476,10 +488,10 @@ is_mac() {
 }
 
 # Set the extra attributes of the file/directory.
-set_path_attr() (
-  path="$1"
-  attribute="$2"
-  value="$3"
+set_path_attr() {
+  local path="$1"
+  local attribute="$2"
+  local value="$3"
   if which xattr > /dev/null 2>&1
   then
     xattr -w "$attribute" "$value" "$path"
@@ -492,30 +504,34 @@ set_path_attr() (
     attr -s "$attribute" -V "$value" "$path" >/dev/null 2>&1
   else
     echo "No command to set attribute: $attribute" >&2
-    exit 1
+    # exit 1
   fi
-)
+}
 
 readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P|"
 
 # Set the file/directory to be ignored by file sharing such as Dropbox.
-set_sync_ignored() (
+set_sync_ignored() {
+  local path
   for path in "$@"
   do
     if ! test -e "$path"
     then
       continue
     fi
+    push_ifs
     IFS='|'
     for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
+    pop_ifs
   done
-)
+}
 
 # Create a directory and set it to be ignored by file sharing such as Dropbox.
-mkdir_sync_ignored() (
+mkdir_sync_ignored() {
+  local path
   for path in "$@"
   do
     if test -d "$path"
@@ -523,27 +539,30 @@ mkdir_sync_ignored() (
       continue
     fi
     mkdir -p "$path"
-    ifs_pipe
+    push_ifs
+    IFS='|'
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    ifs_restore
+    pop_ifs
   done
-)
+}
 
 # Set the file/directory to be ignored by file sharing such as Dropbox.
-force_sync_ignored() (
+force_sync_ignored() {
+  local path
   for path in "$@"
   do
-    ifs_pipe
+    push_ifs
+    IFS='|'
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    ifs_restore
+    pop_ifs
   done
-)
+}
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
 newer() {
@@ -674,13 +693,13 @@ open_browser() {
 }
 
 # Ensure a package is installed and return the command and arguments separated by tabs.
-install_pkg_cmd_tabsep_args() (
-  cmd_name=
-  winget_id=
-  win_cmd_path=
-  scoop_id=
-  brew_id=
-  brew_cmd_path=
+install_pkg_cmd_tabsep_args() {
+  local cmd_name=
+  local winget_id=
+  local win_cmd_path=
+  local scoop_id=
+  local brew_id=
+  local brew_cmd_path=
   while getopts nc:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
@@ -704,7 +723,7 @@ install_pkg_cmd_tabsep_args() (
   shift $((OPTIND-1))
   # unset OPTIND
 
-  cmd_path="$cmd_name"
+  local cmd_path="$cmd_name"
   if is_windows
   then
     if test -n "$scoop_id"
@@ -753,11 +772,12 @@ install_pkg_cmd_tabsep_args() (
     echo "Command not installed: $cmd_path" >&2
     exit 1
   fi
+  local arg
   for arg in "$@"
   do
     printf "%s\t" "$arg"
   done
-)
+}
 
 install_pkg_cmd() {
   ifs_tab
@@ -819,12 +839,22 @@ load_env() { # Load environment variables.
   load "$SCRIPT_DIR"/.env
 }
 
-get_key() (
-  # Some "/bin/sh" provides `-s` option.
+# Get a key from the user without echoing.
+get_key() {
+  # Dash does not support `-s` option.
+  if is_linux
+  then
+    stty -icanon -echo
+    dd bs=1 count=1 2>/dev/null
+    stty icanon echo
+    return
+  fi
+  local key
+  # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
   # shellcheck disable=SC3045
   read -rsn1 key
   echo "$key"
-)
+}
 
 memoize() {
   cache_file_name_5f7dc05="$1"

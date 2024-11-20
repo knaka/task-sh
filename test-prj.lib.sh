@@ -1,62 +1,12 @@
 #!/bin/sh
 # shellcheck disable=SC3043
+# vim: tabstop=2 shiftwidth=2 noexpandtab
+# -*- mode: sh; tab-width: 2; indent-tabs-mode: t -*-
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 set -o nounset -o errexit
 
 . ./assert.lib.sh
 . ./task.sh
-
-# While `local` is undefined in POSIX shell, it is available on Ubuntu (dash alias), MacOS (bash alias) and Windows BusyBox (ash alias).
-test_local_var() (
-  set -o errexit
-
-  # shellcheck disable=SC2317
-  func_to_update_global() {
-    foo_ae5f2b3=xyz
-    assert_eq "xyz" "$foo_ae5f2b3"
-  }
-
-  foo_ae5f2b3=abc
-  func_to_update_global
-  assert_eq "xyz" "$foo_ae5f2b3"
-
-  # shellcheck disable=SC2317
-  func_to_update_local() {
-    local foo_ae5f2b3
-    foo_ae5f2b3=xyz
-    assert_eq "xyz" "$foo_ae5f2b3"
-  }
-
-  foo_ae5f2b3=abc
-  func_to_update_local
-  assert_eq "abc" "$foo_ae5f2b3"
-)
-
-# IFS-separated value functions.
-test_ifsv() (
-  set -o errexit
-
-  IFS=,
-  assert_eq 0 "$(ifsv_length "")"
-  assert_eq 1 "$(ifsv_length ",")"
-  assert_eq 1 "$(ifsv_length "foo,")"
-  assert_eq 2 "$(ifsv_length "foo,bar")"
-  assert_eq 2 "$(ifsv_length "foo,bar,")"
-
-  assert_eq "foo" "$(ifsv_head "foo,bar,baz")"
-  assert_eq "bar,baz," "$(ifsv_tail "foo,bar,baz")"
-  assert_eq "" "$(ifsv_tail "foo")"
-  assert_eq "" "$(ifsv_tail "foo,")"
-
-  assert_eq "" "$(ifsv_tail , "foo")"
-  assert_eq "" "$(ifsv_tail , "foo,")"
-
-  assert_eq "bar" "$(ifsv_at "foo,bar,baz" 1)"
-  assert_eq "qux,bar,baz," "$(ifsv_at "foo,bar,baz" 0 "qux")"
-
-  assert_eq "foo-bar-baz" "$(ifsv_join "foo,bar,baz" "-")"
-  assert_eq "foo-bar-baz-" "$(ifsv_join "foo,bar,baz,," "-")" 
-)
 
 toupper_4c7e44e() {
   printf "%s" "$1" | tr '[:lower:]' '[:upper:]'

@@ -1,7 +1,7 @@
 #!/bin/sh
-set -o nounset -o errexit
-
+# shellcheck disable=SC3043
 test "${guard_a8ac234+set}" = set && return 0; guard_a8ac234=x
+set -o nounset -o errexit
 
 . ./task.sh
 . ./task-docker.lib.sh
@@ -44,4 +44,16 @@ subcmd_docker__run() { # Run a command in a Docker container.
 
 task_docker__test() { # Run tests in a Docker container.
   subcmd_docker__run ./task test
+}
+
+subcmd_docker__busybox() {
+  task_docker__start__temp
+  subcmd_docker run --rm -it -v "$(pwd):/work" busybox:stable-uclibc "$@"
+}
+
+task_key() {
+  echo "Press a key."
+  local key
+  key="$(get_key)"
+  printf "Key %02x pressed.\n" "'$key"
 }
