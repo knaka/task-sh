@@ -254,9 +254,9 @@ task_worker__dev() { # Launch the Worker service in the development mode.
 
 usage_next_prompt() {
   echo
-  echo "[b] Open a Browser"
-  echo "[c] Clear console"
-  echo "[x] to exit"
+  menu_item "Open a &Browser"
+  menu_item "&Clear console"
+  menu_item "E&xit"
 }
 
 next_prompt() {
@@ -264,10 +264,10 @@ next_prompt() {
   while true
   do
     case "$(get_key)" in
-      b) open_browser "$1" ;;
-      c) clear ;;
-      x) break ;;
-      *) usage_next_prompt ;;
+      (b) open_browser "$1" ;;
+      (c) clear ;;
+      (x) break ;;
+      (*) usage_next_prompt ;;
     esac
   done
 }
@@ -310,5 +310,5 @@ task_dev() { # Launch the development servers.
 
 task_deploy() { # Deploy the project.
   set_node_env
-  subcmd_wrangler pages publish
+  subcmd_wrangler pages deploy
 }

@@ -957,6 +957,7 @@ menu_item() {
       printf "%s" "$pre"
     fi
   ) | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
+  echo
 }
 
 # Sort in random order.

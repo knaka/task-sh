@@ -5791,7 +5791,7 @@ var route = app.get(
     console.log("ec5d839");
     const res = await getUser(c.env.DB, { nullableId: 3 });
     console.log("034a7bc", res);
-    let msg = "Hello Pages!! This is Hono!! 37ea5ee!";
+    let msg = "Hello Pages!! This is Hono!! fc2f230!";
     if (res) {
       msg = `${msg} User: ${res.id} ${res.username}`;
     }
