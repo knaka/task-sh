@@ -37,21 +37,25 @@ subcmd_exec() { # Execute a command in task.sh context.
   restore_shell_flags
 }
 
-subcmd_docker__run() { # Run a command in a Docker container.
+subcmd_debian__run() { # Run a command in a Debian Docker container.
   task_docker__start__temp
-  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file test.Dockerfile .)" "$@"
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"
 }
 
-task_docker__test() { # Run tests in a Docker container.
-  subcmd_docker__run ./task test
+task_debian__test() { # Run tests in a Debian Docker container.
+  subcmd_debian__run ./task test
 }
 
-subcmd_docker__busybox() {
+subcmd_busybox__run() { # Run a command in a BusyBox Docker container.
   task_docker__start__temp
-  subcmd_docker run --rm -it -v "$(pwd):/work" busybox:stable-uclibc "$@"
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file busybox.Dockerfile .)" "$@"
 }
 
-task_key() {
+task_busybox__test() { # Run tests in a BusyBox Docker container.
+  subcmd_busybox__run ./task test
+}
+
+task_key() { # Read a key press and show its code.
   echo "Press a key."
   local key
   key="$(get_key)"
