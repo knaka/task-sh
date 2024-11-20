@@ -5757,8 +5757,12 @@ var api = new Hono2().get(
   async (c) => {
     const res = await getUser(c.env.DB, { nullableId: 3 });
     console.log("034a7bc", res);
+    let msg = "Hello Pages!! This is Hono!! 37ea5ee!";
+    if (res) {
+      msg = `${msg} User: ${res.id} ${res.username}`;
+    }
     return c.json({
-      message: "Hello Pages!! This is Hono!! 321fab3!"
+      message: msg
     });
   }
 ).get(

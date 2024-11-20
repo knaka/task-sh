@@ -55,6 +55,7 @@ task_worker__depbuild() { # Build the worker files if the source files are newer
 # --------------------------------------------------------------------------
 
 task_next__build() { # Build the Next.js project.
+  task_worker__build
   subcmd_next build "$@"
 }
 
@@ -141,6 +142,10 @@ task_remote_d1__migrate() { # Apply the schema changes to the remote database.
   subcmd_remote_d1__exec --file=build/remote-diff.sql
 }
 
+task_remote_d1__seed() { # Seed the remote database.
+  subcmd_remote_d1__exec --file=seed.sql
+}
+
 # --------------------------------------------------------------------------
 # Development Local D1 Database
 # --------------------------------------------------------------------------
@@ -182,6 +187,10 @@ task_local_d1__migrate() { # Apply the schema changes to the development databas
     return 0
   fi
   subcmd_local_d1__exec --file=build/dev-diff.sql
+}
+
+task_local_d1__seed() { # Seed the development database.
+  subcmd_local_d1__exec --file=seed.sql
 }
 
 # --------------------------------------------------------------------------
@@ -292,4 +301,13 @@ task_dev() { # Launch the development servers.
   done
   load_env
   next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
+}
+
+# --------------------------------------------------------------------------
+# Deployment
+# --------------------------------------------------------------------------
+
+task_deploy() { # Deploy the project.
+  set_node_env
+  subcmd_wrangler pages publish
 }
