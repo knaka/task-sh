@@ -784,18 +784,20 @@ install_pkg_cmd_tabsep_args() {
 }
 
 install_pkg_cmd() {
-  ifs_tab
+  push_ifs
+  IFS="$(printf "\t")"
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
-  ifs_restore
+  pop_ifs
   echo "$1"
 }
 
 run_pkg_cmd() { # Run a command after ensuring it is installed.
-  ifs_tab
+  push_ifs
+  IFS="$(printf "\t")"
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
-  ifs_restore
+  pop_ifs
   # echo 01d637b "$@" >&2
   cross_run "$@"
 }

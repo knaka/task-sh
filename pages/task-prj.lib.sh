@@ -109,20 +109,53 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
 }
 
 # --------------------------------------------------------------------------
+# D1 Database
+# --------------------------------------------------------------------------
+
+readonly database_name="pages-main"
+
+subcmd_remote_d1__exec() { # Execute SQL command in the remote D1 database.
+  subcmd_wrangler d1 execute --remote "$database_name" "$@"
+}
+
+task_remote_d1__schema() { # Export the schema of the remote D1 database.
+  mkdir -p build/
+  subcmd_wrangler d1 export --remote --no-data --output=build/remote-schema.sql "$database_name"
+}
+
+task_remote_d1__diff() { # Generate the schema difference between the remote database and the schema file.
+  subcmd_wrangler d1 export --remote --no-data --output=build/remote-schema.sql "$database_name"
+  rm -f build/remote-schema.db
+  subcmd_sqlite3 build/remote-schema.db <build/remote-schema.sql
+  cross_run ./cmd-gobin run sqlite3def --file=schema.sql build/remote-schema.db --dry-run > build/remote-diff.sql
+  cat build/remote-diff.sql
+}
+
+task_remote_d1__migrate() { # Apply the schema changes to the remote database.
+  task_remote_d1__diff
+  if test "$(sha1sum build/remote-diff.sql | field 1)" = e7efbf38cff7d12493cbe795586c588dccb332f4
+  then
+    echo "No schema changes."
+    return 0
+  fi
+  subcmd_remote_d1__exec --file=build/remote-diff.sql
+}
+
+# --------------------------------------------------------------------------
 # Development Local D1 Database
 # --------------------------------------------------------------------------
 
 subcmd_local_d1__exec() { # Execute SQL command in the development D1 database.
-  subcmd_wrangler d1 execute --local test-db "$@"
+  subcmd_wrangler d1 execute --local "$database_name" "$@"
 }
 
 task_local_d1__schema() { # Export the schema of the development D1 database.
   mkdir -p build/
-  subcmd_wrangler d1 export --local --no-data --output=build/dev-schema.sql test-db
+  subcmd_wrangler d1 export --local --no-data --output=build/dev-schema.sql "$database_name"
 }
 
 task_local_d1__dump() { # Dump the development database.
-  subcmd_wrangler d1 export --local --output=/dev/stdout test-db
+  subcmd_wrangler d1 export --local --output=/dev/stdout "$database_name"
 }
 
 task_local_d1__drop() { # Drop the development database.
