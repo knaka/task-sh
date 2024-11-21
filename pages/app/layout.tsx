@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body bgcolor='#b0FFFF'>{children}</body>
+      <body bgcolor='#b0b0b0'>{children}</body>
     </html>
   );
 }
