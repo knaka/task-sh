@@ -376,7 +376,7 @@ readonly is3=""
 readonly is4=""
 
 ifs_newline() {
-  printf '\n\r'
+  IFS="$(printf '\n\r')"
 }
 
 newline() {
@@ -962,6 +962,16 @@ menu_item() {
     fi
   ) | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
   echo
+}
+
+# Print a menu
+menu() {
+  echo
+  local arg
+  for arg in "$@"
+  do
+    menu_item "$arg"
+  done
 }
 
 # Sort in random order.
