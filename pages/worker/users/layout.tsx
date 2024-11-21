@@ -1,7 +1,9 @@
+import { JSX } from 'hono/jsx'
+
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactElement ;
 }) {
   return (
     <html lang="en">
