@@ -34,18 +34,29 @@ subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
   "$cmd_path" "$@"
 }
 
+subcmd_tsc() {
+  cross_run node_modules/.bin/tsc "$@"
+}
+
 # --------------------------------------------------------------------------
 # Cloudflare Workers codes.
 # --------------------------------------------------------------------------
 
+worker_in_dir="worker"
+worker_out_dir="functions"
+
 # shellcheck disable=SC2120
 task_worker__build() { # Build the worker files into a JS file.
-  mkdir -p public/functions/api
-  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=./functions/api/[[catchall]].js
+  rm -fr "$worker_out_dir"
+  push_ifs
+  ifs_newline
+  # shellcheck disable=SC2046
+  subcmd_esbuild --format=esm --outdir="$worker_out_dir" $(find "$worker_in_dir" -type f -name "*.ts" -o -name "*.tsx")
+  pop_ifs
 }
 
 task_worker__depbuild() { # Build the worker files if the source files are newer than the output files.
-  if newer worker/ --than ./functions/api/[[catchall]].js
+  if newer worker/ --than functions/
   then
     task_worker__build
   fi
@@ -56,12 +67,12 @@ task_worker__depbuild() { # Build the worker files if the source files are newer
 # --------------------------------------------------------------------------
 
 task_next__build() { # Build the Next.js project.
-  task_worker__build
-  subcmd_next build "$@"
+  NODE_ENV=production subcmd_next build "$@"
 }
 
 # shellcheck disable=SC2120
 task_next__depbuild() { # Build the Next.js project if the source files are newer than the output files.
+  task_worker__depbuild
   # Output dir is specified in ./next.config.js.
   if newer app/ public/ --than build/out
   then
@@ -229,7 +240,7 @@ task_start() { # Launch the Pages preview server.
 
 task_worker__watchbuild() { # Watch the worker files and build them into JS files.
   # "forever" to keep the process running even after the stdin is closed.
-  subcmd_esbuild "$@" --bundle worker/index.ts --format=esm --outfile=./functions/api/[[catchall]].js --watch=forever
+  task_worker__build --watch=forever
 }
 
 task_db__watchgen() { # Watch the SQL files and generate the database access layer (./sqlcgen/*).
@@ -252,46 +263,17 @@ task_worker__dev() { # Launch the Worker service in the development mode.
   subcmd_wrangler pages dev "$@" --live-reload --show-interactive-dev-session=false public/
 }
 
-usage_next_prompt() {
-  echo
-  menu_item "Open a &Browser"
-  menu_item "&Clear console"
-  menu_item "E&xit"
-}
-
-next_prompt() {
-  usage_next_prompt
-  while true
-  do
-    case "$(get_key)" in
-      (b) open_browser "$1" ;;
-      (c) clear ;;
-      (x) break ;;
-      (*) usage_next_prompt ;;
-    esac
-  done
-}
-
 task_next__dev() { # Launch the Next.js development server.
-  load_env
-  opts_93039d0=
-  if test "${NEXT_DEV_SERVER_PORT+set}" = set
-  then
-    opts_93039d0="--port=$NEXT_DEV_SERVER_PORT"
-  fi
-  set_node_env
-  # shellcheck disable=SC2086
-  subcmd_next dev $opts_93039d0
-}
-
-task_dev() { # Launch the development servers.
   NODE_ENV=development
   export NODE_ENV
   APP_ENV=development
   export APP_ENV
-  sh task.sh task_worker__watchbuild &
-  sh task.sh task_worker__dev &
-  sh task.sh task_next__dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  load_env
+  if test "${NEXT_DEV_PORT+set}" = set
+  then
+    set -- "$@" --port="$NEXT_DEV_PORT"
+  fi
+  sh task.sh subcmd_next dev "$@" 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
@@ -300,8 +282,37 @@ task_dev() { # Launch the development servers.
       break
     fi
   done
+  while true
+  do
+    menu \
+      "Open a &browser" \
+      "&Clear console" \
+      "Bui&ld" \
+      "E&xit"
+    case "$(get_key)" in
+      (b) open_browser "http://localhost:${NEXT_DEV_PORT:-3000}" ;;
+      (c) clear ;;
+      (l)
+        task_next__build
+        ;;
+      (x) break ;;
+      (*) ;;
+    esac
+  done
+}
+
+task_pages__dev() { # Launch the Wrangler Pages development server.
+  NODE_ENV=development
+  export NODE_ENV
+  APP_ENV=development
+  export APP_ENV
   load_env
-  next_prompt "http://localhost:${NEXT_DEV_SERVER_PORT:-3000}"
+  sh task.sh task_worker__watchbuild &
+  if test "${NEXT_PUBLIC_PAGES_DEV_PORT+set}" = set
+  then
+    set -- "$@" --port "$NEXT_PUBLIC_PAGES_DEV_PORT"
+  fi
+  subcmd_wrangler pages dev "$@" --live-reload ./build/next
 }
 
 # --------------------------------------------------------------------------

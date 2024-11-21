@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useEffect } from "react";
 
 import { hc } from "hono/client";
-import { AppType } from "../worker/index";
+import { AppType } from "../worker/api/_all";
 
-const apiEndpointBase = process.env.NEXT_PUBLIC_API_PORT && `http://127.0.0.1:${process.env.NEXT_PUBLIC_API_PORT}/` || "/";
+const apiEndpointBase = process.env.NEXT_PUBLIC_PAGES_DEV_PORT && `http://127.0.0.1:${process.env.NEXT_PUBLIC_PAGES_DEV_PORT}/` || "/";
 
 const client = hc<AppType>(apiEndpointBase);
 

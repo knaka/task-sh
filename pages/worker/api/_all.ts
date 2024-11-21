@@ -1,10 +1,11 @@
+// Use this filename because `[[all]].ts` cannot be imported as a module. Next.js fails, I do not why.
+
 import { cors } from "hono/cors";
 import { Hono } from 'hono'
-import { handle } from 'hono/cloudflare-pages'
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { D1Database } from "@cloudflare/workers-types";
-import { getUser } from "../sqlcgen/querier"
+import { getUser } from "../../sqlcgen/querier"
 
 type Bindings = {
   ASSETS: {
@@ -14,9 +15,9 @@ type Bindings = {
 };
 
 // CORS Middleware - Hono https://hono.dev/docs/middleware/builtin/cors
-const app = new Hono<{ Bindings: Bindings }>();
+export const app = new Hono<{ Bindings: Bindings }>();
 app.use("/api/*", cors());
-const route = app
+export const route = app
   .get("/api/hello",
     zValidator(
       "param",
@@ -50,5 +51,4 @@ const route = app
   )
 ;
 
-export const onRequest = handle(app);
 export type AppType = typeof route;

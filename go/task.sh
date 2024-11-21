@@ -379,6 +379,10 @@ ifs_newline() {
   printf '\n\r'
 }
 
+newline() {
+  printf '\n\r'
+}
+
 # To split path.
 ifs_slashes() {
   printf "/\\"
