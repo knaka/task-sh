@@ -5,7 +5,7 @@
 
 export type Users = {
   id: number;
-  username: number | string;
+  username: string;
   updatedAt: string;
   createdAt: string;
 };

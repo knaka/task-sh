@@ -1,5 +1,10 @@
 {
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["./*"]
+    // },
     "target": "esnext",
     "lib": [
       "dom",

@@ -51,7 +51,7 @@ task_worker__build() { # Build the worker files into a JS file.
   push_ifs
   ifs_newline
   # shellcheck disable=SC2046
-  subcmd_esbuild --bundle --format=esm --outdir="$worker_out_dir" $(find "$worker_in_dir" -type f -name "*.ts" -o -name "*.tsx")
+  subcmd_esbuild --bundle --format=esm --outdir="$worker_out_dir" $(find "$worker_in_dir" -type f -name "*.ts" -o -name "*.tsx") "$@"
   pop_ifs
 }
 
@@ -312,6 +312,10 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
   then
     set -- "$@" --port "$NEXT_PUBLIC_PAGES_DEV_PORT"
   fi
+  # if test "${NEXT_DEV_PORT+set}" = set
+  # then
+  #   set -- "$@" --binding NEXT_DEV_PORT="$NEXT_DEV_PORT"
+  # fi
   subcmd_wrangler pages dev "$@" --live-reload ./build/next
 }
 

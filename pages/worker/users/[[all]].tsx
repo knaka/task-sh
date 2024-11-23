@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { renderToString } from 'react-dom/server'
 import RootLayout from '../../app/layout'
-import { useState, useEffect } from 'react'
 import { getUser } from "../../sqlcgen/querier"
 import { D1Database } from "@cloudflare/workers-types";
 
@@ -15,19 +14,6 @@ interface SiteData {
 }
 
 const Content = (props: { siteData: SiteData; name: string, userName: string }) => {
-  // const [userName, setUserName] = useState("")
-  // useEffect(() => {
-  //   (async () => {
-  //     const res = await getUser(props.db, { nullableId: 3 })
-  //     if (res) {
-  //       console.log("User found")
-  //       const msg = `User: ${res.id} ${res.username}`
-  //       setUserName(msg)
-  //     } else {
-  //       console.log("User not found")
-  //     }
-  //   })();
-  // }, []);
   return <RootLayout {...props.siteData}>
     <>
       <h1>Hello 3fac81d {props.name} and {props.userName}</h1>
@@ -42,8 +28,7 @@ type Bindings = {
   DB: D1Database,
 };
 
-app.get('/:name', async (c) => {
-  const { name } = c.req.param()
+app.get('/users', async (c) => {
 
   let userName = ""
   const res = await getUser(c.env.DB, { nullableId: 3 })
@@ -52,7 +37,7 @@ app.get('/:name', async (c) => {
   }
 
   const props = {
-    name: name,
+    name: "dummy",
     siteData: {
       title: 'JSX with html sample',
     },
@@ -60,5 +45,23 @@ app.get('/:name', async (c) => {
   }
   return c.html(renderToString(<Content {...props} />))
 })
+
+app.get('/users/:id', async (c) => {
+  const {id} = c.req.param()
+  let userName = ""
+  const res = await getUser(c.env.DB, { nullableId: parseInt(id) })
+  if (res) {
+    userName = `User: ${res.id} ${res.username}`
+  }
+
+  const props = {
+    name: "dummy",
+    siteData: {
+      title: 'JSX with html sample',
+    },
+    userName,
+  }
+  return c.html(renderToString(<Content {...props} />))
+});
 
 export const onRequest = handle(app);

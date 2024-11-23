@@ -7,7 +7,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body bgcolor='#b0b0b0'>{children}</body>
+      <body>
+        <h1>Outer</h1>
+        {children}
+      </body>
     </html>
   );
 }

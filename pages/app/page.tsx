@@ -10,6 +10,9 @@ const Home = async () => {
       <p>
         Visit the <Link href="/about">About</Link> page.
       </p>
+      <p>
+        <Link href="/tmpl/user">User</Link>
+      </p>
       <Counter />
       <ApiAccess />
     </div>

@@ -24,14 +24,14 @@ export type GetUserParams = {
 
 export type GetUserRow = {
   id: number;
-  username: number | string;
+  username: string;
   updatedAt: string;
   createdAt: string;
 };
 
 type RawGetUserRow = {
   id: number;
-  username: number | string;
+  username: string;
   updated_at: string;
   created_at: string;
 };
@@ -72,14 +72,14 @@ export type GetTheUserParams = {
 
 export type GetTheUserRow = {
   id: number;
-  username: number | string;
+  username: string;
   updatedAt: string;
   createdAt: string;
 };
 
 type RawGetTheUserRow = {
   id: number;
-  username: number | string;
+  username: string;
   updated_at: string;
   created_at: string;
 };
@@ -115,7 +115,7 @@ const addUserQuery = `-- name: AddUser :exec
 INSERT INTO users (username) VALUES (?1)`;
 
 export type AddUserParams = {
-  username: number | string;
+  username: string;
 };
 
 export function addUser(
