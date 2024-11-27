@@ -5,7 +5,7 @@ import { Hono } from 'hono'
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { D1Database } from "@cloudflare/workers-types";
-import { getUser } from "../../sqlcgen/querier"
+import { getUser } from "@/sqlcgen/querier"
 
 type Bindings = {
   ASSETS: {
@@ -24,16 +24,16 @@ export const route = app
       z.object({}),
     ),
     async (c) => {
-      console.log("ec5d839");
+      // console.log("ec5d839");
       // const stmt = c.env.DB.prepare("SELECT * FROM users WHERE id = ?");
       // const x = stmt.bind(2);
       // console.log("b82408d", await x.all());
 
       // const res = await getUser(c.env.DB, { nullableUsername: 'SMITH, John' })
       const res = await getUser(c.env.DB, { nullableId: 3 })
-      console.log("034a7bc", res);
+      // console.log("034a7bc", res);
 
-      let msg = "Hello Pages!! This is Hono!! fc2f230!"
+      let msg = "Hello Pages!! This is Hono!! 799996c!"
       if (res) {
         msg = `${msg} User: ${res.id} ${res.username}`
       }

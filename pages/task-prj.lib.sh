@@ -68,6 +68,22 @@ task_worker__depbuild() { # Build the worker files if the source files are newer
 
 task_next__build() { # Build the Next.js project.
   NODE_ENV=production subcmd_next build "$@"
+  # build/next/_
+  cat <<'EOF' >build/next/_routes.json
+{
+   "version": 1,
+  "include": [
+    "/var/*",
+    "/api/*"
+  ],
+  "exclude": [
+    "/_next/*",
+    "/*.txt",
+    "/*.html",
+    "/doc/*"
+  ]
+}
+EOF
 }
 
 # shellcheck disable=SC2120
@@ -312,10 +328,10 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
   then
     set -- "$@" --port "$NEXT_PUBLIC_PAGES_DEV_PORT"
   fi
-  # if test "${NEXT_DEV_PORT+set}" = set
-  # then
-  #   set -- "$@" --binding NEXT_DEV_PORT="$NEXT_DEV_PORT"
-  # fi
+  if test "${NEXT_DEV_PORT+set}" = set
+  then
+    set -- "$@" --binding AP_DEV_PORT="$NEXT_DEV_PORT"
+  fi
   subcmd_wrangler pages dev "$@" --live-reload ./build/next
 }
 
@@ -325,5 +341,5 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
 
 task_deploy() { # Deploy the project.
   set_node_env
-  subcmd_wrangler pages deploy
+  subcmd_wrangler pages deploy build/next
 }

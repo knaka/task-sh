@@ -1,5 +1,5 @@
 name = "src-pages"
-pages_build_output_dir = "./build/out"
+pages_build_output_dir = "./build/next"
 
 # Node.js compatibility | Cloudflare Workers docs https://developers.cloudflare.com/workers/runtime-apis/nodejs/
 compatibility_flags = [ "nodejs_compat" ]

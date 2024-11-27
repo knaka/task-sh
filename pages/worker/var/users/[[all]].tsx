@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { renderToString } from 'react-dom/server'
-import RootLayout from '../../app/layout'
-import { getUser } from "../../sqlcgen/querier"
+import RootLayout from '@/app/layout'
+import { getUser } from "@/sqlcgen/querier"
 import { D1Database } from "@cloudflare/workers-types";
 
 // const app = new Hono()

@@ -6,7 +6,8 @@ import { useEffect } from "react";
 import { hc } from "hono/client";
 import { AppType } from "../worker/api/_all";
 
-const apiEndpointBase = process.env.NEXT_PUBLIC_PAGES_DEV_PORT && `http://127.0.0.1:${process.env.NEXT_PUBLIC_PAGES_DEV_PORT}/` || "/";
+// const apiEndpointBase = process.env.NEXT_PUBLIC_PAGES_DEV_PORT && `http://127.0.0.1:${process.env.NEXT_PUBLIC_PAGES_DEV_PORT}/` || "/";
+const apiEndpointBase = "/";
 
 const client = hc<AppType>(apiEndpointBase);
 
@@ -27,7 +28,7 @@ export const ApiAccess = () => {
 
       // const response3 = await client.api.world.$get();
     })();
-  });
+  }, []);
   return (<div>
     {message}
   </div>);
