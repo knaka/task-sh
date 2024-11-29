@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3043
 set -o nounset -o errexit
 
 test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
@@ -69,11 +70,7 @@ set_volta_env() {
 }
 
 set_node_env() {
-  if test "${guard_54448e7+set}" = set
-  then
-    return 0
-  fi
-  guard_54448e7=x
+  first_call a7e6214 || return 0
   set_volta_env
   PATH="$(dirname "$(subcmd_volta which node)"):$PATH"
   export PATH
@@ -97,4 +94,64 @@ subcmd_npx() { # Run npx.
 subcmd_node() {
   set_node_env
   node"$(exe_ext)" "$@"
+}
+
+latest_package_json() {
+  if is_bsd
+  then
+    find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3
+  else
+    find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec stat -Lc '%Y %n' {} \+ | sort -n | tail -1 | cut -d' ' -f2
+  fi
+}
+
+task_npm__depinstall() { # Install the npm packages if the package.json is newer.
+  first_call ac87fe4 || return 0
+  ! test -f package.json && return 1
+  while true
+  do
+    ! test -d node_modules && break
+    test -z "$(find node_modules/ -maxdepth 1)" && break
+    ! test -f package-lock.json && break
+    local latest
+    latest="$(latest_package_json)"
+    test -z "$latest" && break
+    newer package.json --than "$latest" && break
+    return 0
+  done
+  echo "Installing npm packages." >&2
+  subcmd_npm install
+  find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec touch {} \+
+}
+
+node_moduels_run_bin() { # Run the bin file in the node_modules.
+  local pkg="$1"
+  shift
+  local bin="$1"
+  shift
+  task_npm__depinstall
+  if is_windows
+  then
+    local p 
+    for p in \
+      node_modules/"$pkg"/bin/"$bin".cmd \
+      node_modules/"$pkg"/bin/"$bin".bat \
+      node_modules/"$pkg"/bin/"$bin".ps1 \
+      node_modules/"$pkg"/bin/"$bin".exe
+    do
+      if test -x "$p"
+      then
+        "$p" "$@"
+        return $?
+      fi
+    done
+    subcmd_node node_modules/"$pkg"/bin/"$bin" "$@"
+    return $?
+  fi
+  if head -1 node_modules/"$pkg"/bin/"$bin" | grep -q '^#!.*node'
+  then
+    subcmd_node node_modules/"$pkg"/bin/"$bin" "$@"
+    return $?
+  fi
+  node_modules/"$pkg"/bin/"$bin" "$@"
 }

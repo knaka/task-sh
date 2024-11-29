@@ -29,14 +29,6 @@ task_repl() { # Start a REPL.
   done
 }
 
-subcmd_exec() { # Execute a command in task.sh context.
-  backup_shell_flags
-  set +o errexit
-  "$@"
-  echo "Exit status: $?" >&2
-  restore_shell_flags
-}
-
 subcmd_debian__run() { # Run a command in a Debian Docker container.
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"

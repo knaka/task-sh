@@ -1195,6 +1195,14 @@ $(task_tasks | while IFS= read -r line; do echo "  $line"; done)
 EOF
 )
 
+subcmd_exec() { # Execute a command in task.sh context.
+  backup_shell_flags
+  set +o errexit
+  "$@"
+  echo "Exit status: $?" >&2
+  restore_shell_flags
+}
+
 main() {
   trap cleanup_79d5d1d EXIT
 
