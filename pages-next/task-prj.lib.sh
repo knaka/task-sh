@@ -289,7 +289,7 @@ task_next__dev() { # Launch the Next.js development server.
   then
     set -- "$@" --port="$NEXT_DEV_PORT"
   fi
-  sh task.sh subcmd_next dev "$@" 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  sh task.sh subcmd_next dev "$@" </dev/null 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1

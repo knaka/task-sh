@@ -10,6 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
+    "hono": "^4.6.11",
+    "@cloudflare/workers-types": "^4.20241004.0",
     "@astrojs/check": "^0.9.4",
     "astro": "^4.16.15",
     "typescript": "^5.7.2",
