@@ -249,7 +249,7 @@ ifsv_sort() {
     fi
   )"
   push_ifs
-  IFS="$(ifs_newline)"
+  ifs_newline
   # shellcheck disable=SC2086
   set -- $vers
   pop_ifs
