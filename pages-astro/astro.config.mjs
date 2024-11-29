@@ -7,7 +7,7 @@ export default defineConfig((process.env.NODE_ENV === "development")? {
     server: {
       proxy: {
         "/api": {
-          target: "http://127.0.0.1:18080",
+          target: `http://127.0.0.1:${process.env.API_DEV_PORT || 18080}`,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "/api"),
         },

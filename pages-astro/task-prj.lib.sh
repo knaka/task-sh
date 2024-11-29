@@ -11,19 +11,19 @@ set -o nounset -o errexit
 # --------------------------------------------------------------------------
 
 subcmd_wrangler() { # Run the Cloudflare Wrangler command.
-  node_moduels_run_bin wrangler wrangler "$@"
+  node_moduels_run_bin wrangler bin/wrangler.js "$@"
 }
 
 subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
-  node_moduels_run_bin esbuild esbuild "$@"
+  node_moduels_run_bin esbuild bin/esbuild "$@"
 }
 
 subcmd_tsc() { # Run the TypeScript compiler command.
-  node_moduels_run_bin typescript tsc "$@"
+  node_moduels_run_bin typescript bin/tsc "$@"
 }
 
 subcmd_astro() { # Run the Astro command.
-  node_moduels_run_bin astro astro "$@"
+  node_moduels_run_bin astro astro.js "$@"
 }
 
 task_astro__build() {
@@ -34,21 +34,21 @@ task_astro__build() {
 # Cloudflare Workers codes.
 # --------------------------------------------------------------------------
 
-worker_in_dir="worker"
-worker_out_dir="functions"
+functions_src_dir="functions-src"
+functions_dest_dir="functions"
 
 # shellcheck disable=SC2120
 task_worker__build() { # Build the worker files into a JS file.
-  rm -fr "$worker_out_dir"
+  rm -fr "$functions_dest_dir"
   push_ifs
   ifs_newline
   # shellcheck disable=SC2046
-  subcmd_esbuild --bundle --format=esm --outdir="$worker_out_dir" $(find "$worker_in_dir" -type f -name "*.ts" -o -name "*.tsx") "$@"
+  subcmd_esbuild --bundle --format=esm --outdir="$functions_dest_dir" $(find "$functions_src_dir" -type f -name "*.ts" -o -name "*.tsx") "$@"
   pop_ifs
 }
 
 task_worker__depbuild() { # Build the worker files if the source files are newer than the output files.
-  if newer worker/ --than functions/
+  if newer "$functions_src_dir" --than "$functions_dest_dir"
   then
     task_worker__build
   fi
@@ -69,20 +69,33 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
   export APP_ENV NODE_ENV
   load_env
   sh task.sh task_worker__watchbuild &
-  if test "${NEXT_PUBLIC_PAGES_DEV_PORT+set}" = set
+  if test "${PAGES_DEV_PORT+set}" = set
   then
-    set -- "$@" --port "$NEXT_PUBLIC_PAGES_DEV_PORT"
+    set -- "$@" --port "$PAGES_DEV_PORT"
   fi
-  if test "${NEXT_DEV_PORT+set}" = set
+  if test "${ASTRO_DEV_PORT+set}" = set
   then
-    set -- "$@" --binding AP_DEV_PORT="$NEXT_DEV_PORT"
+    set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
   fi
-  subcmd_wrangler pages dev "$@" --live-reload ./build/next
+  subcmd_wrangler pages dev "$@" --live-reload ./dist
 }
 
 task_astro__dev() {
-  host=127.0.0.1
-  port=4321
+  NODE_ENV=development
+  APP_ENV="$NODE_ENV"
+  export APP_ENV NODE_ENV
+  load_env
+  local host=127.0.0.1
+  local port=4321
+  if test "${ASTRO_DEV_PORT+set}" = set
+  then
+    port="$ASTRO_DEV_PORT"
+  fi
+  if test "${PAGES_DEV_PORT+set}" = set
+  then
+    API_DEV_PORT="$PAGES_DEV_PORT"
+    export API_DEV_PORT
+  fi
   sh task.sh subcmd_astro dev --host "$host" --port "$port" 2>&1 | tee "$(temp_dir_path)"/astro-dev.log &
   while true
   do

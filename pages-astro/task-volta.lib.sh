@@ -96,62 +96,52 @@ subcmd_node() {
   node"$(exe_ext)" "$@"
 }
 
-latest_package_json() {
-  if is_bsd
-  then
-    find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec stat -l -t "%F %T" {} \+ | cut -d' ' -f6- | sort -n | tail -1 | cut -d' ' -f3
-  else
-    find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec stat -Lc '%Y %n' {} \+ | sort -n | tail -1 | cut -d' ' -f2
-  fi
-}
-
-task_npm__depinstall() { # Install the npm packages if the package.json is newer.
+task_npm__depinstall() { # Install the npm packages if the package.json is modified.
   first_call ac87fe4 || return 0
   ! test -f package.json && return 1
+  local last_check_path=node_modules/.npm_last_check
   while true
   do
-    ! test -d node_modules && break
-    test -z "$(find node_modules/ -maxdepth 1)" && break
+    ! test -d node_modules/ && break
     ! test -f package-lock.json && break
-    local latest
-    latest="$(latest_package_json)"
-    test -z "$latest" && break
-    newer package.json --than "$latest" && break
+    ! test -f "$last_check_path" && break
+    newer package.json --than "$last_check_path" && break
+    newer package-lock.json --than "$last_check_path" && break
     return 0
   done
   echo "Installing npm packages." >&2
   subcmd_npm install
-  find "node_modules" -type f -name "package.json" -mindepth 2 -maxdepth 2 -exec touch {} \+
+  touch "$last_check_path"
 }
 
 node_moduels_run_bin() { # Run the bin file in the node_modules.
   local pkg="$1"
   shift
-  local bin="$1"
+  local bin_path="$1"
   shift
   task_npm__depinstall
+  local p=node_modules/"$pkg"/"$bin_path"
+  if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
+  then
+    subcmd_node "$p" "$@"
+    return $?
+  fi
   if is_windows
   then
-    local p 
-    for p in \
-      node_modules/"$pkg"/bin/"$bin".cmd \
-      node_modules/"$pkg"/bin/"$bin".bat \
-      node_modules/"$pkg"/bin/"$bin".ps1 \
-      node_modules/"$pkg"/bin/"$bin".exe
+    if test -f "$p".exe
+    then
+      "$p".exe "$@"
+      return $?
+    fi
+    for ext in .cmd .bat .ps1
     do
-      if test -x "$p"
+      if test -f "$p$ext"
       then
-        "$p" "$@"
+        "$p$ext" "$@"
         return $?
       fi
     done
-    subcmd_node node_modules/"$pkg"/bin/"$bin" "$@"
-    return $?
+    return 1
   fi
-  if head -1 node_modules/"$pkg"/bin/"$bin" | grep -q '^#!.*node'
-  then
-    subcmd_node node_modules/"$pkg"/bin/"$bin" "$@"
-    return $?
-  fi
-  node_modules/"$pkg"/bin/"$bin" "$@"
+  "$p" "$@"
 }
