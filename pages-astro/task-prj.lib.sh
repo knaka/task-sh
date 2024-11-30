@@ -4,103 +4,39 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 set -o nounset -o errexit
 
 . ./task.sh
-. ./task-volta.lib.sh
-
-# --------------------------------------------------------------------------
-# Commands.
-# --------------------------------------------------------------------------
-
-subcmd_wrangler() { # Run the Cloudflare Wrangler command.
-  node_moduels_run_bin wrangler bin/wrangler.js "$@"
-}
-
-subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
-  node_moduels_run_bin esbuild bin/esbuild "$@"
-}
-
-subcmd_tsc() { # Run the TypeScript compiler command.
-  node_moduels_run_bin typescript bin/tsc "$@"
-}
-
-subcmd_astro() { # Run the Astro command.
-  node_moduels_run_bin astro astro.js "$@"
-}
-
-task_astro__build() {
-  subcmd_astro build
-}
-
-# --------------------------------------------------------------------------
-# Cloudflare Workers codes.
-# --------------------------------------------------------------------------
-
-functions_src_dir="functions-src"
-functions_dir="functions"
-
-# shellcheck disable=SC2120
-task_worker__build() { # Build the worker files into a JS file.
-  rm -fr "$functions_dir"
-  push_ifs
-  ifs_newline
-  # shellcheck disable=SC2046
-  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" $(find "$functions_src_dir" -type f -name "*.ts" -o -name "*.tsx") "$@"
-  pop_ifs
-}
-
-task_worker__depbuild() { # Build the worker files if the source files are newer than the output files.
-  if newer "$functions_src_dir" --than "$functions_dir"
-  then
-    task_worker__build
-  fi
-}
+. ./task-node.lib.sh
+. ./task-pages.lib.sh
+. ./task-astro.lib.sh
 
 # --------------------------------------------------------------------------
 # Development
 # --------------------------------------------------------------------------
 
-task_worker__watchbuild() { # Watch the worker files and build them into JS files.
-  # "forever" to keep the process running even after the stdin is closed.
-  task_worker__build --watch=forever
-}
-
 task_pages__dev() { # Launch the Wrangler Pages development server.
-  NODE_ENV=development
-  APP_ENV="$NODE_ENV"
-  export APP_ENV NODE_ENV
+  export NODE_ENV=development
   load_env
   sh task.sh task_worker__watchbuild &
-  if test "${PAGES_DEV_PORT+set}" = set
-  then
-    set -- "$@" --port "$PAGES_DEV_PORT"
-  fi
-  if test "${ASTRO_DEV_PORT+set}" = set
-  then
-    set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
-  fi
+  test "${PAGES_DEV_PORT+set}" = set && set -- "$@" --port "$PAGES_DEV_PORT"
+  test "${ASTRO_DEV_PORT+set}" = set && set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
   subcmd_wrangler pages dev "$@" --live-reload ./dist
 }
 
-task_astro__dev() {
-  NODE_ENV=development
-  APP_ENV="$NODE_ENV"
-  export APP_ENV NODE_ENV
+task_astro__dev() { # Launch the Astro development server.
+  export NODE_ENV=development
   load_env
-  local host=127.0.0.1
-  local port=4321
-  if test "${ASTRO_DEV_PORT+set}" = set
-  then
-    port="$ASTRO_DEV_PORT"
-  fi
+  set -- "$@" --host "${ASTRO_DEV_HOST:-127.0.0.1}"
+  set -- "$@" --port "${ASTRO_DEV_PORT:-3000}"
   if test "${PAGES_DEV_PORT+set}" = set
   then
-    API_DEV_PORT="$PAGES_DEV_PORT"
-    export API_DEV_PORT
+    export API_DEV_PORT="$PAGES_DEV_PORT"
   fi
-  sh task.sh subcmd_astro dev --host "$host" --port "$port" </dev/null 2>&1 | tee "$(temp_dir_path)"/astro-dev.log &
+  local log_path
+  log_path="$(temp_dir_path)"/astro-dev.log
+  sh task.sh subcmd_astro dev "$@" </dev/null 2>&1 | tee "$log_path" &
   while true
   do
     sleep 1
-    if grep -q "watching for file changes" "$(temp_dir_path)"/astro-dev.log > /dev/null 2>&1
+    if grep -q "watching for file changes" "$log_path" > /dev/null 2>&1
     then
       break
     fi
