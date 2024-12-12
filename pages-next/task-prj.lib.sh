@@ -341,5 +341,5 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
 
 task_deploy() { # Deploy the project.
   set_node_env
-  subcmd_wrangler pages deploy build/next
+  subcmd_wrangler pages deploy
 }

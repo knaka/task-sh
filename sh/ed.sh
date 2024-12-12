@@ -1,6 +1,11 @@
 #!/bin/sh
 set -o nounset -o errexit
 
+pwd_cbe7ee2="$(pwd)"
+cd "$(dirname "$0")"
+. ./task.sh
+cd "$pwd_cbe7ee2"
+
 blocks=false
 
 while getopts "bt:" opt
@@ -39,7 +44,8 @@ then
     elif test -d "$arg"
     then
       printf "%s is a directory. Open? (y/N): " "$arg"
-      read -r yn
+      yn="$(get_key)"
+      echo "$yn"
       case "$yn" in
         [yY]*) ;;
         *) exit 0 ;;

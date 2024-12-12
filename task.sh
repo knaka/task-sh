@@ -249,7 +249,7 @@ ifsv_sort() {
     fi
   )"
   push_ifs
-  ifs_newline
+  IFS="$(ifs_newline)"
   # shellcheck disable=SC2086
   set -- $vers
   pop_ifs
@@ -1203,6 +1203,22 @@ subcmd_exec() { # Execute a command in task.sh context.
   restore_shell_flags
 }
 
+run_pre_task() {
+  if type pre_"$1" > /dev/null 2>&1
+  then
+    echo "Running pre-task for $1" >&2
+    pre_"$1"
+  fi
+}
+
+run_post_task() {
+  if type post_"$1" > /dev/null 2>&1
+  then
+    echo "Running post-task for $1" >&2
+    post_"$1"
+  fi
+}
+
 main() {
   trap cleanup_79d5d1d EXIT
 
@@ -1317,14 +1333,18 @@ main() {
     task_name="$(echo "$task_name" | sed -r -e 's/:/__/g')"
     if type task_"$task_name" > /dev/null 2>&1
     then
+      run_pre_task "task_$task_name"
       # shellcheck disable=SC2086
       task_"$task_name" $args
+      run_post_task "task_$task_name"
       continue
     fi
     case "$task_name" in
       (task_*)
+        run_pre_task "$task_name"
         # shellcheck disable=SC2086
         "$task_name" $args
+        run_post_task "$task_name"
         continue
         ;;
     esac

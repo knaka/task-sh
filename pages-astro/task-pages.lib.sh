@@ -42,3 +42,12 @@ task_worker__watchbuild() { # Watch the worker files and build them into JS file
   # "forever" to keep the process running even after the stdin is closed.
   task_worker__build --watch=forever
 }
+
+# --------------------------------------------------------------------------
+# Deployment
+# --------------------------------------------------------------------------
+
+task_deploy() { # Deploy the project.
+  set_node_env
+  subcmd_wrangler pages deploy
+}

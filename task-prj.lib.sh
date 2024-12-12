@@ -57,3 +57,25 @@ task_key() { # Read a key press and show its code.
 task_nop() { # Do nothing.
   :
 }
+
+subcmd_diff() { # Detect differences from the directory.
+  local target_dir="${1}"
+  find "${target_dir}" -type f -name "task*.sh" -maxdepth 1 \
+  | while IFS= read -r theirs
+  do
+    base="$(basename "${theirs}")"
+    case "${base}" in
+      (task-prj*.sh) continue;;
+    esac
+    ours="$(find . -type f -name "${base}" -maxdepth 2 | head -n 1)"
+    if test -z "${ours}"
+    then
+      continue
+    fi
+    if ! diff -q "${ours}" "${theirs}"
+    then
+      echo "Different: ${ours} ${theirs}"
+      diff -u "${ours}" "${theirs}" || :
+    fi
+  done
+}
