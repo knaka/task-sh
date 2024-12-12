@@ -76,7 +76,7 @@ set_node_env() {
   export PATH
 }
 
-subcmd_volta() {
+subcmd_volta() { # Run volta.
   set_volta_env
   volta"$(exe_ext)" "$@"
 }
@@ -91,7 +91,7 @@ subcmd_npx() { # Run npx.
   cross_run npx "$@"
 } 
 
-subcmd_node() {
+subcmd_node() { # Run node.
   set_node_env
   node"$(exe_ext)" "$@"
 }
