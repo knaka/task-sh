@@ -41,10 +41,16 @@ do
   # Check procfs for the shell.
   if test -r /proc/$$/exe
   then
-    case "$(basename "$(readlink /proc/$$/exe)")" in
+    case "$(basename "$(readlink -f /proc/$$/exe)")" in
       (ash) break ;;
       (bash) break ;;
       (dash) break ;;
+      (sh)
+        if "$(readlink -f /proc/$$/exe)" --help 2>&1 | grep -q "BusyBox"
+        then
+          break
+        fi
+        ;;
       (*) ;;
     esac
   fi
