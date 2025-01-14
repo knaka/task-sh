@@ -39,7 +39,7 @@ do
   # Busybox shell on Windows
   is_windows_busybox_shell && break
   # Check procfs for the shell.
-  if test -r /proc/$$/exe
+  if test -e /proc/$$/exe
   then
     case "$(basename "$(readlink -f /proc/$$/exe)")" in
       (ash) break ;;

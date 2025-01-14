@@ -15,49 +15,6 @@ then
   exit 0
 fi
 
-is_windows() {
-  case "$(uname -s)" in
-    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
-    (*) return 1 ;;
-  esac
-}
-
-# Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-is_windows_busybox_shell() {
-  if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
-  then
-    return 0
-  fi
-  return 1
-}
-
-# Error exit if executed with unexpected shell.
-while true
-do
-  # Bash
-  test "${BASH+SET}" = SET && test -x "$BASH" && break
-  # Busybox shell on Windows
-  is_windows_busybox_shell && break
-  # Check procfs for the shell.
-  if test -r /proc/$$/exe
-  then
-    case "$(basename "$(readlink -f /proc/$$/exe)")" in
-      (ash) break ;;
-      (bash) break ;;
-      (dash) break ;;
-      (sh)
-        if "$(readlink -f /proc/$$/exe)" --help 2>&1 | grep -q "BusyBox"
-        then
-          break
-        fi
-        ;;
-      (*) ;;
-    esac
-  fi
-  echo "Unexpected shell." >&2
-  exit 1
-done
-
 # --------------------------------------------------------------------------
 # IFS-separated value functions.
 # --------------------------------------------------------------------------
@@ -529,6 +486,22 @@ is_darwin() {
 
 is_mac() {
   is_darwin
+}
+
+is_windows() {
+  case "$(uname -s)" in
+    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
+    (*) return 1 ;;
+  esac
+}
+
+# Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
+is_windows_busybox_shell() {
+  if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    return 0
+  fi
+  return 1
 }
 
 # Set the extra attributes of the file/directory.
@@ -1256,6 +1229,33 @@ run_post_task() {
 }
 
 main() {
+  # Error exit if executed with unexpected shell.
+  while true
+  do
+    # Bash
+    test "${BASH+SET}" = SET && test -x "$BASH" && break
+    # Busybox shell on Windows
+    is_windows_busybox_shell && break
+    # Check procfs for the shell.
+    if test -e /proc/$$/exe
+    then
+      case "$(basename "$(readlink -f /proc/$$/exe)")" in
+        (ash) break ;;
+        (bash) break ;;
+        (dash) break ;;
+        (sh)
+          if "$(readlink -f /proc/$$/exe)" --help 2>&1 | grep -q "BusyBox"
+          then
+            break
+          fi
+          ;;
+        (*) ;;
+      esac
+    fi
+    echo "Unexpected shell." >&2
+    exit 1
+  done
+
   trap cleanup_79d5d1d EXIT
 
   chdir_script
