@@ -22,7 +22,8 @@ is_windows() {
   esac
 }
 
-is_windows_busybox_ash() {
+# Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
+is_windows_busybox_shell() {
   if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     return 0
@@ -34,9 +35,19 @@ is_windows_busybox_ash() {
 while true
 do
   # Bash
-  test "${BASH+SET}" = SET && break
-  # Busybox shell (ash) on Windows
-  is_windows_busybox_ash && break
+  test "${BASH+SET}" = SET && test -x "$BASH" && break
+  # Busybox shell on Windows
+  is_windows_busybox_shell && break
+  # Check procfs for the shell.
+  if test -r /proc/$$/exe
+  then
+    case "$(basename "$(readlink /proc/$$/exe)")" in
+      (ash) break ;;
+      (bash) break ;;
+      (dash) break ;;
+      (*) ;;
+    esac
+  fi
   echo "Unexpected shell." >&2
   exit 1
 done
