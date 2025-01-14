@@ -110,6 +110,7 @@ task_dupcheck() ( # Check duplicate files.
       (.*) continue;;
       (Cargo.*) continue;;
       (README*) continue;;
+      (next.config.mjs) continue;;
       (package-lock.json) continue;;
       (package.json) continue;;
       (page.tsx) continue;;
