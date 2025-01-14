@@ -196,7 +196,8 @@ task_local_d1__drop() { # Drop the development database.
 }
 
 task_local_d1__create() { # Create the development database.
-  subcmd_local_d1__exec --command "SELECT current_timestamp"
+  # subcmd_local_d1__exec --command "SELECT current_timestamp"
+  # subcmd_wrangler d1 create --local "$database_name"
 }
 
 task_local_d1__diff() { # Generate the schema difference between the development database and the schema file.

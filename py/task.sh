@@ -15,6 +15,32 @@ then
   exit 0
 fi
 
+is_windows() {
+  case "$(uname -s)" in
+    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
+    (*) return 1 ;;
+  esac
+}
+
+is_windows_busybox_ash() {
+  if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    return 0
+  fi
+  return 1
+}
+
+# Error exit if executed with unexpected shell.
+while true
+do
+  # Bash
+  test "${BASH+SET}" = SET && break
+  # Busybox shell (ash) on Windows
+  is_windows_busybox_ash && break
+  echo "Unexpected shell." >&2
+  exit 1
+done
+
 # --------------------------------------------------------------------------
 # IFS-separated value functions.
 # --------------------------------------------------------------------------
@@ -450,13 +476,6 @@ restore_shell_flags() {
   fi
   eval "$shell_flags_c225b8f"
   unset shell_flags_c225b8f
-}
-
-is_windows() {
-  case "$(uname -s)" in
-    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
-    (*) return 1 ;;
-  esac
 }
 
 is_linux() {

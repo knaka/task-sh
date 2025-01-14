@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3043
 set -o nounset -o errexit
 
 # test "${guard_f78f5cf+set}" = set && return 0; guard_f78f5cf=x

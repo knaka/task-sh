@@ -21,6 +21,12 @@ else
   BOLD=""
 fi
 
+# Call the test in a subshell exiting on error.
+call_test() (
+  set -o errexit
+  "$1"
+)
+
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
   psv_test_file_paths=
   # Source all the test functions in the test files.
@@ -51,8 +57,9 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
         do
           echo "$test_name"
         done
-      done \
-      | shuf # Randomize the order of tests.
+      done
+      # done \
+      # | shuf # Randomize the order of tests.
     )
     pop_ifs
   fi
@@ -69,7 +76,8 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     backup_shell_flags
     # Not to exit when each test fails.
     set +o errexit
-    "test_$test_name" > "$log_file_path" 2>&1
+    call_test "test_$test_name" > "$log_file_path" 2>&1
+    # "test_$test_name" > "$log_file_path" 2>&1
     if test "$?" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL" >&2
@@ -85,7 +93,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
       while IFS= read -r line
       do
         echo "  $line"
-      done < "$log_file_path"
+      done <"$log_file_path"
       some_failed=true
     fi
     restore_shell_flags
