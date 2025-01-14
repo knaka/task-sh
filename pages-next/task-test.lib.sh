@@ -10,12 +10,14 @@ if test -t 1
 then
   RED=$(printf "\e[31m")
   GREEN=$(printf "\e[32m")
+  YELLOW=$(printf "\e[33m")
   MAGENTA=$(printf "\e[35m")
   NORMAL=$(printf "\e[00m")
   BOLD=$(printf "\e[01m")
 else
   RED=""
   GREEN=""
+  YELLOW=""
   MAGENTA=""
   NORMAL=""
   BOLD=""
@@ -26,6 +28,20 @@ call_test() (
   set -o errexit
   "$1"
 )
+
+should_test_all=${SHOULD_TEST_ALL:-false}
+
+subcmd_test_all() {
+  # shellcheck disable=SC2034
+  should_test_all=true
+  subcmd_test "$@"
+}
+
+# Skip the test unless all tests are run.
+skip_unless_all() {
+  $should_test_all && return 0
+  return 2
+}
 
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
   psv_test_file_paths=
@@ -78,7 +94,8 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
     set +o errexit
     call_test "test_$test_name" > "$log_file_path" 2>&1
     # "test_$test_name" > "$log_file_path" 2>&1
-    if test "$?" -eq 0
+    result=$?
+    if test "$result" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL" >&2
       if verbose
@@ -88,6 +105,9 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
           echo "  $line"
         done < "$log_file_path"
       fi
+    elif test "$result" -eq 2 
+    then
+      printf "%sTest \"%s\" Skipped%s\n" "$YELLOW" "$test_name" "$NORMAL" >&2
     else
       printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL" >&2
       while IFS= read -r line

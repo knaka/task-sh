@@ -5,6 +5,7 @@
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 set -o nounset -o errexit
 
+. ./task-test.lib.sh
 . ./assert.lib.sh
 . ./task.sh
 
@@ -336,4 +337,10 @@ test_task_sh_hash() {
   do
     assert_eq "$my_hash" "$hash"
   done
+}
+
+test_extra() {
+  skip_unless_all
+
+  echo "Executed extra test." >&2
 }
