@@ -115,6 +115,7 @@ task_dupcheck() ( # Check duplicate files.
       (package.json) continue;;
       (page.tsx) continue;;
       (task) continue;;
+      (task.sh) continue;;
       (task-prj*.lib.sh) continue;;
       (task-project*.lib.sh) continue;;
       (test-prj*.lib.sh) continue;;
