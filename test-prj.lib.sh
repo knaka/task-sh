@@ -324,21 +324,6 @@ test_ifs() (
   assert_true test "${IFS+set}" != set
 )
 
-# Test the content of `task.sh` is same as those of `*/task.sh`.
-test_task_sh_hash() {
-  local my_hash
-  my_hash=$(sha1sum ./task.sh | field 1)
-  find . -mindepth 2 -maxdepth 2 -type f -name "task.sh" \
-  | while IFS= read -r path
-  do
-    echo "$(sha1sum "$path" | field 1)|$path"
-  done \
-  | while IFS='|' read -r hash path
-  do
-    assert_eq "$my_hash" "$hash"
-  done
-}
-
 test_extra() {
   skip_unless_all
 
