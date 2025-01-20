@@ -1,1 +1,1 @@
-../lib/task.sh
+../task.sh
