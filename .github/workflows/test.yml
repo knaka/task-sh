@@ -22,6 +22,8 @@ jobs:
   test-windows:
     runs-on: windows-latest
     steps:
+      - name: Enable Symlinks
+        run: git config --global core.symlinks true
       - uses: actions/checkout@v4
       - name: System Info
         run: systeminfo
