@@ -40,7 +40,7 @@ subcmd_test_all() {
 # Skip the test unless all tests are run.
 skip_unless_all() {
   $should_test_all && return 0
-  return 2
+  return "$rc_test_skipped"
 }
 
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
@@ -105,7 +105,7 @@ subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all 
           echo "  $line"
         done < "$log_file_path"
       fi
-    elif test "$result" -eq 2 
+    elif test "$result" -eq "$rc_test_skipped"
     then
       printf "%sTest \"%s\" Skipped%s\n" "$YELLOW" "$test_name" "$NORMAL" >&2
     else

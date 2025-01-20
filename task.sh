@@ -16,6 +16,16 @@ then
 fi
 
 # --------------------------------------------------------------------------
+# Constants.
+# --------------------------------------------------------------------------
+
+# shellcheck disable=SC2034
+rc_delegate_task_not_found=10
+
+# shellcheck disable=SC2034
+rc_test_skipped=11
+
+# --------------------------------------------------------------------------
 # IFS-separated value functions.
 # --------------------------------------------------------------------------
 
@@ -688,7 +698,7 @@ ensure_opt_arg() {
   then
     echo "No argument for option --$1." >&2
     usage
-    exit 2
+    exit 1
   fi
   echo "$2"
 }
@@ -733,8 +743,8 @@ install_pkg_cmd_tabsep_args() {
       (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (\?) exit 2;;
-      (*) echo "Unexpected option: $OPT" >&2; exit 2;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
@@ -1310,7 +1320,9 @@ main() {
 
   # Parse the command line arguments.
   shows_help=false
-  while getopts d:hv-: OPT
+  skip_missing=false
+  ignore_missing=false
+  while getopts d:hvsi-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -1325,9 +1337,11 @@ main() {
     case "$OPT" in
       (d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (h|help) shows_help=true;;
+      (s|skip-missing) skip_missing=true;;
+      (i|ignore-missing) ignore_missing=true;;
       (v|verbose) verbose_f26120b=true;;
-      (\?) usage; exit 2;;
-      (*) echo "Unexpected option: $OPT" >&2; exit 2;;
+      (\?) usage; exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
@@ -1396,11 +1410,24 @@ main() {
     if type delegate_tasks > /dev/null 2>&1
     then
       verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
-      delegate_tasks "$@"
-      continue
+      if delegate_tasks "$@"
+      then
+        continue
+      else
+        if ! test $? -eq "$rc_delegate_task_not_found"
+        then
+          exit 1
+        fi
+      fi
     fi
-    echo "Unknown task: $task_name" >&2
-    exit 1
+    if ! $skip_missing
+    then
+      echo "Unknown task: $task_with_args" >&2
+    fi
+    if ! $skip_missing && ! $ignore_missing
+    then
+      exit 1
+    fi
   done
 }
 

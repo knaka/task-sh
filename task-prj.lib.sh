@@ -81,18 +81,16 @@ subcmd_diff() { # Detect differences from the directory.
   done
 }
 
+csv_prjs=sh,go
+
 task_install() ( # Install in each directory.
-  chdir_script
-  for dir in sh go py js
+  IFS=,
+  for dir in $csv_prjs
   do
-    if ! test -d "$dir"
-    then
-      continue
-    fi
     echo "Installing in $dir" >&2
     (
       cd "$dir" || exit 1
-      sh ./task.sh install
+      sh ./task.sh --skip-missing install
     )
   done
 )
@@ -157,8 +155,7 @@ delegate_tasks() (
       echo Done
       ;;
     (*)
-      echo "Unknown task: $1" >&2
-      return 1
+      return "$rc_delegate_task_not_found"
       ;;
   esac
 )
