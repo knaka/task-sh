@@ -5,7 +5,7 @@ set -o nounset -o errexit
 
 . ./task.sh
 . ./task-docker.lib.sh
-. ./task-git.lib.sh
+. ./task-shared-git-work.lib.sh
 
 repl_usage() {
   echo "exit: Exit the program."

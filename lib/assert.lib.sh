@@ -1,7 +1,7 @@
 #!/bin/sh
-set -o nounset -o errexit
-
 test "${guard_c23f9ad+set}" = set && return 0; guard_c23f9ad=x
+
+# Assertion functions
 
 assert_eq() {
   if ! test "$1" = "$2"
