@@ -1256,10 +1256,13 @@ main() {
     exit 1
   done
 
+  # Set the cleanup handlers caller.
   trap cleanup_79d5d1d EXIT
 
+  # Run in the script directory.
   chdir_script
 
+  # Set the environment variables according to the script name.
   if test "${ARG0BASE+set}" = "set"
   then
     case "$ARG0BASE" in
@@ -1287,6 +1290,7 @@ main() {
     ARG0BASE="$(basename "$0")"
   fi
 
+  # Load all the task files in the script directory.
   psv_task_file_paths="$(realpath "$0")|"
   for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
@@ -1304,13 +1308,16 @@ main() {
     . "$task_file_path"
   done
 
+  # Parse the command line arguments.
   shows_help=false
   while getopts d:hv-: OPT
   do
     if test "$OPT" = "-"
     then
+      # Extract long option name.
       # shellcheck disable=SC2031
       OPT="${OPTARG%%=*}"
+      # Extract long option argument.
       # shellcheck disable=SC2031
       OPTARG="${OPTARG#"$OPT"}"
       OPTARG="${OPTARG#=}"
@@ -1324,14 +1331,15 @@ main() {
     esac
   done
   shift $((OPTIND-1))
-  # unset OPTIND
 
+  # Show help message and exit.
   if $shows_help || test "${1+set}" != "set"
   then
     usage
     exit 0
   fi
 
+  # Execute the subcommand and exit.
   subcmd="$(echo "$1" | sed -r -e 's/:/__/g')"
   if type subcmd_"$subcmd" > /dev/null 2>&1
   then
@@ -1356,6 +1364,7 @@ main() {
       ;;
   esac
 
+  # Run tasks.
   for task_with_args in "$@"
   do
     task_name="$task_with_args"
@@ -1395,7 +1404,7 @@ main() {
   done
 }
 
-# To make this file can be sourced to provide functions.
+# Run the main function if this script is executed as task runner.
 if test "$(basename "$0")" = "task.sh"
 then
   main "$@"
