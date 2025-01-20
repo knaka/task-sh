@@ -1,7 +1,7 @@
 #!/bin/sh
-set -o nounset -o errexit
+test "${guard_2c50c57+set}" = set && return 0; guard_2c50c57=x
 
-test "${guard_3b8c583+set}" = set && return 0; guard_3b8c583=-
+# Docker task library.
 
 . ./task.sh
 
