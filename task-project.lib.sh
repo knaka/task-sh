@@ -275,6 +275,7 @@ task_daemon() {
 
 task_all__test() { # Run all tests in sub directories. This can take a long time if the environment is not set up.
   local some_failed=false
+  local i
   for i in js/ tools/ ./
   do
     echo "Testing $i"

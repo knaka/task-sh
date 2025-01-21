@@ -1,10 +1,8 @@
 #!/bin/sh
-# shellcheck disable=SC3043
 test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
-set -o nounset -o errexit
 
 . ./task.sh
-. ./task-node.lib.sh
+. ./task-volta.lib.sh
 . ./task-pages.lib.sh
 . ./task-astro.lib.sh
 
