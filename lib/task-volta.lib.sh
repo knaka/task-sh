@@ -5,10 +5,6 @@ test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
 
 . ./task.sh
 
-# mkdir_sync_ignored node_modules
-
-# set_sync_ignored .env*.local || :
-
 volta_dir_path() (
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
   cmd_base=volta
@@ -59,27 +55,19 @@ volta_dir_path() (
 )
 
 set_volta_env() {
-  if test "${guard_fc3b530+set}" = set
-  then
-    return 0
-  fi
-  guard_fc3b530=x
+  first_call 80498e1 || return 0
   PATH="$(volta_dir_path):$PATH"
   export PATH
 }
 
 set_node_env() {
-  if test "${guard_54448e7+set}" = set
-  then
-    return 0
-  fi
-  guard_54448e7=x
+  first_call ae97cdf || return 0
   set_volta_env
   PATH="$(dirname "$(subcmd_volta which node)"):$PATH"
   export PATH
 }
 
-subcmd_volta() {
+subcmd_volta() { # Run Volta.
   set_volta_env
   volta"$(exe_ext)" "$@"
 }
@@ -94,7 +82,7 @@ subcmd_npx() { # Run npx.
   cross_run npx "$@"
 } 
 
-subcmd_node() {
+subcmd_node() { # Run Node.js.
   set_node_env
   node"$(exe_ext)" "$@"
 }

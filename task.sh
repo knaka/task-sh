@@ -1,6 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC3043
-test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=x
+test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
 set -o nounset -o errexit
 
 # Update the script by replacing itself with the latest version.

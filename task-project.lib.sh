@@ -5,7 +5,7 @@ set -o nounset -o errexit
 
 . ./task.sh
 . ./task-docker.lib.sh
-. ./task-shared-git-work.lib.sh
+. ./task-shared-git-work-dir.lib.sh
 
 repl_usage() {
   echo "exit: Exit the program."
@@ -81,11 +81,12 @@ subcmd_diff() { # Detect differences from the directory.
   done
 }
 
-csv_prjs=sh,go,sub
+csv_projects_to_install=sh,go,js
 
-task_install() ( # Install in each directory.
+task_install() { # Install in each directory.
+  push_ifs
   IFS=,
-  for dir in $csv_prjs
+  for dir in $csv_projects_to_install
   do
     echo "Installing in $dir" >&2
     (
@@ -95,7 +96,8 @@ task_install() ( # Install in each directory.
       sh ./task.sh --ignore-missing install
     )
   done
-)
+  pop_ifs
+}
 
 task_client__foo__build() ( # [args...] Build client.
   printf "Building client: "
