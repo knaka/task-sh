@@ -1313,6 +1313,7 @@ main() {
         ;;
     esac
     psv_task_file_paths="$psv_task_file_paths$task_file_path|"
+    # echo Loading "$task_file_path" >&2
     # shellcheck disable=SC1090
     . "$task_file_path"
   done
