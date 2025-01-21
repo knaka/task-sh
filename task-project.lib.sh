@@ -81,7 +81,7 @@ subcmd_diff() { # Detect differences from the directory.
   done
 }
 
-csv_prjs=sh,go
+csv_prjs=sh,go,sub
 
 task_install() ( # Install in each directory.
   IFS=,
@@ -90,7 +90,9 @@ task_install() ( # Install in each directory.
     echo "Installing in $dir" >&2
     (
       cd "$dir" || exit 1
-      sh ./task.sh --skip-missing install
+      # sh ./task.sh --skip-missing install
+      # --ignore-missing: Prints warning if the task is not found.
+      sh ./task.sh --ignore-missing install
     )
   done
 )
