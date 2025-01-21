@@ -273,20 +273,17 @@ task_daemon() {
   kill_children
 }
 
-task_once() {
-  echo Started Once >&2
-  first_call 4012815 || return 0
-  echo Doing Once >&2
-}
-
-subcmd_foo__bar() {
-  cat <<EOF | sort_version
-1.1.1
-1.0
-1.1.1alpha1
-EOF
-}
-
-subcmd_bar__baz__hoge__fuga() { # Bar baz.
-  echo "Bar baz"
+task_rectest() { # Run tests in each directory. This can take a long time if the environment is not set up.
+  local any_failed=false
+  for i in js tools .
+  do
+    echo "Testing $i"
+    cd "$i" || exit 1
+    if ! sh task.sh test
+    then
+      any_failed=true
+    fi
+    cd ..
+  done
+  $any_failed && return 1
 }
