@@ -27,8 +27,7 @@ task_worker__build() { # Build the worker files into a JS file.
   push_ifs
   ifs_newline
   # shellcheck disable=SC2046
-  # subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" $(find "$functions_src_dir" -type f -name "*.ts" -o -name "*.tsx") "$@"
-  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/**/*.ts"
+  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/entries/**/*.ts"
   pop_ifs
 }
 
