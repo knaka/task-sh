@@ -31,12 +31,6 @@ call_test() (
 
 should_test_all=${SHOULD_TEST_ALL:-false}
 
-subcmd_test_all() {
-  # shellcheck disable=SC2034
-  should_test_all=true
-  subcmd_test "$@"
-}
-
 # Skip the test unless all tests are run.
 skip_unless_all() {
   $should_test_all && return 0
@@ -44,6 +38,25 @@ skip_unless_all() {
 }
 
 subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
+  while getopts a-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      # Extract long option name.
+      # shellcheck disable=SC2031
+      OPT="${OPTARG%%=*}"
+      # Extract long option argument.
+      # shellcheck disable=SC2031
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (a|all) should_test_all=true;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
   psv_test_file_paths=
   # Source all the test functions in the test files.
   for test_file_path in "$SCRIPT_DIR"/test-*.sh

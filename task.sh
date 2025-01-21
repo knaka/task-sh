@@ -747,7 +747,6 @@ install_pkg_cmd_tabsep_args() {
     esac
   done
   shift $((OPTIND-1))
-  # unset OPTIND
 
   local cmd_path="$cmd_name"
   if is_windows

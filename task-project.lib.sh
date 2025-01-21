@@ -273,17 +273,18 @@ task_daemon() {
   kill_children
 }
 
-task_rectest() { # Run tests in each directory. This can take a long time if the environment is not set up.
-  local any_failed=false
-  for i in js tools .
+task_all__test() { # Run all tests in sub directories. This can take a long time if the environment is not set up.
+  local some_failed=false
+  for i in js/ tools/ ./
   do
     echo "Testing $i"
     cd "$i" || exit 1
-    if ! sh task.sh test
+    if ! sh task.sh test --all
     then
-      any_failed=true
+      some_failed=true
     fi
     cd ..
   done
-  $any_failed && return 1
+  $some_failed && return 1
+  return 0
 }
