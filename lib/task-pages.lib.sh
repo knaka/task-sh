@@ -4,14 +4,14 @@ test "${guard_82d2bd6+set}" = set && return 0; guard_82d2bd6=x
 set -o nounset -o errexit
 
 . ./task.sh
-. ./task-volta.lib.sh
+. ./task-node.lib.sh
 
 subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
-  node_modules_run_bin esbuild bin/esbuild "$@"
+  run_node_modules_bin esbuild bin/esbuild "$@"
 }
 
 subcmd_wrangler() { # Run the Cloudflare Wrangler command.
-  node_modules_run_bin wrangler bin/wrangler.js "$@"
+  run_node_modules_bin wrangler bin/wrangler.js "$@"
 }
 
 # --------------------------------------------------------------------------
@@ -26,8 +26,7 @@ task_worker__build() { # Build the worker files into a JS file.
   rm -fr "$functions_dir"
   push_ifs
   ifs_newline
-  # shellcheck disable=SC2046
-  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/entries/**/*.ts"
+  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/root/**/*.ts"
   pop_ifs
 }
 

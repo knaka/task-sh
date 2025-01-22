@@ -2,7 +2,7 @@
 test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 
 . ./task.sh
-. ./task-volta.lib.sh
+. ./task-node.lib.sh
 . ./task-pages.lib.sh
 . ./task-astro.lib.sh
 
@@ -54,4 +54,8 @@ task_astro__dev() { # Launch the Astro development server.
       (*) ;;
     esac
   done
+}
+
+subcmd_test() {
+  run_node_modules_bin jest bin/jest.js "$@"
 }

@@ -3,7 +3,7 @@
 test "${guard_926c124+set}" = set && return 0; guard_926c124=x
 set -o nounset -o errexit
 
-. ./task-volta.lib.sh
+. ./task-node.lib.sh
 
 subcmd_astro() { # Run the Astro command.
   node_moduels_run_bin astro astro.js "$@"
