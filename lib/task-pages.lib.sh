@@ -15,14 +15,14 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 }
 
 # --------------------------------------------------------------------------
-# Cloudflare Workers codes.
+# Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
 
 functions_src_dir="src/functions"
 functions_dir="functions"
 
 # shellcheck disable=SC2120
-task_worker__build() { # Build the worker files into a JS file.
+task_functions__build() { # Build the Functions files into a JS file.
   rm -fr "$functions_dir"
   push_ifs
   ifs_newline
@@ -30,16 +30,9 @@ task_worker__build() { # Build the worker files into a JS file.
   pop_ifs
 }
 
-task_worker__depbuild() { # Build the worker files if the source files are newer than the output files.
-  if newer "$functions_src_dir" --than "$functions_dir"
-  then
-    task_worker__build
-  fi
-}
-
-task_worker__watchbuild() { # Watch the worker files and build them into JS files.
-  # "forever" to keep the process running even after the stdin is closed.
-  task_worker__build --watch=forever
+task_functions__watchbuild() { # Watch the functions files and build them into JS files.
+  # Specify "forever" to keep the process running even after the stdin is closed.
+  task_functions__build --watch=forever
 }
 
 # --------------------------------------------------------------------------

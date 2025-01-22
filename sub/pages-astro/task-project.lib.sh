@@ -13,7 +13,7 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 task_pages__dev() { # Launch the Wrangler Pages development server.
   export NODE_ENV=development
   load_env
-  sh task.sh task_worker__watchbuild &
+  sh task.sh task_functions__watchbuild &
   test "${PAGES_DEV_PORT+set}" = set && set -- "$@" --port "$PAGES_DEV_PORT"
   test "${ASTRO_DEV_PORT+set}" = set && set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
   subcmd_wrangler pages dev "$@" --live-reload ./dist
@@ -58,6 +58,6 @@ task_astro__dev() { # Launch the Astro development server.
   done
 }
 
-subcmd_test() {
+subcmd_test() { # Run tests.
   run_node_modules_bin jest bin/jest.js "$@"
 }
