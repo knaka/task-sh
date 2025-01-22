@@ -5,6 +5,7 @@ test "${guard_a8ac234+set}" = set && return 0; guard_a8ac234=x
 
 if ! test -L ./sh/task.sh
 then
+  # shellcheck disable=SC2016
   echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
   if is_windows
   then
