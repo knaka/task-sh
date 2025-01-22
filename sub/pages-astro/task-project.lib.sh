@@ -22,8 +22,10 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
 task_astro__dev() { # Launch the Astro development server.
   export NODE_ENV=development
   load_env
-  set -- "$@" --host "${ASTRO_DEV_HOST:-127.0.0.1}"
-  set -- "$@" --port "${ASTRO_DEV_PORT:-3000}"
+  local host="${ASTRO_DEV_HOST:-127.0.0.1}"
+  local port="${ASTRO_DEV_PORT:-3000}"
+  set -- "$@" --host "$host"
+  set -- "$@" --port "$port"
   if test "${PAGES_DEV_PORT+set}" = set
   then
     export API_DEV_PORT="$PAGES_DEV_PORT"

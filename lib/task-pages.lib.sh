@@ -18,7 +18,7 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 # Cloudflare Workers codes.
 # --------------------------------------------------------------------------
 
-functions_src_dir="functions-src"
+functions_src_dir="src/functions"
 functions_dir="functions"
 
 # shellcheck disable=SC2120
@@ -26,7 +26,7 @@ task_worker__build() { # Build the worker files into a JS file.
   rm -fr "$functions_dir"
   push_ifs
   ifs_newline
-  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/root/**/*.ts"
+  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/**/*.ts"
   pop_ifs
 }
 
