@@ -1,0 +1,1 @@
+./lib/task-symlink-check.lib.sh
