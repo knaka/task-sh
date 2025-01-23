@@ -15,7 +15,7 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 app.use('/api/*', cors())
-const route = app.post('/api/echo',
+const route = app.post('/api/respond',
     zValidator(
       "json",
       z.object({ message: z.string() }),

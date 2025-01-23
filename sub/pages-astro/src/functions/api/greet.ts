@@ -13,7 +13,7 @@ type Bindings = {
   AP_DEV_PORT?: string,
 };
 
-const app = new Hono<{ Bindings: Bindings }>();
+export const app = new Hono<{ Bindings: Bindings }>();
 app.use('/api/*', cors())
 const route = app.post('/api/greet',
     zValidator(
