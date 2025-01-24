@@ -6,6 +6,20 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 . ./task-pages.lib.sh
 . ./task-astro.lib.sh
 
+subcmd_tsnode() { # Run TypeScript files with ts-node.
+  run_node_modules_bin ts-node dist/bin.js --esm "$@"
+}
+
+subcmd_tsx() {
+  run_node_modules_bin tsx dist/cli.mjs "$@"
+}
+
+subcmd_vision_test() {
+  local api_key="$1"
+  local image_file_path="$2"
+  subcmd_tsx ./scripts/vision_test.ts "$api_key" "$image_file_path"
+}
+
 # --------------------------------------------------------------------------
 # Development
 # --------------------------------------------------------------------------

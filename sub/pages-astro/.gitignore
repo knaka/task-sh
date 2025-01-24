@@ -25,3 +25,5 @@ pnpm-debug.log*
 .idea/
 /functions
 /.wrangler
+/test.jpg
+/request*.json
