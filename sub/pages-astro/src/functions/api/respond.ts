@@ -2,18 +2,20 @@ import { Hono } from 'hono'
 import { handle as pagesHandle } from 'hono/cloudflare-pages'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator';
-// import { D1Database } from "@cloudflare/workers-types";
+import { D1Database } from "@cloudflare/workers-types";
 import { cors } from 'hono/cors'
 
 type Bindings = {
   ASSETS: {
     fetch: typeof fetch;
   },
-  // DB: D1Database,
+  DB: D1Database,
   AP_DEV_PORT?: string,
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
+export const onRequest = pagesHandle(app);
+
 app.use('/api/*', cors())
 const route = app.post('/api/respond',
     zValidator(
@@ -32,6 +34,4 @@ const route = app.post('/api/respond',
     }
   )
 ;
-
-export const onRequest = pagesHandle(app);
 export type AppType = typeof route;

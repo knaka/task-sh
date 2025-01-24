@@ -11,9 +11,8 @@ type Bindings = {
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
-
-app.get('/api/bar', async (c) => {
-  return c.html('<html><body><h1>Bar</h1></body></html>');
-});
-
 export const onRequest = pagesHandle(app);
+
+app.get('*', async (c) => {
+  return c.html('<html><body><h1>Foo 6c7376b</h1></body></html>');
+});

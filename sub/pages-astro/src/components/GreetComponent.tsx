@@ -2,9 +2,11 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 
 import { hc } from 'hono/client'
-import type { AppType } from '../functions/api/greet';
+import type { AppType } from '../functions/api/[[all]]';
+// import type { AppType as AppTypeRespond } from '../functions/api/respond';
 
 const client = hc<AppType>('http://localhost:8788/')
+// const clientSub = hc<AppTypeRespond>('http://localhost:8788/')
 
 export const GreetComponent = () => {
   const [message, setMessage] = useState('No message.');
