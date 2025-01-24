@@ -1,7 +1,10 @@
 {
+    "module": "esnext",
     "compilerOptions": {
+        "target": "es2017",
+        "module": "esnext",
         "types": [
             "bun-types"
         ]
-    }
+    },
 }
