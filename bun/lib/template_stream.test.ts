@@ -1,14 +1,6 @@
 import { expect, test } from "bun:test";
+import { createTextStream } from './text_stream';
 import { createStreamWithTemplate } from './template_stream';
-
-function createTextStream(text: string): ReadableStream<Uint8Array> {
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(new TextEncoder().encode(text));
-      controller.close();
-    },
-  });
-}
 
 test('createStreamWithTemplate', async () => {
   const resultStream = createStreamWithTemplate(

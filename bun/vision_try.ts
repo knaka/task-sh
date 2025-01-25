@@ -1,7 +1,7 @@
 // bun vision_try.ts AIz... test.jpg
 
 import { createStreamWithTemplate } from '@lib/template_stream';
-import { base64Transform } from '@lib/base64_stream';
+import { createBase64Transform } from '@lib/base64_stream';
 
 const apiKey = Bun.argv[2];
 const imageFilePath = Bun.argv[3];
@@ -26,7 +26,7 @@ const resp = await fetch(visionApiUrl, {
         ],
       },
     ],
-  }), "aa7c245", imageStream.pipeThrough(base64Transform)),
+  }), "aa7c245", imageStream.pipeThrough(createBase64Transform())),
 });
 
 // console.log(await (new Response(bodyStream).text()));
