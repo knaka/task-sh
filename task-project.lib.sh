@@ -283,6 +283,10 @@ task_daemon() {
   kill_children
 }
 
+subcmd_test() { # [test_names...] Run shell-based tests. If no test names are provided, all tests are run.
+  subcmd_sh__test "$@"
+}
+
 task_all__test() { # Run all tests in sub directories. This can take a long time if the environment is not set up.
   local some_failed=false
   local i

@@ -9,6 +9,8 @@
         "baseUrl": ".",
         "paths": {
             "@lib/*": ["./lib/*"],
+            "@src_pages/": ["./src-pages/*"],
+            "@src_astro/": ["./src-astro/*"],
         }
     },
 }

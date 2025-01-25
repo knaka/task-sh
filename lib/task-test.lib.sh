@@ -37,7 +37,7 @@ skip_unless_all() {
   return "$rc_test_skipped"
 }
 
-subcmd_test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
+subcmd_sh__test() ( # [test_names...] Run tests. If no test names are provided, all tests are run.
   while getopts a-: OPT
   do
     if test "$OPT" = "-"
