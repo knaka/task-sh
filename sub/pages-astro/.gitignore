@@ -22,7 +22,7 @@ pnpm-debug.log*
 .DS_Store
 
 # jetbrains setting folder
-.idea/
+/.idea
 /functions
 /.wrangler
 /test.jpg

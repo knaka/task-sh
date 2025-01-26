@@ -6,6 +6,7 @@ import react from '@astrojs/react';
 export default defineConfig({
   ...{
     srcDir: "./src-astro",
+    outDir: "./dist",
     integrations: [react()],
   },
   ...(process.env.NODE_ENV === "development")? {

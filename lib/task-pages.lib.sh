@@ -18,15 +18,15 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 # Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
 
-functions_src_dir="src/functions"
-functions_dir="functions"
+pages_functions_src_dir_path="./src/functions"
+pages_functions_dir_path="./functions"
 
 # shellcheck disable=SC2120
 task_functions__build() { # Build the Functions files into a JS file.
-  rm -fr "$functions_dir"
+  rm -fr "$pages_functions_dir_path"
   push_ifs
   ifs_newline
-  subcmd_esbuild --bundle --format=esm --outdir="$functions_dir" "$@" "$functions_src_dir/**/*.ts"
+  subcmd_esbuild --bundle --format=esm --outdir="$pages_functions_dir_path" "$@" "$pages_functions_src_dir_path/**/*.ts"
   pop_ifs
 }
 
