@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { app } from './functions/api/[[all]]'
+import { app } from 'functions/api/[[all]]'
 
 test('POST greet', async () => {
   const resp = await app.request('/api/greet', {

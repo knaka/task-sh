@@ -5,7 +5,7 @@
     "types": [
       "bun-types"
     ],
-    "baseUrl": ".",
+    "baseUrl": "./src-astro",
     "paths": {
       "@src_pages/*": ["../src-pages/*"],
     }
