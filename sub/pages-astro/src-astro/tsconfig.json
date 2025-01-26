@@ -2,9 +2,12 @@
   "compilerOptions": {
     // To use JSX syntax in *.tsx files.
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "types": [
-        "bun-types"
+      "bun-types"
     ],
+    "baseUrl": ".",
+    "paths": {
+      "@src_pages/*": ["../src-pages/*"],
+    }
   },
 }

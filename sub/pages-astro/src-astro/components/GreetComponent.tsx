@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 
-import { hc } from 'hono/client'
-import type { AppType } from '../../src-pages/functions/api/[[all]]';
+import { hc } from 'hono/client';
+import type { AppType } from '@src_pages/functions/api/[[all]]';
 // import type { AppType as AppTypeRespond } from '../functions/api/respond';
 
 const client = hc<AppType>('http://localhost:8788/')
