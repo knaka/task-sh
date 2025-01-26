@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 
 import { hc } from 'hono/client'
-import type { AppType } from '../functions/api/[[all]]';
+import type { AppType } from '../../src-pages/functions/api/[[all]]';
 // import type { AppType as AppTypeRespond } from '../functions/api/respond';
 
 const client = hc<AppType>('http://localhost:8788/')
@@ -33,6 +33,7 @@ export const GreetComponent = () => {
     setEnteredName(event.target.value);
   };
   return <>
+    <p>4b627f8</p>
     <p>Name:</p>
     <input type="text" value={enteredName} onChange={handleChange} />
     <h2>{message}!</h2>

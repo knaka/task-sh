@@ -1,5 +1,5 @@
 #!/bin/sh
-test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
+test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 
 . ./task.sh
 . ./task-node.lib.sh
@@ -9,9 +9,9 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 . ./task-pages.lib.sh
 pages_functions_src_dir_path="./src-pages/functions"
 
-# --------------------------------------------------------------------------
-# Development
-# --------------------------------------------------------------------------
+subcmd_test() { # Run tests.
+  subcmd_bun test "$@"
+}
 
 task_pages__dev() { # Launch the Wrangler Pages development server.
   export NODE_ENV=development
@@ -59,10 +59,4 @@ task_astro__dev() { # Launch the Astro development server.
       (*) ;;
     esac
   done
-}
-
-# --------------------------------------------------------------------------
-
-subcmd_test() { # Run tests.
-  subcmd_bun test "$@"
 }
