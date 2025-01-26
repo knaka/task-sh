@@ -5,6 +5,7 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=x
 . ./task-node.lib.sh
 . ./task-pages.lib.sh
 . ./task-astro.lib.sh
+. ./task-bun.lib.sh
 
 subcmd_tsnode() { # Run TypeScript files with ts-node.
   run_node_modules_bin ts-node dist/bin.js --esm "$@"
@@ -72,6 +73,8 @@ task_astro__dev() { # Launch the Astro development server.
   done
 }
 
+# --------------------------------------------------------------------------
+
 subcmd_test() { # Run tests.
-  run_node_modules_bin jest bin/jest.js "$@"
+  subcmd_bun test "$@"
 }
