@@ -1,18 +1,19 @@
-import { app } from './functions/api/greet'
+import { expect, test } from "bun:test";
+import { app } from './functions/api/[[all]]'
 
-test('POST greet is ok', async () => {
-  const res = await app.request('/api/greet', {
+test('POST greet', async () => {
+  const resp = await app.request('/api/greet', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ name: 'world' }),
   });
-  expect(res.status).toBe(200)
-  expect(await res.json()).toEqual({ message: 'Hello, world!' })
+  expect(resp.status).toBe(200)
+  expect(await resp.json()).toEqual({ message: 'Hello, world!' })
 })
 
-test('Invalid JSON', async () => {
+test('POST greet invalid request', async () => {
   const res = await app.request('/api/greet', {
     method: 'POST',
     headers: {

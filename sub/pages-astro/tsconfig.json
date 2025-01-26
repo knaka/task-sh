@@ -1,3 +1,16 @@
 {
-  "extends": "astro/tsconfigs/strict"
+    "module": "esnext",
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "esnext",
+        "types": [
+            "bun-types"
+        ],
+        "baseUrl": ".",
+        "paths": {
+            "@lib/*": ["./lib/*"],
+            "@src_pages/": ["./src-pages/*"],
+            "@src_astro/": ["./src-astro/*"],
+        }
+    },
 }

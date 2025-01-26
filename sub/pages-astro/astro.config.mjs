@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 // https://astro.build/config
 export default defineConfig({
   ...{
+    srcDir: "./src-astro",
     integrations: [react()],
   },
   ...(process.env.NODE_ENV === "development")? {

@@ -1,0 +1,9 @@
+{
+    "module": "esnext",
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "esnext",
+        "baseUrl": ".",
+        "paths": {}
+    },
+}
