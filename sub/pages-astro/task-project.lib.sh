@@ -54,7 +54,14 @@ task_astro__dev() { # Launch the Astro development server.
     case "$(get_key)" in
       (b) open_browser "http://$host:$port" ;;
       (c) clear ;;
-      (l) task_astro__build ;;
+      (l)
+        if task_astro__build
+        then
+          echo "Built successfully."
+        else
+          echo "Failed to build."
+        fi
+        ;;
       (x) break ;;
       (*) ;;
     esac

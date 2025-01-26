@@ -33,7 +33,7 @@ export const GreetComponent = () => {
     setEnteredName(event.target.value);
   };
   return <>
-    <p>4b627f8</p>
+    <p>050eca0</p>
     <p>Name:</p>
     <input type="text" value={enteredName} onChange={handleChange} />
     <h2>{message}!</h2>
