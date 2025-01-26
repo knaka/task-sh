@@ -38,7 +38,7 @@ skip_unless_all() {
 }
 
 subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
-  while getopts a-: OPT
+  unset OPTIND; while getopts a-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -73,6 +73,7 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
   # If not test names are provided, run all tests.
   if test "$#" -eq 0
   then
+    echo "No test names provided. Running all tests." >&2
     push_ifs
     unset IFS
     # shellcheck disable=SC2046
