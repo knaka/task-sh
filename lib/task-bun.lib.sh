@@ -2,7 +2,6 @@
 test "${guard_920f884+set}" = set && return 0; guard_920f884=-
 
 . ./task.sh
-. ./task-proto.lib.sh
 
 subcmd_bun() { # Run bun(1).
   run_pkg_cmd \
