@@ -22,7 +22,7 @@ pages_functions_src_dir_path="./src/functions"
 pages_functions_dir_path="./functions"
 
 # shellcheck disable=SC2120
-task_functions__build() { # Build the Functions files into a JS file.
+task_pages__functions__build() { # Build the Functions files into a JS file.
   rm -fr "$pages_functions_dir_path"
   push_ifs
   ifs_newline
@@ -30,16 +30,16 @@ task_functions__build() { # Build the Functions files into a JS file.
   pop_ifs
 }
 
-task_functions__watchbuild() { # Watch the functions files and build them into JS files.
+task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
   # Specify "forever" to keep the process running even after the stdin is closed.
-  task_functions__build --watch=forever
+  task_pages__functions__build --watch=forever
 }
 
 # --------------------------------------------------------------------------
 # Deployment
 # --------------------------------------------------------------------------
 
-task_deploy() { # Deploy the project.
+task_pages__deploy() { # Deploy the project.
   set_node_env
   subcmd_wrangler pages deploy
 }
