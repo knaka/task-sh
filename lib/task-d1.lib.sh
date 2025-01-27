@@ -12,11 +12,15 @@ set -o nounset -o errexit
 
 mkdir -p build/
 
+task_d1__list() { # List the remote D1 databases.
+  subcmd_wrangler d1 list
+}
+
 d1_database_name() {
   memoize 9764143 subcmd_yq --exit-status eval '.d1_databases.0.database_name' wrangler.toml
 }
 
-task_d1__create() { # Create the remote D1 database. This must be executed only once through the project lifecycle.
+subcmd_d1__create() { # Create the remote D1 database. This must be executed only once through the project lifecycle.
   subcmd_wrangler d1 create "$1"
 }
 
@@ -56,7 +60,7 @@ task_d1__diff() { # Generate the schema difference between the remote database a
   subcmd_wrangler d1 export --remote --no-data --output=build/remote-schema.sql "$database_name"
   rm -f build/remote-schema.db
   subcmd_sqlite3 build/remote-schema.db <build/remote-schema.sql
-  cross_run ./cmd-gobin run sqlite3def --file=schema.sql build/remote-schema.db --dry-run > build/remote-diff.sql
+  subcmd_gobin run sqlite3def --file=schema.sql build/remote-schema.db --dry-run > build/remote-diff.sql
   cat build/remote-diff.sql
 }
 
@@ -100,20 +104,20 @@ task_d1__local__create() { # Create the development database.
 
 task_d1__local__diff() { # Generate the schema difference between the development database and the schema file.
   task_d1__local__schema
-  rm -f build/dev-schema.db
-  subcmd_sqlite3 build/dev-schema.db < build/dev-schema.sql
-  cross_run ./cmd-gobin run sqlite3def --file=schema.sql build/dev-schema.db --dry-run > build/dev-diff.sql
-  cat build/dev-diff.sql
+  rm -f build/local-schema.db
+  subcmd_sqlite3 build/local-schema.db <build/local-schema.sql
+  subcmd_gobin run sqlite3def --file=db/schema.sql build/local-schema.db --dry-run > build/local-diff.sql
+  cat build/local-diff.sql
 }
 
 task_d1__local__migrate() { # Apply the schema changes to the development database.
   task_d1__local__diff
-  if test "$(sha1sum build/dev-diff.sql | field 1)" = e7efbf38cff7d12493cbe795586c588dccb332f4
+  if test "$(sha1sum build/local-diff.sql | field 1)" = e7efbf38cff7d12493cbe795586c588dccb332f4
   then
     echo "No schema changes."
     return 0
   fi
-  subcmd_d1__local__exec --file=build/dev-diff.sql
+  subcmd_d1__local__exec --file=build/local-diff.sql
 }
 
 task_d1__local__seed() { # Seed the development database.

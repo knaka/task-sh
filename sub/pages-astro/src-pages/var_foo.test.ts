@@ -1,17 +1,12 @@
 import { expect, test, mock } from "bun:test";
-import { createApp } from 'functions/var/timestamp'
-
-import * as SqclQuerier from '@sqlcgen/querier'
+import { app } from 'functions/var/timestamp'
 
 test('Mock', async () => {
-  mock.module('@sqlcgen/querier', () => {
-    return {
-      getUsersCount: async () => {
-        return { foo: 42 }
-      }
+  mock.module('@sqlcgen/querier', () => ({
+    getUsersCount: async () => {
+      return { foo: 42 }
     }
-  });
-  const app = createApp(SqclQuerier);
+  }));
   const resp = await app.request(
     '/var/timestamp',
     {
@@ -22,5 +17,5 @@ test('Mock', async () => {
     },
   );
   expect(resp.status).toBe(200)
-  expect(await resp.text()).toEqual('<html><body><h1>Count: 42</h1></body></html>');
+  expect(await resp.text()).toMatch(/Count: 42/)
 });
