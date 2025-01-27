@@ -28,3 +28,5 @@ pnpm-debug.log*
 /test.jpg
 /request*.json
 /db/sqlcgen
+/.gobin
+/build

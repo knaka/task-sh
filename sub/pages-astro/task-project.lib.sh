@@ -72,6 +72,27 @@ task_astro__dev() { # Launch the Astro development server.
 # Database bindings
 # --------------------------------------------------------------------------
 
+task_db__plugin__build() { # Builds the gen-typescript plugin.
+  # Currently, the published WASM on sqlc.dev does not support SQLite3.
+  cd "$script_dir_path" || exit 1
+  if test -r build/sqlc-gen-typescript/examples/plugin.wasm
+  then
+    return 0
+  fi
+  cd build
+  if ! test -d sqlc-gen-typescript
+  then
+    git clone https://github.com/sqlc-dev/sqlc-gen-typescript.git
+  fi
+  cd sqlc-gen-typescript
+  cp ../../task.sh ../../task-*.lib.sh .
+  sh task.sh npm install
+  # https://github.com/sqlc-dev/sqlc-gen-typescript/blob/main/.github/workflows/ci.yml
+  sh task.sh npx tsc --noEmit
+  sh task.sh npx esbuild --bundle src/app.ts --tree-shaking=true --format=esm --target=es2020 --outfile=out.js
+  sh task.sh javy build out.js -o examples/plugin.wasm
+}
+
 task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   # Generate the database access layer.
   cross_run ./cmd-gobin run sqlc generate
