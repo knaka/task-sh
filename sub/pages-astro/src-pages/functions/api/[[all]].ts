@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator';
 import { D1Database } from "@cloudflare/workers-types";
 import { cors } from 'hono/cors'
-// import { getTheUser, GetTheUserArgs } from '@sqlcgen/query_sql'
+import { getTheUser, GetTheUserArgs } from '@sqlcgen/main_sql'
 
 type Bindings = {
   ASSETS: {
