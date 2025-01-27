@@ -4,5 +4,8 @@
       "bun-types"
     ],
     "baseUrl": ".",
+    "paths": {
+      "@sqlcgen/*": ["../db/sqlcgen/*"],
+    },
   },
 }

@@ -2,14 +2,15 @@ import { Hono } from 'hono'
 import { handle as pagesHandle } from 'hono/cloudflare-pages'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator';
-// import { D1Database } from "@cloudflare/workers-types";
+import { D1Database } from "@cloudflare/workers-types";
 import { cors } from 'hono/cors'
+// import { getTheUser, GetTheUserArgs } from '@sqlcgen/query_sql'
 
 type Bindings = {
   ASSETS: {
     fetch: typeof fetch;
   },
-  // DB: D1Database,
+  DB: D1Database,
   AP_DEV_PORT?: string,
 };
 

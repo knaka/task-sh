@@ -5,6 +5,7 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 . ./task-node.lib.sh
 . ./task-astro.lib.sh
 . ./task-bun.lib.sh
+. ./task-gobin.lib.sh
 
 . ./task-pages.lib.sh
 pages_functions_src_dir_path="./src-pages/functions"
@@ -73,8 +74,8 @@ task_astro__dev() { # Launch the Astro development server.
 # --------------------------------------------------------------------------
 
 task_db__plugin__build() { # Builds the gen-typescript plugin.
+  first_call 121be92 || return 0
   # Currently, the published WASM on sqlc.dev does not support SQLite3.
-  cd "$script_dir_path" || exit 1
   if test -r build/sqlc-gen-typescript/examples/plugin.wasm
   then
     return 0
@@ -85,8 +86,8 @@ task_db__plugin__build() { # Builds the gen-typescript plugin.
     git clone https://github.com/sqlc-dev/sqlc-gen-typescript.git
   fi
   cd sqlc-gen-typescript
-  cp ../../task.sh ../../task-*.lib.sh .
-  sh task.sh npm install
+  cp -f ../../task.sh ../../task-*.lib.sh .
+  sh task.sh npm:depinstall
   # https://github.com/sqlc-dev/sqlc-gen-typescript/blob/main/.github/workflows/ci.yml
   sh task.sh npx tsc --noEmit
   sh task.sh npx esbuild --bundle src/app.ts --tree-shaking=true --format=esm --target=es2020 --outfile=out.js
@@ -94,38 +95,45 @@ task_db__plugin__build() { # Builds the gen-typescript plugin.
 }
 
 task_db__gen() { # Generate the database access layer (./sqlcgen/*).
+  task_db__plugin__build
+  rm -fr ./db/sqlcgen
   # Generate the database access layer.
-  cross_run ./cmd-gobin run sqlc generate
+  subcmd_gobin run sqlc generate --file ./db/sqlc.yaml
   # Then, rewrite the generated file.
-  file_path=sqlcgen/querier.ts
-  temp_path="$(temp_dir_path)"/f695a83
-  sed -E \
-    -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
-    -e "s/^(.*\.${lwb}bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
-    -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
-  | while IFS= read -r line
-  do
-    IFS="$us"
-    # shellcheck disable=SC2086
-    set -- $line
-    unset IFS
-    op="$1"
-    shift
-    case "$op" in
-      (rewrite_null_def)
-        echo "$1?$2"
-        ;;
-      (rewrite_bind)
-        echo "$1$(echo "$2, " | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, $//')$3"
-        ;;
-      (nop)
-        echo "$1"
-        ;;
-      (*)
-        echo Unhandled operation: "$op" >&2
-        exit 1
-        ;;
-    esac
-  done >"$temp_path"
-  mv "$temp_path" "$file_path"
+  (
+    cd ./db || exit 1
+    temp_path="$(temp_dir_path)"/905ef51
+    for file_path in sqlcgen/*.ts
+    do
+      sed -E \
+        -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
+        -e "s/^(.*\.${lwb}bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
+        -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
+      | while IFS= read -r line
+      do
+        IFS="$us"
+        # shellcheck disable=SC2086
+        set -- $line
+        unset IFS
+        op="$1"
+        shift
+        case "$op" in
+          (rewrite_null_def)
+            echo "$1?$2"
+            ;;
+          (rewrite_bind)
+            echo "$1$(echo "$2, " | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, $//')$3"
+            ;;
+          (nop)
+            echo "$1"
+            ;;
+          (*)
+            echo Unhandled operation: "$op" >&2
+            exit 1
+            ;;
+        esac
+      done >"$temp_path"
+      mv "$temp_path" "$file_path"
+    done
+  )
 }
