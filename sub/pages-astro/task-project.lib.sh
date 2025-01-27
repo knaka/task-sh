@@ -73,6 +73,7 @@ task_astro__dev() { # Launch the Astro development server.
 # Database bindings
 # --------------------------------------------------------------------------
 
+# todo: Move to task-sqlc-ts.lib.sh
 task_db__plugin__build() { # Builds the gen-typescript plugin.
   first_call 121be92 || return 0
   # Currently, the published WASM on sqlc.dev does not support SQLite3.
@@ -94,46 +95,46 @@ task_db__plugin__build() { # Builds the gen-typescript plugin.
   sh task.sh javy build out.js -o examples/plugin.wasm
 }
 
-task_db__gen() { # Generate the database access layer (./sqlcgen/*).
-  task_db__plugin__build
-  rm -fr ./db/sqlcgen
-  # Generate the database access layer.
-  subcmd_gobin run sqlc generate --file ./db/sqlc.yaml
-  # Then, rewrite the generated file.
-  (
-    cd ./db || exit 1
-    temp_path="$(temp_dir_path)"/905ef51
-    for file_path in sqlcgen/*.ts
+# todo: Move to task-sqlc-ts.lib.sh
+rewrite_sqlcgen_typescript() {
+  local temp_path
+  temp_path="$(temp_dir_path)"/rewrite_sqlcgen_typescript
+  for file_path in "$@"
+  do
+    sed -E \
+      -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
+      -e "s/^(.*\.${lwb}bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
+      -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
+    | while IFS= read -r line
     do
-      sed -E \
-        -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
-        -e "s/^(.*\.${lwb}bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
-        -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
-      | while IFS= read -r line
-      do
-        IFS="$us"
-        # shellcheck disable=SC2086
-        set -- $line
-        unset IFS
-        op="$1"
-        shift
-        case "$op" in
-          (rewrite_null_def)
-            echo "$1?$2"
-            ;;
-          (rewrite_bind)
-            echo "$1$(echo "$2, " | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, $//')$3"
-            ;;
-          (nop)
-            echo "$1"
-            ;;
-          (*)
-            echo Unhandled operation: "$op" >&2
-            exit 1
-            ;;
-        esac
-      done >"$temp_path"
-      mv "$temp_path" "$file_path"
-    done
-  )
+      IFS="$us"
+      # shellcheck disable=SC2086
+      set -- $line
+      unset IFS
+      op="$1"
+      shift
+      case "$op" in
+        (rewrite_null_def)
+          echo "$1?$2"
+          ;;
+        (rewrite_bind)
+          echo "$1$(echo "$2, " | sed -E -e 's/([^,]+), */typeof \1 === "undefined"? null: \1, /g' -e 's/, $//')$3"
+          ;;
+        (nop)
+          echo "$1"
+          ;;
+        (*)
+          echo Unhandled operation: "$op" >&2
+          exit 1
+          ;;
+      esac
+    done >"$temp_path"
+    mv "$temp_path" "$file_path"
+  done
+}
+
+task_db__gen() { # Generate the database access layer (./db/sqlcgen/*).
+  subcmd_gobin run sqlc generate --file ./db/sqlc.yaml  
+  # Then, rewrite the generated file.
+  rewrite_sqlcgen_typescript ./db/sqlcgen/*.ts
 }

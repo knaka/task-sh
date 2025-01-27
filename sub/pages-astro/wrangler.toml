@@ -1,2 +1,7 @@
 name = "src-pages-astro"
 pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "astro-main"
+database_id = "2363ad40-0cc7-4d5f-8a13-60abed409efc"

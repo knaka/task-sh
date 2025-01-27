@@ -16,3 +16,9 @@ WHERE
 
 -- name: AddUser :exec
 INSERT INTO users (username) VALUES (sqlc.arg(username));
+
+-- name: GetVersion :one
+select sqlite_version();
+
+-- name: GetUsersCount :one
+SELECT count(*) as foo FROM users;
