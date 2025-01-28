@@ -21,6 +21,29 @@ mkdir "!temp_dir_path!" || goto :exit
 call :to_short_path "!temp_dir_path!"
 set temp_dir_spath=!short_path!
 
+set go_cmd_spath=!goroot_dir_spath!\bin\go.exe
+set GOROOT=
+
+if not defined GOPATH (
+  set GOPATH=!user_profile_spath!\go
+)
+
+if not exist !GOPATH!\bin (
+  mkdir !GOPATH!\bin
+)
+
+set "name=embedded-%~f0"
+set "name=!name: =_!"
+set "name=!name:\=_!"
+set "name=!name::=_!"
+set "name=!name:/=_!"
+if exist !GOPATH!\bin\!name!.exe (
+  xcopy /l /d /y !GOPATH!\bin\!name!.exe "%~f0" | findstr /b /c:"1 " >nul 2>&1
+  if !ERRORLEVEL! == 0 (
+    goto :execute
+  )
+)
+
 set goroot_dir_spath=
 
 call :to_short_path "C:\Program Files"
@@ -75,31 +98,6 @@ move /y !sdk_dir_spath!\go !sdk_dir_spath!\go!ver! || goto :exit
 set goroot_dir_spath=!sdk_dir_spath!\go!ver!
 
 :found_goroot
-
-set go_cmd_spath=!goroot_dir_spath!\bin\go.exe
-set GOROOT=
-
-if not defined GOPATH (
-  set GOPATH=!user_profile_spath!\go
-)
-
-if not exist !GOPATH!\bin (
-  mkdir !GOPATH!\bin
-)
-
-set "name=embedded-%~f0"
-set "name=!name: =_!"
-set "name=!name:\=_!"
-set "name=!name::=_!"
-set "name=!name:/=_!"
-if exist !GOPATH!\bin\!name!.exe (
-  xcopy /l /d /y !GOPATH!\bin\!name!.exe "%~f0" | findstr /b /c:"1 " >nul 2>&1
-  if !ERRORLEVEL! == 0 (
-    goto :execute
-  )
-)
-
-:build
 echo Using Go compiler: !go_cmd_spath! >&2
 for /f "usebackq tokens=1 delims=:" %%i in (`findstr /n /b :embed_53c8fd5 "%~f0"`) do set n=%%i
 set tempfile=!temp_dir_spath!\!name!.go
