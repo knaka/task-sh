@@ -4,19 +4,27 @@ set -o nounset -o errexit
 
 . ./task.sh
 . ./task-go.lib.sh
+. ./task-embedded-go.lib.sh
 
-task_gen_shell_embedded() {
-  file=cmd-embedded-go
-  dl_url="https://example.com/foo/bar"
-  # body_start="$(grep )"
-  # shellcheck disable=SC2046
-  line_no_start_marker="$(IFS=:; printf "%s\n" $(grep -E -n "^.+EMBED_FAA58B3" "$file") | head -n 1)"
-  head -n "$line_no_start_marker" < "$file" | sed -E -e "s@https://raw.githubusercontent.com/.*@${dl_url}@"
-  echo ----------------------------------------------------------------------------
-  # shellcheck disable=SC2046
-  line_no_end_marker="$(IFS=:; printf "%s\n" $(grep -E -n "^EMBED_FAA58B3" "$file") | head -n 1)"
-  tail -n +"$line_no_end_marker" < "$file"
+task_gen() {
+  local sh_dst=go-hello
+  update_go_embedded_sh ./hello.go ./embedded-go ./"$sh_dst" "https://raw.githubusercontent.com/knaka/src/go/go-hello/$sh_dst"
+  local cmd_dst=go-hello.cmd
+  update_go_embedded_cmd ./hello.go ./embedded-go.cmd ./"$cmd_dst" "https://raw.githubusercontent.com/knaka/src/go/go-hello/$cmd_dst"
 }
+
+# task_gen_shell_embedded() {
+#   file=cmd-embedded-go
+#   dl_url="https://example.com/foo/bar"
+#   # body_start="$(grep )"
+#   # shellcheck disable=SC2046
+#   line_no_start_marker="$(IFS=:; printf "%s\n" $(grep -E -n "^.+EMBED_FAA58B3" "$file") | head -n 1)"
+#   head -n "$line_no_start_marker" < "$file" | sed -E -e "s@https://raw.githubusercontent.com/.*@${dl_url}@"
+#   echo ----------------------------------------------------------------------------
+#   # shellcheck disable=SC2046
+#   line_no_end_marker="$(IFS=:; printf "%s\n" $(grep -E -n "^EMBED_FAA58B3" "$file") | head -n 1)"
+#   tail -n +"$line_no_end_marker" < "$file"
+# }
 
 subcmd_build() ( # Build Go source files incrementally.
   chdir_script
