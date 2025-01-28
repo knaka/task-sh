@@ -8,7 +8,8 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 . ./task-gobin.lib.sh
 
 . ./task-pages.lib.sh
-pages_functions_src_dir_path="./src-pages/functions"
+# Only “Catch All” route files are transpiled.
+pages_functions_src_pattern="./src-pages/functions/**/[*.ts"
 
 subcmd_test() { # Run tests.
   subcmd_bun test "$@"
@@ -17,7 +18,7 @@ subcmd_test() { # Run tests.
 task_pages__dev() { # Launch the Wrangler Pages development server.
   export NODE_ENV=development
   load_env
-  sh task.sh task_pages__functions__watchbuild &
+  sh task.sh task_pages__functions__watchbuild "" &
   test "${PAGES_DEV_PORT+set}" = set && set -- "$@" --port "$PAGES_DEV_PORT"
   test "${ASTRO_DEV_PORT+set}" = set && set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
   subcmd_wrangler pages dev "$@" --live-reload ./dist
@@ -96,9 +97,10 @@ task_db__plugin__build() { # Builds the gen-typescript plugin.
 }
 
 # todo: Move to task-sqlc-ts.lib.sh
-rewrite_sqlcgen_typescript() {
+rewrite_sqlcgen_ts() {
   local temp_path
   temp_path="$(temp_dir_path)"/rewrite_sqlcgen_typescript
+  local file_path
   for file_path in "$@"
   do
     sed -E \
@@ -134,7 +136,12 @@ rewrite_sqlcgen_typescript() {
 }
 
 task_db__gen() { # Generate the database access layer (./db/sqlcgen/*).
-  subcmd_gobin run sqlc generate --file ./db/sqlc.yaml  
+  subcmd_gobin run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0 generate --file ./db/sqlc.yaml  
   # Then, rewrite the generated file.
-  rewrite_sqlcgen_typescript ./db/sqlcgen/*.ts
+  rewrite_sqlcgen_ts ./db/sqlcgen/*.ts
 }
+
+task_gen() {
+  task_db__gen
+}
+ 

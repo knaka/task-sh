@@ -5,6 +5,11 @@ set -o nounset -o errexit
 
 . ./task-pages.lib.sh
 . ./task-yq.lib.sh
+. ./task-gobin.lib.sh
+
+subcmd_sqlite3def() {
+  subcmd_gobin run github.com/sqldef/sqldef/cmd/sqlite3def@v0.17.19 "$@"
+}
 
 # --------------------------------------------------------------------------
 # D1 Database
@@ -60,7 +65,7 @@ task_d1__diff() { # Generate the schema difference between the remote database a
   subcmd_wrangler d1 export --remote --no-data --output=build/remote-schema.sql "$database_name"
   rm -f build/remote-schema.db
   subcmd_sqlite3 build/remote-schema.db <build/remote-schema.sql
-  subcmd_gobin run sqlite3def --file=schema.sql build/remote-schema.db --dry-run > build/remote-diff.sql
+  subcmd_sqlite3def --file=schema.sql build/remote-schema.db --dry-run > build/remote-diff.sql
   cat build/remote-diff.sql
 }
 
@@ -106,7 +111,7 @@ task_d1__local__diff() { # Generate the schema difference between the developmen
   task_d1__local__schema
   rm -f build/local-schema.db
   subcmd_sqlite3 build/local-schema.db <build/local-schema.sql
-  subcmd_gobin run sqlite3def --file=db/schema.sql build/local-schema.db --dry-run > build/local-diff.sql
+  subcmd_sqlite3def --file=db/schema.sql build/local-schema.db --dry-run > build/local-diff.sql
   cat build/local-diff.sql
 }
 

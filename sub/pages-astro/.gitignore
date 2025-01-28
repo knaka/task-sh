@@ -30,3 +30,4 @@ pnpm-debug.log*
 /db/sqlcgen
 /.gobin
 /build
+/.env*.local
