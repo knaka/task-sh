@@ -103,6 +103,7 @@ for /f "usebackq tokens=1 delims=:" %%i in (`findstr /n /b :embed_53c8fd5 "%~f0"
 set tempfile=!temp_dir_spath!\!name!.go
 more +%n% "%~f0" > !tempfile!
 
+set GOTOOLCHAIN=
 !go_cmd_spath! build -o !GOPATH!\bin\!name!.exe !tempfile! || goto :exit
 del /q !temp_dir_spath!
 
@@ -123,6 +124,7 @@ exit /b
 goto :eof
 
 :set_proper_goroot_dir_spath
+set GOTOOLCHAIN=local
 for /F "usebackq tokens=*" %%v in (`%1 env GOVERSION`) do (
   set version=%%v
   set major=!version:~2,1!
