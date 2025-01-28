@@ -1,3 +1,6 @@
+# Compatibility dates · Cloudflare Workers docs https://developers.cloudflare.com/workers/configuration/compatibility-dates/
+compatibility_date = "2025-01-28"
+
 name = "src-pages-astro"
 pages_build_output_dir = "./dist"
 
