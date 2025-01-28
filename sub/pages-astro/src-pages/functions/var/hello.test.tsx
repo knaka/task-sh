@@ -1,14 +1,14 @@
 import { expect, test, mock } from "bun:test";
-import { app } from 'functions/var/timestamp'
+import { app } from 'functions/var/[[all]]'
 
-test('Mock', async () => {
+test('Mocking works', async () => {
   mock.module('@sqlcgen/querier', () => ({
     getUsersCount: async () => {
       return { foo: 42 }
     }
   }));
   const resp = await app.request(
-    '/var/timestamp',
+    '/var/hello',
     {
       method: 'GET',
     },
