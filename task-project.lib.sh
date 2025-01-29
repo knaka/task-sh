@@ -303,3 +303,30 @@ task_all__test() { # Run all tests in sub directories. This can take a long time
   $some_failed && return 1
   return 0
 }
+
+subcmd_modcheck() { # Modification check.
+  if test $# -eq 0
+  then
+    echo "Usage: $0 <dir>"
+    return 1
+  fi
+  local dir="$1"
+  for i in "$dir"/task.sh "$dir"/*.lib.sh
+  do
+    if ! test -r "$i"
+    then
+      continue
+    fi
+    local j
+    j=./lib/"$(basename "$i")"
+    if ! test -r "$j"
+    then
+      continue
+    fi
+    if ! diff -q "$j" "$i"
+    then
+      echo "Different: $i"
+      diff -uNr "$j" ./lib/"$(basename "$i")" "$i" || :
+    fi
+  done
+}
