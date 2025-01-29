@@ -40,22 +40,22 @@ task_repl() { # Start a REPL.
   done
 }
 
-subcmd_debian__run() { # Run a command in a Debian Docker container.
+subcmd_docker__debian__run() { # Run a command in a Debian Docker container.
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"
 }
 
-task_debian__test() { # Run tests in a Debian Docker container.
-  subcmd_debian__run ./task test
+task_docker__debian__test() { # Run tests in a Debian Docker container.
+  subcmd_docker__debian__run ./task test
 }
 
-subcmd_busybox__run() { # Run a command in a BusyBox Docker container.
+subcmd_docker__busybox__run() { # Run a command in a BusyBox Docker container.
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file busybox.Dockerfile .)" "$@"
 }
 
-task_busybox__test() { # Run tests in a BusyBox Docker container.
-  subcmd_busybox__run ./task test
+task_docker__busybox__test() { # Run tests in a BusyBox Docker container.
+  subcmd_docker__busybox__run ./task test
 }
 
 task_key() { # Read a key press and show its code.
