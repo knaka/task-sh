@@ -18,6 +18,11 @@ export default defineConfig({
             changeOrigin: true,
             rewrite: (path) => path.replace(/^\/api/, "/api"),
           },
+          "/var": {
+            target: `http://127.0.0.1:${process.env.API_DEV_PORT || 18080}`,
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/var/, "/var"),
+          },
         }
       }
     }
