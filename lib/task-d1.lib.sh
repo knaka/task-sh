@@ -1,15 +1,9 @@
 #!/bin/sh
-# shellcheck disable=SC3043
 test "${guard_500d066+set}" = set && return 0; guard_500d066=x
-set -o nounset -o errexit
 
 . ./task-pages.lib.sh
 . ./task-yq.lib.sh
-. ./task-gobin.lib.sh
-
-subcmd_sqlite3def() {
-  subcmd_gobin run github.com/sqldef/sqldef/cmd/sqlite3def@v0.17.19 "$@"
-}
+. ./task-sqldef.lib.sh
 
 # --------------------------------------------------------------------------
 # D1 Database

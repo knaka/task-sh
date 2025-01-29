@@ -5,7 +5,7 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 . ./task-node.lib.sh
 . ./task-astro.lib.sh
 . ./task-bun.lib.sh
-. ./task-gobin.lib.sh
+. ./task-sqlc.lib.sh; set_sqlc_version "v1.27.0"
 
 . ./task-pages.lib.sh
 # Only “Catch All” route files are transpiled.
@@ -136,7 +136,7 @@ rewrite_sqlcgen_ts() {
 }
 
 task_db__gen() { # Generate the database access layer (./db/sqlcgen/*).
-  subcmd_gobin run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.27.0 generate --file ./db/sqlc.yaml  
+  subcmd_sqlc generate --file ./db/sqlc.yaml  
   # Then, rewrite the generated file.
   rewrite_sqlcgen_ts ./db/sqlcgen/*.ts
 }
