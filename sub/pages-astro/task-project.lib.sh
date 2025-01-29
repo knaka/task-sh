@@ -5,27 +5,27 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 . ./task-node.lib.sh
 . ./task-astro.lib.sh
 . ./task-bun.lib.sh
-. ./task-sqlc.lib.sh; set_sqlc_version "v1.27.0"
-
+. ./task-sqlc.lib.sh
+  set_sqlc_version "v1.27.0"
 . ./task-pages.lib.sh
-# Only “Catch All” route files are transpiled.
-pages_functions_src_pattern="./src-pages/functions/**/[*.ts"
+  # Only “Catch All” routes are the transpile targets.
+  set_pages_functions_src_pattern "./src-pages/functions/**/[*.ts"
 
 subcmd_test() { # Run tests.
   subcmd_bun test "$@"
 }
 
 task_pages__dev() { # Launch the Wrangler Pages development server.
-  export NODE_ENV=development
+  export APP_ENV=development
   load_env
-  sh task.sh task_pages__functions__watchbuild "" &
+  sh task.sh task_pages__functions__watchbuild &
   test "${PAGES_DEV_PORT+set}" = set && set -- "$@" --port "$PAGES_DEV_PORT"
   test "${ASTRO_DEV_PORT+set}" = set && set -- "$@" --binding AP_DEV_PORT="$ASTRO_DEV_PORT"
   subcmd_wrangler pages dev "$@" --live-reload ./dist
 }
 
 task_astro__dev() { # Launch the Astro development server.
-  export NODE_ENV=development
+  export APP_ENV=development
   load_env
   local host="${ASTRO_DEV_HOST:-127.0.0.1}"
   local port="${ASTRO_DEV_PORT:-3000}"

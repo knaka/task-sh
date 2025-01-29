@@ -1076,6 +1076,19 @@ kill_children() {
   done
 }
 
+get_cache_dir_path() {
+  local cache_dir_path="$HOME/.cache"
+  # if is_windows
+  # then
+  #   cache_dir_path="$LOCALAPPDATA"
+  # elif is_darwin
+  # then
+  #   cache_dir_path="$HOME/Library/Caches"
+  # fi
+  mkdir -p "$cache_dir_path"
+  echo "$cache_dir_path"
+}
+
 csv_cleanup_handlers=
 
 # Main cleanup handler.
