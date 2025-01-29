@@ -49,7 +49,28 @@ task_pages__functions__watchbuild() { # Watch the functions files and build them
 # Deployment
 # --------------------------------------------------------------------------
 
+pages_routes_json_path_6c18f24="./pages_routes.json"
+
+set_pages_routes_json_path() {
+  pages_routes_json_path_6c18f24="$1"
+}
+
+. ./task-yq.lib.sh
+
+get_pages_output_dir() {
+  memoize bf05cb9 subcmd_yq --exit-status eval '.pages_build_output_dir' wrangler.toml
+}
+
 task_pages__deploy() { # Deploy the project.
+  local pages_output_dir="./dist"
+  if get_pages_output_dir
+  then
+    pages_output_dir="$(get_pages_output_dir)"
+  fi
+  if test -r "$pages_routes_json_path_6c18f24"
+  then
+    cp -f "$pages_routes_json_path_6c18f24" "$pages_output_dir"/_routes.json
+  fi
   set_node_env
   subcmd_wrangler pages deploy
 }

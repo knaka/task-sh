@@ -1377,19 +1377,25 @@ main() {
     shift
     if alias subcmd_"$subcmd" > /dev/null 2>&1
     then
+      run_pre_task subcmd_"$subcmd"
       # shellcheck disable=SC2294
       eval subcmd_"$subcmd" "$@"
+      run_post_task subcmd_"$subcmd"
       exit $?
     fi
+    run_pre_task subcmd_"$subcmd"
     subcmd_"$subcmd" "$@"
+    run_post_task subcmd_"$subcmd"
     exit $?
   fi
   case "$subcmd" in
     (subcmd_*)
       if type "$subcmd" > /dev/null 2>&1
       then
+        run_pre_task "$subcmd"
         shift
         "$subcmd" "$@"
+        run_post_task "$subcmd"
         exit $?
       fi
       ;;

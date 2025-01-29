@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 
-// https://astro.build/config
+// Configuration Reference | Docs https://docs.astro.build/en/reference/configuration-reference/
 export default defineConfig({
   ...{
     srcDir: "./src-astro",

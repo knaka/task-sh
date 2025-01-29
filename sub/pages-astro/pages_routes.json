@@ -1,0 +1,14 @@
+{
+  "//70687c7": "Routing · Cloudflare Pages docs https://developers.cloudflare.com/pages/functions/routing/",
+  "version": 1,
+  "include": [
+    "/var/*",
+    "/api/*"
+  ],
+  "exclude": [
+    "/_*/*",
+    "/*.txt",
+    "/*.html",
+    "/doc/*"
+  ]
+}

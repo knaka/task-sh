@@ -9,6 +9,7 @@ test "${guard_fb8b13a+set}" = set && return 0; guard_fb8b13a=-
 . ./task-pages.lib.sh
   # Only “Catch All” routes are the transpile targets.
   set_pages_functions_src_pattern "./src-pages/functions/**/[*.ts"
+. ./task-astro.lib.sh
 
 subcmd_test() { # Run tests.
   subcmd_bun test "$@"
