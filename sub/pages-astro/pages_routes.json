@@ -3,12 +3,13 @@
   "version": 1,
   "include": [
     "/var/*",
-    "/api/*"
+    "/api/*",
+    "/*"
   ],
   "exclude": [
+    "/dat/*",
+    "/doc/*",
     "/_*/*",
-    "/*.txt",
-    "/*.html",
-    "/doc/*"
+    "/*.*"
   ]
 }
