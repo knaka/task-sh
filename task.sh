@@ -15,14 +15,15 @@ then
 fi
 
 
-# Create a temporary directory if required. BusyBox sh not supports -t.
+# Create a temporary directory if required.
+# BusyBox sh not supports `-t prefix`.
 
-: "${temp_dir_path_d4a4197:=}"
+temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
 get_temp_dir_path() {
-  if test -z "$temp_dir_path_d4a4197"
+  if ! test -d "$temp_dir_path_d4a4197"
   then
-    temp_dir_path_d4a4197="$(mktemp -d)"
+    mkdir -p "$temp_dir_path_d4a4197"
   fi
   echo "$temp_dir_path_d4a4197"
 }
@@ -1109,7 +1110,7 @@ cleanup_79d5d1d() {
   fi
   # echo "Killed children." >&2
 
-  if test -n "$temp_dir_path_d4a4197"
+  if test -d "$temp_dir_path_d4a4197"
   then
     rm -fr "$temp_dir_path_d4a4197"
   fi
