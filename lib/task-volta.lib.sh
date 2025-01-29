@@ -44,11 +44,10 @@ volta_dir_path() (
         ;;
     esac
     url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
-    temp_dir_path="$(mktemp -d)"
+    temp_dir_path="$(get_temp_dir_path)"/volta
     curl"$(exe_ext)" --fail --location "$url" -o "$temp_dir_path"/tmp"$arc_ext"
     (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$arc_ext")
     chmod +x "$volta_dir_path"/*
-    rm -fr "$temp_dir_path"
   fi
   echo "$volta_dir_path"
 )

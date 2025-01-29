@@ -48,7 +48,7 @@ uv_dir_path() (
       *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
     esac
     url="https://github.com/astral-sh/uv/releases/download/$ver/uv-${rust_arch}-${vendor}-${rust_os}${runtime}${arc_ext}"
-    temp_file_path=$(temp_dir_path)/tmp"$arc_ext"
+    temp_file_path=$(get_temp_dir_path)/tmp"$arc_ext"
     curl"$(exe_ext)" --fail --location "$url" -o "$temp_file_path"
     mkdir -p "$uv_dir_path"
     cd "$uv_dir_path"

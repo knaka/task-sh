@@ -45,11 +45,11 @@ task_dev() { # Development server for Next.js
   then
     export PORT
   fi
-  sh task.sh next dev 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  sh task.sh next dev 2>&1 | tee "$(get_temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
-    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
+    if grep -q "Ready in " "$(get_temp_dir_path)"/next-dev.log > /dev/null 2>&1
     then
       break
     fi
@@ -64,11 +64,11 @@ task_start() ( # Start the Next.js server with the production build.
     export PORT
   fi
   # task_build
-  sh task.sh next start 2>&1 | tee "$(temp_dir_path)"/next-prd.log &
+  sh task.sh next start 2>&1 | tee "$(get_temp_dir_path)"/next-prd.log &
   while true
   do
     sleep 1
-    if grep -q "Ready in " "$(temp_dir_path)"/next-prd.log > /dev/null 2>&1
+    if grep -q "Ready in " "$(get_temp_dir_path)"/next-prd.log > /dev/null 2>&1
     then
       break
     fi

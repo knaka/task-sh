@@ -105,7 +105,7 @@ task_db__gen() { # Generate the database access layer (./sqlcgen/*).
   cross_run ./cmd-gobin run sqlc generate
   # Then, rewrite the generated file.
   file_path=sqlcgen/querier.ts
-  temp_path="$(temp_dir_path)"/f695a83
+  temp_path="$(get_temp_dir_path)"/f695a83
   sed -E \
     -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
     -e "s/^(.*\.${lwb}bind\()([^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
@@ -290,11 +290,11 @@ task_next__dev() { # Launch the Next.js development server.
   then
     set -- "$@" --port="$NEXT_DEV_PORT"
   fi
-  sh task.sh subcmd_next dev "$@" </dev/null 2>&1 | tee "$(temp_dir_path)"/next-dev.log &
+  sh task.sh subcmd_next dev "$@" </dev/null 2>&1 | tee "$(get_temp_dir_path)"/next-dev.log &
   while true
   do
     sleep 1
-    if grep -q "Ready in " "$(temp_dir_path)"/next-dev.log > /dev/null 2>&1
+    if grep -q "Ready in " "$(get_temp_dir_path)"/next-dev.log > /dev/null 2>&1
     then
       break
     fi

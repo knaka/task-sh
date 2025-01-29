@@ -36,7 +36,7 @@ task_astro__dev() { # Launch the Astro development server.
     export API_DEV_PORT="$PAGES_DEV_PORT"
   fi
   local log_path
-  log_path="$(temp_dir_path)"/astro-dev.log
+  log_path="$(get_temp_dir_path)"/astro-dev.log
   sh task.sh subcmd_astro dev "$@" </dev/null 2>&1 | tee "$log_path" &
   while true
   do
@@ -99,7 +99,7 @@ task_db__plugin__build() { # Builds the gen-typescript plugin.
 # todo: Move to task-sqlc-ts.lib.sh
 rewrite_sqlcgen_ts() {
   local temp_path
-  temp_path="$(temp_dir_path)"/rewrite_sqlcgen_typescript
+  temp_path="$(get_temp_dir_path)"/rewrite_sqlcgen_typescript
   local file_path
   for file_path in "$@"
   do

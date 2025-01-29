@@ -14,6 +14,19 @@ then
   exit 0
 fi
 
+
+# Create a temporary directory if required. BusyBox sh not supports -t.
+
+: "${temp_dir_path_d4a4197:=}"
+
+get_temp_dir_path() {
+  if test -z "$temp_dir_path_d4a4197"
+  then
+    temp_dir_path_d4a4197="$(mktemp -d)"
+  fi
+  echo "$temp_dir_path_d4a4197"
+}
+
 # --------------------------------------------------------------------------
 # Constants.
 # --------------------------------------------------------------------------
@@ -886,21 +899,21 @@ get_key() {
 memoize() {
   local cache_file_name="$1"
   shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  if ! test -r "$(get_temp_dir_path)/$cache_file_name"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name"
+    "$@" > "$(get_temp_dir_path)/$cache_file_name"
   fi
-  cat "$(temp_dir_path)/$cache_file_name"
+  cat "$(get_temp_dir_path)/$cache_file_name"
 }
 
 memoize_silent() (
   local cache_file_name="$1"
   shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  if ! test -r "$(get_temp_dir_path)/$cache_file_name"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name" 2> /dev/null
+    "$@" > "$(get_temp_dir_path)/$cache_file_name" 2> /dev/null
   fi
-  cat "$(temp_dir_path)/$cache_file_name"
+  cat "$(get_temp_dir_path)/$cache_file_name"
 )
 
 first_call() {
@@ -1047,25 +1060,13 @@ chdir_user() {
   then
     cd "$user_specified_directory" || exit 1
   else
-    chdir_original
+get_temp_dir_pathginal
   fi
 }
 
 # Check if the working directory is in the script directory.
 in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
-}
-
-# Create a temporary directory if required. BusyBox sh not supports -t.
-
-_temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
-
-temp_dir_path() {
-  if ! test -d "$_temp_dir_path_d4a4197"
-  then
-    mkdir -p "$_temp_dir_path_d4a4197"
-  fi
-  echo "$_temp_dir_path_d4a4197"
 }
 
 kill_children() {
@@ -1108,7 +1109,11 @@ cleanup_79d5d1d() {
   fi
   # echo "Killed children." >&2
 
-  rm -fr "$_temp_dir_path_d4a4197"
+  if test -n "$temp_dir_path_d4a4197"
+  then
+    rm -fr "$temp_dir_path_d4a4197"
+  fi
+  
   # echo "Cleaned up temporary files." >&2
 
   if test "$rc" -ne 0
