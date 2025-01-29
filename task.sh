@@ -14,7 +14,6 @@ then
   exit 0
 fi
 
-
 # Create a temporary directory if required.
 # BusyBox sh not supports `-t prefix`.
 

@@ -41,7 +41,7 @@ task_astro__dev() { # Launch the Astro development server.
   while true
   do
     sleep 1
-    if grep -q "watching for file changes" "$log_path" > /dev/null 2>&1
+    if grep -q "watching for file changes" "$log_path" >/dev/null 2>&1
     then
       break
     fi
@@ -54,8 +54,8 @@ task_astro__dev() { # Launch the Astro development server.
       "Bui&ld" \
       "E&xit"
     case "$(get_key)" in
-      (b) open_browser "http://$host:$port" ;;
-      (c) clear ;;
+      (b) open_browser "http://$host:$port";;
+      (c) clear;;
       (l)
         if task_astro__build
         then
@@ -64,7 +64,7 @@ task_astro__dev() { # Launch the Astro development server.
           echo "Failed to build."
         fi
         ;;
-      (x) break ;;
+      (x) break;;
       (*) ;;
     esac
   done
