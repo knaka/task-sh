@@ -11,7 +11,7 @@ subcmd_go__embedded__sh__gen() { # Generate a shell script with embedded Go code
   local out_sh=
   local url=
 
-  unset OPTIND; while getopts u:-: OPT
+  OPTIND=1; while getopts u:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -70,7 +70,7 @@ subcmd_go__embedded__cmd__gen() { # Generate a command script with embedded Go c
   local out_cmd=
   local url=
 
-  unset OPTIND; while getopts u:-: OPT
+  OPTIND=1; while getopts u:-: OPT
   do
     if test "$OPT" = "-"
     then

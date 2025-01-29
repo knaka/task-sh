@@ -739,7 +739,7 @@ install_pkg_cmd_tabsep_args() {
   local scoop_id=
   local brew_id=
   local brew_cmd_path=
-  unset OPTIND; while getopts nc:p:b:P:w:s:-: OPT
+  OPTIND=1; while getopts nc:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -1339,7 +1339,7 @@ main() {
   shows_help=false
   skip_missing=false
   ignore_missing=false
-  unset OPTIND; while getopts d:hvsi-: OPT
+  OPTIND=1; while getopts d:hvsi-: OPT
   do
     if test "$OPT" = "-"
     then
