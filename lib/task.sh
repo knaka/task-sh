@@ -1275,9 +1275,13 @@ main() {
     fi
   fi
   case "$SH" in
-    (*/ash|*/bash|*/dash) ;;
-    (*/sh)
-      if "$SH" --help 2>&1 | grep -q "BusyBox"
+    (*/ash|*/dash)
+      ;;
+    (*/sh|*/bash)
+      if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION}" in (4.*|5.*|6.*) true;; (*) false;; esac
+      then
+        :
+      elif "$SH" --help 2>&1 | grep -q "BusyBox"
       then
         :
       else

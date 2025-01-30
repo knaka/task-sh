@@ -311,6 +311,7 @@ subcmd_modcheck() { # Modification check.
   #   echo "Usage: $0 <dir>"
   #   return 1
   # fi
+  local rc=0
   local dir="$1"
   for i in "$dir"/task.sh "$dir"/*.lib.sh
   do
@@ -328,8 +329,10 @@ subcmd_modcheck() { # Modification check.
     then
       echo "Different: $i" >&2
       diff -uNr "$j" "$i" || :
+      rc=1
     fi
   done
+  return "$rc"
 }
 
 task_nest() {
