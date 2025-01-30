@@ -52,7 +52,7 @@ subcmd_d1__file__exec() { # Execute SQL file in the remote D1 database.
   subcmd_d1__exec --file "$@"
 }
 
-subcmd_d1__command_exec() { # Execute SQL command in the remote D1 database.
+subcmd_d1__command__exec() { # Execute SQL command in the remote D1 database.
   subcmd_d1__exec --command "$@"
 }
 
@@ -113,7 +113,7 @@ subcmd_d1__local__file__exec() { # Execute SQL file in the development D1 databa
   subcmd_d1__local__exec --file "$@"
 }
 
-subcmd_d1__local__command_exec() { # Execute SQL command in the development D1 database.
+subcmd_d1__local__command__exec() { # Execute SQL command in the development D1 database.
   subcmd_d1__local__exec --command "$@"
 }
 
