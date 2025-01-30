@@ -6,7 +6,7 @@ set -o nounset -o errexit
 set -o monitor
 
 # Update the script by replacing itself with the latest version.
-if test "${1+SET}" = SET && test "$1" = "update-me"
+if test "${1+set}" = set && test "$1" = "update-me"
 then
   temp_dir_path_5de91af="$(mktemp -d)"
   # shellcheck disable=SC2317
@@ -19,7 +19,6 @@ fi
 
 # Create a temporary directory if required.
 # BusyBox sh not supports `-t prefix`.
-
 temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
 get_temp_dir_path() {
@@ -1259,10 +1258,16 @@ run_post_task() {
 
 # Full path to the shell executable.
 : "${SH:=}"
+export SH
+
+get_sh() {
+  echo "$SH"
+}
 
 main() {
   # Error exit if executed with unexpected shell.
-  if test "${BASH+SET}" = SET && test -x "$BASH"; then
+  if test "${BASH+SET}" = SET && test -x "$BASH"
+  then
     SH="$BASH"
   # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
   elif is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
@@ -1273,7 +1278,8 @@ main() {
     SH="$(readlink -f /proc/$$/exe)" || exit 1
   else
     SH="$(ps -p $$ -o comm=)" || exit 1
-    if test "${SH#/}" = "$SH"; then
+    if test "${SH#/}" = "$SH"
+    then
       SH=$(which "$SH")
     fi
   fi
