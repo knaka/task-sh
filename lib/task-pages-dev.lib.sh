@@ -9,5 +9,6 @@ task_pages__dev() { # Launch the Wrangler Pages development server.
   "$SH" task.sh task_pages__functions__watchbuild &
   test "${PAGES_DEV_PORT+set}" = set && set -- "$@" --port "$PAGES_DEV_PORT"
   test "${PAGES_WEB_PORT+set}" = set && set -- "$@" --binding PAGES_WEB_PORT="$PAGES_WEB_PORT"
-  subcmd_wrangler pages dev "$@" --live-reload
+  task_put_pages_routes_json
+  subcmd_wrangler pages dev --live-reload "$@"
 }
