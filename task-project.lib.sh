@@ -284,6 +284,7 @@ task_daemon() {
 }
 
 subcmd_test() { # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
+  echo "Running tests with shell ${SH}."
   subcmd_task__test "$@"
 }
 
@@ -294,7 +295,7 @@ task_all__test() { # Run all tests in sub directories. This can take a long time
   do
     echo "Testing $i"
     cd "$i" || exit 1
-    if ! sh task.sh test --all
+    if ! "$SH" task.sh test --all
     then
       some_failed=true
     fi
@@ -305,11 +306,11 @@ task_all__test() { # Run all tests in sub directories. This can take a long time
 }
 
 subcmd_modcheck() { # Modification check.
-  if test $# -eq 0
-  then
-    echo "Usage: $0 <dir>"
-    return 1
-  fi
+  # if test $# -eq 0
+  # then
+  #   echo "Usage: $0 <dir>"
+  #   return 1
+  # fi
   local dir="$1"
   for i in "$dir"/task.sh "$dir"/*.lib.sh
   do
@@ -325,8 +326,12 @@ subcmd_modcheck() { # Modification check.
     fi
     if ! diff -q "$j" "$i"
     then
-      echo "Different: $i"
-      diff -uNr "$j" ./lib/"$(basename "$i")" "$i" || :
+      echo "Different: $i" >&2
+      diff -uNr "$j" "$i" || :
     fi
   done
+}
+
+task_nest() {
+  "$shell" task.sh modcheck
 }

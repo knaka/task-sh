@@ -8,7 +8,7 @@ cd "$pwd_cbe7ee2"
 
 blocks=false
 
-while getopts "bt:" opt
+OPTIND=1; while getopts "bt:" opt
 do
   case "$opt" in
     b) blocks=true;;
@@ -16,7 +16,6 @@ do
   esac
 done
 shift $((OPTIND-1))
-unset OPTIND
 
 if test "$ARG0BASE" = "edw"
 then

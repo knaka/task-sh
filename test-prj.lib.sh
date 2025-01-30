@@ -331,7 +331,7 @@ test_extra() (
 )
 
 test_not_existing_task() (
-  assert_false sh task.sh not_existing_task
-  sh task.sh --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
-  sh task.sh --skip-missing not_existing_task
+  assert_false "$SH" task.sh not_existing_task
+  "$SH" task.sh --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
+  "$SH" task.sh --skip-missing not_existing_task
 )

@@ -1254,35 +1254,46 @@ run_post_task() {
   fi
 }
 
+# Full path to the shell executable.
+: "${SH:=}"
+
 main() {
   # Error exit if executed with unexpected shell.
-  while true
-  do
-    # Bash
-    test "${BASH+SET}" = SET && test -x "$BASH" && break
-    # Busybox shell on Windows
-    is_windows_busybox_shell && break
-    # Check procfs for the shell.
-    if test -e /proc/$$/exe
-    then
-      case "$(basename "$(readlink -f /proc/$$/exe)")" in
-        (ash) break ;;
-        (bash) break ;;
-        (dash) break ;;
-        (sh)
-          if "$(readlink -f /proc/$$/exe)" --help 2>&1 | grep -q "BusyBox"
-          then
-            break
-          fi
-          ;;
-        (*) ;;
-      esac
+  if test "${BASH+SET}" = SET && test -x "$BASH"; then
+    SH="$BASH"
+  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
+  elif is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    SH="$SHELL"
+  elif test -e /proc/$$/exe
+  then
+    SH="$(readlink -f /proc/$$/exe)" || exit 1
+  else
+    SH="$(ps -p $$ -o comm=)" || exit 1
+    if test "${SH#/}" = "$SH"; then
+      SH=$(which "$SH")
     fi
-    echo "Unexpected shell." >&2
-    exit 1
-  done
+  fi
+  case "$SH" in
+    (*/ash|*/bash|*/dash) ;;
+    (*/sh)
+      if "$SH" --help 2>&1 | grep -q "BusyBox"
+      then
+        :
+      else
+        echo "Unexpected shell executable: $SH" >&2
+        exit 1
+      fi
+      ;;
+    (*)
+      echo "Unexpected shell executable: $SH" >&2
+      exit 1
+      ;;
+  esac
+  export SH
 
   # Set the cleanup handlers caller.
+  # Bash3 of macOS exits successfully if `nounset` error is trapped.
   trap cleanup_79d5d1d EXIT
 
   # Run in the script directory.

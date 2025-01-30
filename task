@@ -24,5 +24,10 @@ then
   # shellcheck disable=SC1090
   . "$env_file_path"
 fi
+# Prefer dash over bash3 on macOS
+if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION}" in (3.*) true;; (*) false;; esac && type dash >/dev/null 2>&1
+then
+  exec dash "$sh_dir_path/$script_name.sh" "$@"
+fi
 # export POSIXLY_CORRECT=1
 exec sh "$sh_dir_path/$script_name.sh" "$@"

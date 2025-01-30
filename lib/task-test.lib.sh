@@ -8,12 +8,12 @@ test "${guard_c43d095+set}" = set && return 0; guard_c43d095=x
 # shellcheck disable=SC2034
 if test -t 1
 then
-  RED=$(printf "\e[31m")
-  GREEN=$(printf "\e[32m")
-  YELLOW=$(printf "\e[33m")
-  MAGENTA=$(printf "\e[35m")
-  NORMAL=$(printf "\e[00m")
-  BOLD=$(printf "\e[01m")
+  RED=$(printf "\033[31m")
+  GREEN=$(printf "\033[32m")
+  YELLOW=$(printf "\033[33m")
+  MAGENTA=$(printf "\033[35m")
+  NORMAL=$(printf "\033[00m")
+  BOLD=$(printf "\033[01m")
 else
   RED=""
   GREEN=""
@@ -98,7 +98,7 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
   verbose && echo "Running tests: $*" >&2
   for test_name in "$@"
   do
-    if ! type "test_$test_name" 2>/dev/null | grep -q -E -e 'function$'
+    if ! LC_ALL=C type "test_$test_name" 2>/dev/null | grep -q -E -e 'function$'
     then
       echo "Test not found: $test_name" >&2
       exit 1

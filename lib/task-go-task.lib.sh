@@ -22,7 +22,7 @@ delegate_tasks() (
   then
     # echo Building >&2
     # shellcheck disable=SC2086
-    sh task.sh go build -o "$cmd_file" $task_go_files
+    "$SH" task.sh go build -o "$cmd_file" $task_go_files
   fi
   $cmd_file "$@"
 )
