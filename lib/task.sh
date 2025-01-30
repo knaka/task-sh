@@ -2,6 +2,9 @@
 test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
 set -o nounset -o errexit
 
+# In dash, job control is disabled by default in a non-interactive shell.
+set -o monitor
+
 # Update the script by replacing itself with the latest version.
 if test "${1+SET}" = SET && test "$1" = "update-me"
 then

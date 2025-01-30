@@ -3,8 +3,7 @@
   "version": 1,
   "include": [
     "/var/*",
-    "/api/*",
-    "/*"
+    "/api/*"
   ],
   "exclude": [
     "/dat/*",

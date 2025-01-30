@@ -25,7 +25,7 @@ then
   . "$env_file_path"
 fi
 # Prefer dash over bash3 on macOS
-if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION}" in (3.*) true;; (*) false;; esac && command -v dash >/dev/null 2>&1
+if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION}" in (3.*) true;; (*) false;; esac && type dash >/dev/null 2>&1
 then
   exec dash "$sh_dir_path/$script_name.sh" "$@"
 fi

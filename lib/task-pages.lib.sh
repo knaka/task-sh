@@ -74,3 +74,7 @@ task_pages__deploy() { # Deploy the project.
   set_node_env
   subcmd_wrangler pages deploy
 }
+
+get_pages_build_output_dir() {
+  memoize 96811e6 subcmd_yq --exit-status eval '.pages_build_output_dir' wrangler.toml
+}

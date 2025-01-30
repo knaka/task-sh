@@ -4,6 +4,7 @@ test "${guard_500d066+set}" = set && return 0; guard_500d066=x
 . ./task-pages.lib.sh
 . ./task-yq.lib.sh
 . ./task-sqldef.lib.sh
+. ./task-sqlite3.lib.sh
 
 # --------------------------------------------------------------------------
 # D1 Database
