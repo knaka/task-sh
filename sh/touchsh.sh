@@ -1,10 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env sh
+# vim: set filetype=sh :
+# shellcheck shell=sh
+test "${sourced_723152a:+}" = true && return 0; sourced_723152a=true
 set -o nounset -o errexit
 
-test "${guard_723152a+set}" = set && return 0; guard_723152a=-
-
 force=false
-while getopts f-: OPT
+OPTIND=1; while getopts f-: OPT
 do
   if test "$OPT" = "-"
   then
@@ -29,8 +30,16 @@ then
 fi
 
 unique_id="$(sh "$(dirname "$0")"/rand7.sh)"
-cat <<EOF > "$1"
-#!/bin/sh
-test "\${guard_${unique_id}+set}" = set && return 0; guard_${unique_id}=-
-set -o nounset -o errexit
+if test "$1" = "-"
+then
+  cat
+else
+  cat >"$1"
+fi <<EOF
+#!/usr/bin/env sh
+# vim: set filetype=sh :
+# shellcheck shell=sh
+test "\${sourced_${unique_id}:+}" = true && return 0; sourced_${unique_id}=true
+set -o nounset -o errexit -o monitor
+# set -o xtrace # For debugging
 EOF
