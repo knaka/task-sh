@@ -516,6 +516,14 @@ is_windows() {
   esac
 }
 
+is_alpine() {
+  if test -f /etc/alpine-release
+  then
+    return 0
+  fi
+  return 1
+}
+
 # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
 is_windows_busybox_shell() {
   if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
@@ -732,6 +740,7 @@ open_browser() {
 
 # Ensure a package is installed and return the command and arguments separated by tabs.
 install_pkg_cmd_tabsep_args() {
+  local apk_id=
   local dpkg_id=
   local cmd_name=
   local winget_id=
@@ -739,7 +748,7 @@ install_pkg_cmd_tabsep_args() {
   local scoop_id=
   local brew_id=
   local brew_cmd_path=
-  OPTIND=1; while getopts d:nc:p:b:P:w:s:-: OPT
+  OPTIND=1; while getopts a:d:nc:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -749,6 +758,7 @@ install_pkg_cmd_tabsep_args() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
+      (a|apk-id) apk_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
@@ -809,6 +819,12 @@ install_pkg_cmd_tabsep_args() {
   elif command -v apt-get >/dev/null 2>&1
   then
     apt-get install -y "$dpkg_id" 1>&2
+  elif command -v apk >/dev/null 2>&1
+  then
+    apk add "$apk_id" 1>&2
+  else
+    echo "No package manager found." >&2
+    exit 1
   fi
   if which "$cmd_path" >/dev/null 2>&1
   then

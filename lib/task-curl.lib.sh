@@ -9,5 +9,6 @@ subcmd_curl() { # Run curl(1).
   run_pkg_cmd \
     --cmd=curl \
     --dpkg-id=curl \
+    --apk-id=curl \
     -- "$@"
 }

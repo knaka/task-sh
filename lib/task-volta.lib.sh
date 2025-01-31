@@ -50,6 +50,11 @@ volta_dir_path() (
     subcmd_curl --fail --location "$url" -o "$temp_dir_path"/tmp"$arc_ext"
     (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$arc_ext")
     chmod +x "$volta_dir_path"/*
+    # Volta binary is not statically linked.
+    if is_alpine
+    then
+      apk add libstdc++ 1>&2
+    fi
   fi
   echo "$volta_dir_path"
 )
