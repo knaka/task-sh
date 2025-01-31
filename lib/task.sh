@@ -834,8 +834,7 @@ run_pkg_cmd() { # Run a command after ensuring it is installed.
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
   pop_ifs
-  # echo 01d637b "$@" >&2
-  cross_run "$@"
+  cross_run "$@" >&2
 }
 
 load() {
@@ -910,6 +909,19 @@ prompt() {
     response="$default"
   fi
   printf "%s" "$response"
+}
+
+# Create a file from the standard input unless it exists.
+create_file_unless_exists() {
+  local file_path="$1"
+  if test -f "$file_path"
+  then
+    echo "File $file_path already exists. Skipping the creation." >&2
+    return 0
+  fi
+  echo "Creating the $file_path file." >&2
+  mkdir -p "$(dirname "$file_path")"
+  cat >"$file_path"
 }
 
 memoize() {
