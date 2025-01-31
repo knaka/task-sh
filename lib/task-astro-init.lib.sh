@@ -23,7 +23,7 @@ task_astro__init() {
     subcmd_npm install astro
   fi
 
-  create_file_unless_exists "${src_dir}"/pages/index.astro <<'EOF'
+  ensure_file "${src_dir}"/pages/index.astro <<'EOF'
 ---
 // Welcome to Astro! Everything between these triple-dash code fences
 // is your "component frontmatter". It never runs in the browser.
@@ -43,14 +43,14 @@ console.log('This runs in your terminal, not the browser!');
 </style>
 EOF
 
-  create_file_unless_exists "${public_dir}"/robots.txt <<'EOF'
+  ensure_file "${public_dir}"/robots.txt <<'EOF'
 # Example: Allow all bots to scan and index your site.
 # Full syntax: https://developers.google.com/search/docs/advanced/robots/create-robots-txt
 User-agent: *
 Allow: /
 EOF
 
-  create_file_unless_exists ./astro.config.mjs <<EOF
+  ensure_file ./astro.config.mjs <<EOF
 import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
@@ -61,12 +61,12 @@ export default defineConfig({
 });
 EOF
 
-  create_file_unless_exists ./tsconfig.json <<EOF
+  ensure_file ./tsconfig.json <<EOF
 {
   "compilerOptions": {
-    // To use JSX syntax in *.tsx files.
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    // To use JSX syntax in *.tsx files.
     "jsx": "react-jsx",
     // "types": [
     //   "bun-types"

@@ -911,8 +911,8 @@ prompt() {
   printf "%s" "$response"
 }
 
-# Create a file from the standard input unless it exists.
-create_file_unless_exists() {
+# Create a file from the standard input if it does not exist.
+ensure_file() {
   local file_path="$1"
   if test -f "$file_path"
   then
