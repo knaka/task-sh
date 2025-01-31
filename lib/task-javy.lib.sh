@@ -25,7 +25,7 @@ subcmd_javy() ( # Javy: JS to WebAssembly toolchain
   then
     # https://github.com/bytecodealliance/javy/releases/download/v3.1.1/javy-x86_64-macos-v3.1.1.gz
     url="https://github.com/bytecodealliance/javy/releases/download/${ver}/javy-${rust_arch}-${rust_os}-${ver}.gz"
-    cross_run curl --fail --location --output - "$url" | gunzip --stdout - > "$cmd_path"
+    subcmd_curl --fail --location --output - "$url" | gunzip --stdout - >"$cmd_path"
     chmod +x "$cmd_path"
   fi 
   "$cmd_path" "$@"

@@ -23,7 +23,7 @@ subcmd_gorun() { # Executes Go main package `pkg_name@ver` with arguments and ca
   local cmd_path="$app_dir_path"/"$cmd_base"
   if ! test -x "$cmd_path"
   then
-    cross_run curl --fail --location --output "$cmd_path" "https://raw.githubusercontent.com/knaka/gorun/refs/tags/${version_37475d8}/gorun${cmd_ext}"
+    subcmd_curl --fail --location --output "$cmd_path" "https://raw.githubusercontent.com/knaka/gorun/refs/tags/${version_37475d8}/gorun${cmd_ext}"
     chmod +x "$cmd_path"
   fi
   "$cmd_path" "$@"

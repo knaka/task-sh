@@ -19,7 +19,7 @@ subcmd_gobin() { # Run the gobin command.
   if ! test -x "$app_dir_path"/cmd-gobin$cmd_ext
   then
     mkdir -p "$app_dir_path"
-    cross_run curl --fail --location --output "$app_dir_path"/cmd-gobin$cmd_ext https://raw.githubusercontent.com/knaka/gobin/main/bootstrap/cmd-gobin$cmd_ext
+    subcmd_curl --fail --location --output "$app_dir_path"/cmd-gobin$cmd_ext https://raw.githubusercontent.com/knaka/gobin/main/bootstrap/cmd-gobin$cmd_ext
     chmod +x "$app_dir_path"/cmd-gobin$cmd_ext
   fi
   "$app_dir_path"/cmd-gobin$cmd_ext "$@"
