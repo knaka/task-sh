@@ -1,7 +1,6 @@
-#!/bin/sh
-set -o nounset -o errexit
-
-test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=-
+# vim: set filetype=sh :
+# shellcheck shell=sh
+test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=true
 
 . ./task.sh
 . ./task-volta.lib.sh
