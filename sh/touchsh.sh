@@ -40,6 +40,9 @@ fi <<EOF
 # vim: set filetype=sh :
 # shellcheck shell=sh
 test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
-set -o nounset -o errexit -o monitor
-# set -o xtrace # For debugging
+set -o nounset -o errexit
 EOF
+
+# set -o monitor # For job control
+# set -o xtrace # For debugging
+# set -o pipefail # For error handling in pipelines in Bash
