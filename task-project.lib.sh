@@ -178,73 +178,6 @@ subcmd_newer() { # Check newer files.
   newer "$@"
 }
 
-task_dupcheck() ( # Check duplicate files.
-  base_prev=
-  hash_prev=
-  path_prev=
-  # subcmd_git ls-files \
-  find . -maxdepth 2 -type f \
-  | while IFS= read -r path
-  do
-    case "$path" in
-      (next/app/*) continue;;
-    esac
-    base=$(basename "$path")
-    case "$base" in
-      (*.rs) continue;;
-      (.*) continue;;
-      (Cargo.*) continue;;
-      (README*) continue;;
-      (next.config.mjs) continue;;
-      (package-lock.json) continue;;
-      (package.json) continue;;
-      (page.tsx) continue;;
-      (task) continue;;
-      (task.sh) continue;;
-      (task-prj*.lib.sh) continue;;
-      (task-project*.lib.sh) continue;;
-      (test-prj*.lib.sh) continue;;
-      (test-project*.lib.sh) continue;;
-      (tsconfig.json) continue;;
-    esac
-    # shellcheck disable=SC2046
-    echo "$base|$(sha1sum "$path" | field 1)|$path"
-  done \
-  | sort \
-  | while IFS='|' read -r base hash path
-  do
-    if test "$base" = "$base_prev" && test "$hash" != "$hash_prev"
-    then
-      echo "Conflict:"
-      echo "  $path"
-      echo "  $path_prev"
-    fi
-    base_prev="$base"
-    hash_prev="$hash"
-    path_prev="$path"
-  done
-)
-
-# task_cmd__rename_copy() (
-#   for dest in */*.cmd
-#   do
-#     if ! test -r "$dest"
-#     then
-#       continue
-#     fi
-#     if test "$(dirname "$dest")" = "cmd"
-#     then
-#       continue
-#     fi
-#     case "$(basename "$dest")" in
-#       go-embedded.cmd)
-#         continue
-#         ;;
-#     esac
-#     cp -f task.cmd "$dest"
-#   done
-# )
-
 task_task_sh__copy() (
   chdir_script
   for dest in */task.sh
@@ -335,6 +268,14 @@ subcmd_modcheck() { # Modification check.
   return "$rc"
 }
 
-task_nest() {
-  "$shell" task.sh modcheck
+task_dupcheck() {
+  local log_path="$(get_temp_dir_path)"/dupcheck.log
+  grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./lib/*.sh \
+  | sed -E -e 's/^(task_|subcmd_)//' \
+  | sed -E -e 's/\(.*//' \
+  | sort | uniq -d | tee "$log_path"
+  if test -s "$log_path"
+  then
+    return 1
+  fi
 }
