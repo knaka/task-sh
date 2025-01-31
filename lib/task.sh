@@ -741,7 +741,7 @@ open_browser() {
 # Ensure a package is installed and return the command and arguments separated by tabs.
 install_pkg_cmd_tabsep_args() {
   local apk_id=
-  local dpkg_id=
+  local deb_id=
   local cmd_name=
   local winget_id=
   local win_cmd_path=
@@ -762,7 +762,7 @@ install_pkg_cmd_tabsep_args() {
       (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (d|dpkg-id) dpkg_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (d|dpkg-id) deb_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
@@ -819,7 +819,7 @@ install_pkg_cmd_tabsep_args() {
   elif command -v apt-get >/dev/null 2>&1
   then
     apt-get update 1>&2
-    apt-get install -y "$dpkg_id" 1>&2
+    apt-get install -y "$deb_id" 1>&2
   elif command -v apk >/dev/null 2>&1
   then
     apk add "$apk_id" 1>&2
@@ -857,6 +857,14 @@ run_pkg_cmd() { # Run a command after ensuring it is installed.
   set -- $(install_pkg_cmd_tabsep_args "$@")
   pop_ifs
   cross_run "$@" >&2
+}
+
+subcmd_curl() { # Run curl(1).
+  run_pkg_cmd \
+    --cmd=curl \
+    --deb-id=curl \
+    --apk-id=curl \
+    -- "$@"
 }
 
 load() {

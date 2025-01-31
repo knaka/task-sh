@@ -3,7 +3,6 @@ test "${guard_1c3e8cf+set}" = set && return 0; guard_1c3e8cf=x
 set -o nounset -o errexit
 
 . ./task.sh
-. ./task-curl.lib.sh
 
 volta_dir_path() (
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
