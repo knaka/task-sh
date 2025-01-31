@@ -732,13 +732,14 @@ open_browser() {
 
 # Ensure a package is installed and return the command and arguments separated by tabs.
 install_pkg_cmd_tabsep_args() {
+  local dpkg_id=
   local cmd_name=
   local winget_id=
   local win_cmd_path=
   local scoop_id=
   local brew_id=
   local brew_cmd_path=
-  OPTIND=1; while getopts nc:p:b:P:w:s:-: OPT
+  OPTIND=1; while getopts d:nc:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -751,6 +752,7 @@ install_pkg_cmd_tabsep_args() {
       (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (d|dpkg-id) dpkg_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
@@ -761,7 +763,10 @@ install_pkg_cmd_tabsep_args() {
   shift $((OPTIND-1))
 
   local cmd_path="$cmd_name"
-  if is_windows
+  if command -v "$cmd_name" >/dev/null 2>&1
+  then
+    :
+  elif is_windows
   then
     if test -n "$scoop_id"
     then
@@ -801,8 +806,11 @@ install_pkg_cmd_tabsep_args() {
       echo "No package ID for macOS specified." >&2
       exit 1
     fi
+  elif command -v apt-get >/dev/null 2>&1
+  then
+    apt-get install -y "$dpkg_id" 1>&2
   fi
-  if which "$cmd_path" > /dev/null 2>&1
+  if which "$cmd_path" >/dev/null 2>&1
   then
     printf "%s\t" "$(which "$cmd_path")"
   else

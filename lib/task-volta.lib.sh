@@ -3,6 +3,7 @@ test "${guard_1c3e8cf+set}" = set && return 0; guard_1c3e8cf=x
 set -o nounset -o errexit
 
 . ./task.sh
+. ./task-curl.lib.sh
 
 volta_dir_path() (
   # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
@@ -45,7 +46,8 @@ volta_dir_path() (
     esac
     url=https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os_arch}${arc_ext}
     temp_dir_path="$(get_temp_dir_path)"/volta
-    curl"$(exe_ext)" --fail --location "$url" -o "$temp_dir_path"/tmp"$arc_ext"
+    mkdir -p "$temp_dir_path"
+    subcmd_curl --fail --location "$url" -o "$temp_dir_path"/tmp"$arc_ext"
     (cd "$volta_dir_path"; tar"$(exe_ext)" -xf "$temp_dir_path"/tmp"$arc_ext")
     chmod +x "$volta_dir_path"/*
   fi
