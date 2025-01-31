@@ -1312,7 +1312,7 @@ main() {
     (*/ash|*/dash)
       ;;
     (*/sh|*/bash)
-      if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION}" in (4.*|5.*|6.*) true;; (*) false;; esac
+      if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION-}" in (4.*|5.*|6.*) true;; (*) false;; esac
       then
         :
       elif "$SH" --help 2>&1 | grep -q "BusyBox"
@@ -1322,6 +1322,9 @@ main() {
         echo "Unexpected shell executable: $SH" >&2
         exit 1
       fi
+      ;;
+    (*/busybox)
+      SH=/bin/sh
       ;;
     (*)
       echo "Unexpected shell executable: $SH" >&2

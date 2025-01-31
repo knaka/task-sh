@@ -25,11 +25,10 @@ then
   # shellcheck disable=SC1090
   . "$env_file_path"
 fi
-if command -v dash >/dev/null 2>&1
-then
-  exec dash "$sh_dir_path/$script_name.sh" "$@"
-elif command -v bash >/dev/null 2>&1
-then
-  exec bash "$sh_dir_path/$script_name.sh" "$@"
-fi
-exec sh "$sh_dir_path/$script_name.sh" "$@"
+for sh in /bin/ash /bin/dash /bin/bash /bin/sh
+do
+  if test -x "$sh"
+  then
+    exec "$sh" "$sh_dir_path/$script_name.sh" "$@"
+  fi
+done

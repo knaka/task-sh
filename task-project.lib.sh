@@ -58,6 +58,15 @@ task_docker__busybox__test() { # Run tests in a BusyBox Docker container.
   subcmd_docker__busybox__run ./task test
 }
 
+subcmd_docker__alpine__run() { # Run a command in an Alpine Docker container.
+  task_docker__start__temp
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file alpine.Dockerfile .)" "$@"
+}
+
+task_docker__alpine__test() { # Run tests in an Alpine Docker container.
+  subcmd_docker__alpine__run ./task test
+}
+
 task_key() { # Read a key press and show its code.
   echo "Press a key."
   local key
