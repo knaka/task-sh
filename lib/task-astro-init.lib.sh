@@ -1,6 +1,6 @@
 # vim: set filetype=sh :
 # shellcheck shell=sh
-test "${sourced_eb0c4bb:+}" = true && return 0; sourced_eb0c4bb=true
+test "${sourced_eb0c4bb-}" = true && return 0; sourced_eb0c4bb=true
 
 . ./task.sh
 . ./task-jq.lib.sh

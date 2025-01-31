@@ -39,7 +39,7 @@ fi <<EOF
 #!/usr/bin/env sh
 # vim: set filetype=sh :
 # shellcheck shell=sh
-test "\${sourced_${unique_id}:+}" = true && return 0; sourced_${unique_id}=true
+test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
 set -o nounset -o errexit -o monitor
 # set -o xtrace # For debugging
 EOF

@@ -1,9 +1,6 @@
-#!/bin/sh
-test "${guard_6ee3caf+set}" = set && return 0; guard_6ee3caf=-
-set -o nounset -o errexit
-
-# In dash, job control is disabled by default in a non-interactive shell.
-set -o monitor
+# vim: set filetype=sh :
+# shellcheck shell=sh
+test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
 
 # Update the script by replacing itself with the latest version.
 if test "${1+set}" = set && test "$1" = "update-me"
@@ -1291,6 +1288,8 @@ get_sh() {
 }
 
 main() {
+  set -o nounset -o errexit -o monitor
+
   # Error exit if executed with unexpected shell.
   if test "${BASH+SET}" = SET && test -x "$BASH"
   then
