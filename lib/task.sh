@@ -898,6 +898,20 @@ get_key() {
   echo "$key"
 }
 
+# Show a message and get a input from the user.
+prompt() {
+  local message="${1:-Text}"
+  local default="${2:-}"
+  printf "%s: (%s) " "$message" "$default" >&2
+  local response
+  read -r response
+  if test -z "$response"
+  then
+    response="$default"
+  fi
+  printf "%s" "$response"
+}
+
 memoize() {
   local cache_file_name="$1"
   shift
