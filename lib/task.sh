@@ -818,6 +818,7 @@ install_pkg_cmd_tabsep_args() {
     fi
   elif command -v apt-get >/dev/null 2>&1
   then
+    apt-get update 1>&2
     apt-get install -y "$dpkg_id" 1>&2
   elif command -v apk >/dev/null 2>&1
   then

@@ -40,6 +40,15 @@ task_repl() { # Start a REPL.
   done
 }
 
+subcmd_docker__ubuntu__run() { # Run a command in an Ubuntu Docker container.
+  task_docker__start__temp
+  subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file ubuntu.Dockerfile .)" "$@"
+}
+
+task_docker__ubuntu__test() { # Run tests in an Ubuntu Docker container.
+  subcmd_docker__ubuntu__run ./task test
+}
+
 subcmd_docker__debian__run() { # Run a command in a Debian Docker container.
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"
