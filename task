@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
 set -o nounset -o errexit
 
 if test "${1+set}" = set && test "$1" = "update-me"
@@ -25,7 +27,7 @@ then
   # shellcheck disable=SC1090
   . "$env_file_path"
 fi
-for sh in /bin/ash /bin/dash /bin/bash /bin/sh
+for sh in /bin/dash /bin/ash /bin/bash /bin/sh
 do
   if test -x "$sh"
   then

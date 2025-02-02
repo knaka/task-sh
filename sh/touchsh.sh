@@ -37,7 +37,7 @@ else
   cat >"$1"
 fi <<EOF
 #!/usr/bin/env sh
-# vim: set filetype=sh :
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
 test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
 set -o nounset -o errexit
