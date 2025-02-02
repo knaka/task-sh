@@ -20,7 +20,7 @@ subcmd_node() { # Run Node.js.
   node"$(exe_ext)" "$@"
 }
 
-task_npm__depinstall() { # Install the npm packages if the package.json is modified.
+task_npm__install() { # Install the npm packages if the package.json is modified.
   first_call ac87fe4 || return 0
   ! test -f "$SCRIPT_DIR"/package.json && return 1
   local last_check_path="$SCRIPT_DIR"/node_modules/.npm_last_check
@@ -43,7 +43,7 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
   shift
   local bin_path="$1"
   shift
-  task_npm__depinstall
+  task_npm__install
   local p="$SCRIPT_DIR"/node_modules/"$pkg"/"$bin_path"
   if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
   then

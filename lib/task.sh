@@ -762,7 +762,7 @@ install_pkg_cmd_tabsep_args() {
       (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (d|dpkg-id) deb_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (d|deb-id) deb_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
       (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
@@ -856,7 +856,7 @@ run_pkg_cmd() { # Run a command after ensuring it is installed.
   # shellcheck disable=SC2046
   set -- $(install_pkg_cmd_tabsep_args "$@")
   pop_ifs
-  cross_run "$@" >&2
+  cross_run "$@"
 }
 
 subcmd_curl() { # Run curl(1).

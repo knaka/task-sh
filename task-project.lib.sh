@@ -1,5 +1,6 @@
-#!/bin/sh
-test "${guard_a8ac234+set}" = set && return 0; guard_a8ac234=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 
 . ./task.sh
 
@@ -256,30 +257,50 @@ task_all__test() { # Run all tests in sub directories. This can take a long time
   return 0
 }
 
-subcmd_modcheck() { # Modification check.
-  # if test $# -eq 0
-  # then
-  #   echo "Usage: $0 <dir>"
-  #   return 1
-  # fi
+subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two directories.
+  local add_pattern='{\+.*\+\}'
+  local rem_pattern='\[\-.*\-\]'
+  local mod_pattern="$rem_pattern$add_pattern"
+
   local rc=0
-  local dir="$1"
-  for i in "$dir"/task.sh "$dir"/*.lib.sh
+  local dir1_path="$1"
+  if ! test -d "$dir1_path"
+  then
+    echo "Directory not found: $dir1_path" >&2
+    return 1
+  fi
+  local dir2_path="$2"
+  if ! test -d "$dir2_path"
+  then
+    echo "Directory not found: $dir2_path" >&2
+    return 1
+  fi
+  local file1_path
+  for file1_path in "$dir1_path"/task.sh "$dir1_path"/*.lib.sh
   do
-    if ! test -r "$i"
+    if ! test -r "$file1_path"
     then
       continue
     fi
-    local j
-    j=./lib/"$(basename "$i")"
-    if ! test -r "$j"
+    local file2_path
+    file2_path="$dir2_path"/"$(basename "$file1_path")"
+    if ! test -r "$file2_path"
     then
       continue
     fi
-    if ! diff -q "$j" "$i"
+    if ! diff -q "$file1_path" "$file2_path" >/dev/null 2>&1
     then
-      echo "Different: $i" >&2
-      diff -uNr "$j" "$i" || :
+      num_mod="$(git diff --word-diff --unified=0 "$file1_path" "$file2_path" | grep -c -E -e "$mod_pattern" || :)"
+      num_add="$(git diff --word-diff --unified=0 "$file1_path" "$file2_path" | grep -c -E -e "^$add_pattern$" || :)"
+      num_rem="$(git diff --word-diff --unified=0 "$file1_path" "$file2_path" | grep -c -E -e "^$rem_pattern$" || :)"
+      # shellcheck disable=SC2015
+      printf "%s%s%s%s\n" \
+        "$(basename "$file1_path")" \
+        "$(test "$num_add" -gt 0 && echo " Added: $num_add," || :)" \
+        "$(test "$num_rem" -gt 0 && echo " Removed: $num_rem," || :)" \
+        "$(test "$num_mod" -gt 0 && echo " Modified: $num_mod," || :)" \
+      | sed -e 's/,$//'
+      diff -u "$file1_path" "$file2_path" | sed -e 's/^/  /'
       rc=1
     fi
   done
@@ -287,7 +308,8 @@ subcmd_modcheck() { # Modification check.
 }
 
 task_dupcheck() {
-  local log_path="$(get_temp_dir_path)"/dupcheck.log
+  local log_path
+  log_path="$(get_temp_dir_path)"/dupcheck.log
   grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./lib/*.sh \
   | sed -E -e 's/^(task_|subcmd_)//' \
   | sed -E -e 's/\(.*//' \
