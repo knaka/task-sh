@@ -18,7 +18,7 @@ jobs:
       - name: Environment Variables
         run: env
       - name: Run Test
-        run: ./task test
+        run: ./task --verbose test
   test-windows:
     runs-on: windows-latest
     steps:
@@ -33,4 +33,4 @@ jobs:
       - name: Load BusyBox
         run: .\task.cmd nop
       - name: Run Test
-        run: .\task.cmd test
+        run: .\task.cmd --verbose test
