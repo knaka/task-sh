@@ -1101,7 +1101,7 @@ hex_restore() {
     set -- gawk --non-decimal-data
   fi
   # shellcheck disable=SC2016
-  xargs printf "%s\n" | "$@" '{ printf("%c",  int("0x" $1)) }'
+  xargs printf "%s\n" | "$@" '{ printf("%c", int("0x" $1)) }'
 }
 
 oct_dump() {
