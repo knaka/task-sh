@@ -1096,11 +1096,11 @@ hex_restore() {
 }
 
 oct_dump() {
-  od -A n -t o1 -v | xargs printf "%04s "
+  od -A n -t o1 -v | xargs printf "%s "
 }
 
 oct_restore() {
-  xargs printf '\\\\%s\n' | xargs printf "%b"
+  xargs printf '\\\\0%s\n' | xargs printf "%b"
 }
 
 # --------------------------------------------------------------------------
