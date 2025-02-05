@@ -337,7 +337,8 @@ test_not_existing_task() (
 )
 
 test_dumper() (
-  awk --version 2>&1
+  # Busybox Awk does not support --version option.
+  # awk --version 2>&1
   result="$(echo hello | hex_dump | hex_restore)"
   assert_eq "hello" "$result"
   result="$(echo hello2 | oct_dump | oct_restore)"
