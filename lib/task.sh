@@ -1087,6 +1087,22 @@ then
   }
 fi
 
+hex_dump() {
+  od -A n -t x1 -v | xargs printf "%s "
+}
+
+hex_restore() {
+  xargs printf "%s\n" | awk '{ printf("%c",  int("0x" $1)) }'
+}
+
+oct_dump() {
+  od -A n -t o1 -v | xargs printf "%04s "
+}
+
+oct_restore() {
+  xargs printf '\\\\%s\n' | xargs printf "%b"
+}
+
 # --------------------------------------------------------------------------
 # Main.
 # --------------------------------------------------------------------------

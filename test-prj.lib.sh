@@ -335,3 +335,10 @@ test_not_existing_task() (
   "$SH" task.sh --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
   "$SH" task.sh --skip-missing not_existing_task
 )
+
+test_dumper() (
+  result="$(echo hello | hex_dump | hex_restore)"
+  assert_eq "hello" "$result"
+  result="$(echo hello2 | oct_dump | oct_restore)"
+  assert_eq "hello2" "$result"
+)
