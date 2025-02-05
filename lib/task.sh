@@ -1092,7 +1092,16 @@ hex_dump() {
 }
 
 hex_restore() {
-  xargs printf "%s\n" | awk '{ printf("%c",  int("0x" $1)) }'
+  set -- awk
+  if command -v mawk >/dev/null 2>&1
+  then
+    set -- mawk
+  elif command -v gawk >/dev/null 2>&1
+  then
+    set -- gawk --non-decimal-data
+  fi
+  # shellcheck disable=SC2016
+  xargs printf "%s\n" | "$@" '{ printf("%c",  int("0x" $1)) }'
 }
 
 oct_dump() {
