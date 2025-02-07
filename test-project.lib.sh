@@ -358,8 +358,9 @@ test_bg_exec() (
 
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
-  # "$SH" task.sh run_processes "$log_dir_path"
-  "$SH" task.sh run_processes "$log_dir_path" </dev/null 2>&1 | tee "$log_dir_path"/run_processes.log
+  "$SH" task.sh run_processes "$log_dir_path"
+  # On Windows, This fails? `sh: An internal error occurred. Error 0xc0000374``
+  # "$SH" task.sh run_processes "$log_dir_path" </dev/null 2>&1 | tee "$log_dir_path"/run_processes.log
   ls -l "$log_dir_path"
 
   # Something goes wrong on Windows.
