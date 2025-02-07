@@ -324,6 +324,7 @@ is_ci_mac() {
 
 subcmd_run_processes() {
   local parent_temp_dir_path="$1"
+
   bg_exec /bin/sleep 10
   bg_exec \
     "$SH" task.sh wait_and_date process0
@@ -337,58 +338,101 @@ subcmd_run_processes() {
     --stdout="$parent_temp_dir_path"/process3-merged.log \
     --stderr="$parent_temp_dir_path"/process3-merged.log \
     "$SH" task.sh wait_and_date process3
-  sleep 0.1
-  echo Launched all processes. Waiting for them to finish. >&2
-  echo pids: "$pids"
-  local before=
-  local pid=
-  echo 5f0646d >&2
-  pid=$$
-  echo 7f9860d >&2
-  if is_ci_mac
-  then 
-    return 0
-  fi
-  if is_mac
+
+  local jobs_path
+  jobs_path="$parent_temp_dir_path"/jobs.log
+
+  jobs >"$jobs_path"
+  if ! test "$(grep Running "$jobs_path" | cat | wc -l)" -eq 5
   then
-    echo 5871cc1 >&2
-    ps -o ppid,command "$pid" >&2
-    echo 591e809 >&2
-    # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
-    ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
-    echo 896bba3 >&2
-    echo
-    before="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  elif is_windows
-  then
-    before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
-  else
-    before="$(ps --ppid "$pid" | wc -l)"
-  fi
-  echo Sleeping for 2 seconds. >&2
-  sleep 2
-  echo Waking up. >&2
-  echo >&2
-  local after=
-  if is_mac
-  then
-    # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
-    # ps -o ppid | sed -e 's/^ *//' | grep "^$pid " >&2
-    echo 450fe96 >&2
-    ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
-    after="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  elif is_windows
-  then
-    after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
-  else
-    after="$(ps --ppid "$pid" | wc -l)"
-  fi
-  # echo 6b12f9d: "$before" "$after"
-  if ! test $((before - after)) -eq 4
-  then
-    echo "The number of child processes is not 4 but $before - $after." >&2
+    echo "Some jobs are not running." >&2
     return 1
   fi
-  echo Finishing >&2
+
+  sleep 2
+
+  jobs >"$jobs_path"
+  if ! test "$(grep Running "$jobs_path" | cat | wc -l)" -eq 1
+  then
+    echo "Some jobs are still running." >&2
+    return 1
+  fi
+
+  kill_children
+
+  jobs >"$jobs_path"
+  if ! test "$(grep Running "$jobs_path" | cat | wc -l)" -eq 0
+  then
+    echo "Some jobs are not killed." >&2
+    return 1
+  fi
+
   return 0
 }
+
+  # echo Launched all processes. Waiting for them to finish. >&2
+  # echo pids: "$pids"
+  # local before=
+  # local pid=
+  # echo 5f0646d >&2
+  # pid=$$
+  # echo 7f9860d >&2
+  # if is_ci_mac
+  # then 
+  #   return 0
+  # fi
+  # if is_mac
+  # then
+  #   :
+  #   # echo 5871cc1 >&2
+  #   # ps -o ppid,command "$pid" >&2
+  #   # echo 591e809 >&2
+  #   # # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
+  #   # ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
+  #   # echo 896bba3 >&2
+  #   # echo
+  #   # before="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
+  # elif is_windows
+  # then
+  #   before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
+  # else
+  #   before="$(ps --ppid "$pid" | wc -l)"
+  # fi
+  # echo Sleeping for 2 seconds. >&2
+  # sleep 2
+  # echo Waking up. >&2
+  # if is_mac
+  # then
+  #   jobs >"$(get_temp_dir_path)"/jobs.log
+  #   echo 3abdbd9
+  #   grep Running "$(get_temp_dir_path)"/jobs.log | cat
+  #   if ! test "$(grep Running "$(get_temp_dir_path)"/jobs.log | cat | wc -l)" -eq 0
+  #   then
+  #     echo "Some jobs are still running." >&2
+  #     return 1
+  #   fi
+  #   return 0
+  # fi
+  # echo >&2
+  # local after=
+  # if is_mac
+  # then
+  #   # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
+  #   # ps -o ppid | sed -e 's/^ *//' | grep "^$pid " >&2
+  #   echo 450fe96 >&2
+  #   ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
+  #   after="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
+  # elif is_windows
+  # then
+  #   after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
+  # else
+  #   after="$(ps --ppid "$pid" | wc -l)"
+  # fi
+  # # echo 6b12f9d: "$before" "$after"
+  # if ! test $((before - after)) -eq 4
+  # then
+  #   echo "The number of child processes is not 4 but $before - $after." >&2
+  #   return 1
+  # fi
+  # echo Finishing >&2
+  # return 0
