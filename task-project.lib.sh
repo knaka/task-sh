@@ -332,9 +332,12 @@ subcmd_run_processes() {
   echo Launched all processes. Waiting for them to finish. >&2
   local before=
   local pid=
+  echo 5f0646d >&2
   pid=$$
+  echo 7f9860d >&2
   if is_mac
   then
+    echo 5871cc1 >&2
     ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
     echo
     before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
