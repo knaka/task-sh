@@ -1143,7 +1143,7 @@ chdir_user() {
   then
     cd "$user_specified_directory" || exit 1
   else
-get_temp_dir_pathginal
+    chdir_original
   fi
 }
 

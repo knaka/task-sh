@@ -332,18 +332,18 @@ subcmd_run_processes() {
   local before=
   local pid=
   pid=$$
-  if is_bsd
+  if is_bsd || is_windows
   then
-    before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
+    before="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
   else
     before="$(ps --ppid "$pid" | wc -l)"
   fi
   sleep 2
   echo >&2
   local after=
-  if is_bsd
+  if is_bsd || is_windows
   then
-    after="$(ps -o ppid,command | sed -e 's/^ *//' | grep "\b$$\b" | wc -l)"
+    after="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$$\b" | wc -l)"
   else
     after="$(ps --ppid "$pid" | wc -l)"
   fi

@@ -348,9 +348,8 @@ test_dumper() (
 test_bg_exec() (
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
-  ./task run_processes "$log_dir_path"
-  # sleep 1
-  # ls -l "$log_dir_path"
+  "$SH" task.sh run_processes "$log_dir_path"
+  ls -l "$log_dir_path"
 
   # cat -n "$log_dir_path"/process1-stdout.log
   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
