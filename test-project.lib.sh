@@ -345,8 +345,16 @@ test_dumper() (
   assert_eq "hello2" "$result"
 )
 
+is_ci() {
+  test "${CI+set}" = set
+}
+
+is_ci_mac() {
+  is_ci && test "${CI_MAC+set}" = set
+}
+
 test_bg_exec() (
-  skip_if is_mac
+  # skip_if is_ci_mac
 
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
