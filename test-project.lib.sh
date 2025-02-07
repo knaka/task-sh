@@ -344,3 +344,23 @@ test_dumper() (
   result="$(echo hello2 | oct_dump | oct_restore)"
   assert_eq "hello2" "$result"
 )
+
+test_bg_exec() (
+  log_dir_path="$(get_temp_dir_path)"/test-logs
+  mkdir -p "$log_dir_path"
+  ./task run_processes "$log_dir_path"
+  # sleep 1
+  # ls -l "$log_dir_path"
+
+  # cat -n "$log_dir_path"/process1-stdout.log
+  grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
+  grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process1-stdout.log
+
+  # cat -n "$log_dir_path"/process2-stderr.log
+  grep -q 'My PID:' "$log_dir_path"/process2-stderr.log
+  grep -Evq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process2-stderr.log
+
+  # cat -n "$log_dir_path"/process3-merged.log
+  grep -q 'My PID:' "$log_dir_path"/process3-merged.log
+  grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process3-merged.log
+)

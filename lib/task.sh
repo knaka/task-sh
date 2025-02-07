@@ -1152,12 +1152,62 @@ in_script_dir() {
   echo "$PWD" | grep -q "^$SCRIPT_DIR"
 }
 
-kill_children() {
-  for i_519fa93 in $(seq 10)
+pids=
+
+bg_exec() {
+  local stdout=
+  local stderr=
+  OPTIND=1; while getopts o:e:-: OPT
   do
-    kill "%$i_519fa93" > /dev/null 2>&1 || :
-    wait "%$i_519fa93" > /dev/null 2>&1 || :
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (o|stdout) stdout="$OPTARG";;
+      (e|stderr) stderr="$OPTARG";;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
   done
+  shift $((OPTIND-1))
+
+  if test -n "$stdout" && test "$stdout" = "$stderr"
+  then
+    "$@" >"$stdout" 2>&1 </dev/null &
+  elif test -n "$stdout"
+  then
+    if test -n "$stderr"
+    then
+      "$@" >"$stdout" 2>"$stderr" </dev/null &
+    else
+      "$@" >"$stdout" </dev/null &
+    fi
+  elif test -n "$stderr"
+  then
+    "$@" 2>"$stderr" </dev/null &
+  else
+    "$@" </dev/null &
+  fi
+
+  local pid=$!
+  pids="${pids:+$pids }$pid"
+  echo "Started $pid: $*" >&2
+}
+
+kill_children() {
+  local pid=
+  for pid in $pids
+  do
+    kill "$pid" >/dev/null 2>&1 || :
+    # kill -TERM "$pid" || :
+    # kill -KILL "$pid" || :
+    wait "$pid" || :
+    # echo Killed "$pid" >&2
+  done
+  pids=
 }
 
 get_cache_dir_path() {
@@ -1178,19 +1228,8 @@ csv_cleanup_handlers=
 # Main cleanup handler.
 cleanup_79d5d1d() {
   # Save the return code.
-  rc=$?
-  # On some systems, `kill` cannot detect the process if `jobs` is not called before it.
-  if is_windows 
-  then
-    kill_children
-  else 
-    for i_519fa93 in $(jobs | tac | sed -E -e 's/^\[([0-9]+).*/\1/')
-    do
-      kill "%$i_519fa93"
-      wait "%$i_519fa93" || :
-    done
-  fi
-  # echo "Killed children." >&2
+  local rc=$?
+  kill_children
 
   if test -d "$temp_dir_path_d4a4197"
   then
@@ -1346,7 +1385,7 @@ get_sh() {
 }
 
 main() {
-  set -o nounset -o errexit -o monitor
+  set -o nounset -o errexit
 
   # Error exit if executed with unexpected shell.
   if test "${BASH+SET}" = SET && test -x "$BASH"

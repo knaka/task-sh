@@ -123,7 +123,7 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
     then
       printf "%sTest \"%s\" Skipped%s\n" "$YELLOW" "$test_name" "$NORMAL" >&2
     else
-      printf "%sTest \"%s\" Failed%s\n" "$RED" "$test_name" "$NORMAL" >&2
+      printf "%sTest \"%s\" Failed with RC %d%s\n" "$RED" "$test_name" "$result" "$NORMAL" >&2
       while IFS= read -r line
       do
         echo "  $line"

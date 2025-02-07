@@ -221,20 +221,6 @@ task_hello2() (
   done
 )
 
-task_daemon() {
-  task_hello1 &
-  # task_hello2 &
-  (
-    while true
-    do
-      echo hello3
-      sleep 1
-    done
-  ) &
-  sleep 3
-  kill_children
-}
-
 subcmd_test() { # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
   echo "Running tests with shell ${SH}."
   subcmd_task__test "$@"
@@ -318,4 +304,54 @@ task_dupcheck() {
   then
     return 1
   fi
+}
+
+subcmd_wait_and_date() {
+  echo My PID: "$$" >&2
+  local name="$1"
+  sleep 1
+  LC_ALL=C date
+  echo "Done: $name" >&2
+}
+
+subcmd_run_processes() {
+  local parent_temp_dir_path="$1"
+  bg_exec /bin/sleep 10
+  bg_exec \
+    "$SH" task.sh wait_and_date process0
+  bg_exec \
+    --stdout="$parent_temp_dir_path"/process1-stdout.log \
+    "$SH" task.sh wait_and_date process1
+  bg_exec \
+    --stderr="$parent_temp_dir_path"/process2-stderr.log \
+    "$SH" task.sh wait_and_date process2
+  bg_exec \
+    --stdout="$parent_temp_dir_path"/process3-merged.log \
+    --stderr="$parent_temp_dir_path"/process3-merged.log \
+    "$SH" task.sh wait_and_date process3
+  local before=
+  local pid=
+  pid=$$
+  if is_bsd
+  then
+    before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
+  else
+    before="$(ps --ppid "$pid" | wc -l)"
+  fi
+  sleep 2
+  echo >&2
+  local after=
+  if is_bsd
+  then
+    after="$(ps -o ppid,command | sed -e 's/^ *//' | grep "\b$$\b" | wc -l)"
+  else
+    after="$(ps --ppid "$pid" | wc -l)"
+  fi
+  # echo 6b12f9d: "$before" "$after"
+  if ! test $((before - after)) -eq 4
+  then
+    return 1
+  fi
+  echo Finishing >&2
+  return 0
 }
