@@ -17,6 +17,8 @@ jobs:
         run: uname -a
       - name: Environment Variables
         run: env
+      - name: Processes
+        run: ps -ww -o pid,ppid,command
       - name: Run Test
         run: ./task --verbose test
   test-windows:
