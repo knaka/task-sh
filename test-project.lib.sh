@@ -363,6 +363,8 @@ test_bg_exec() (
 
   ls -l "$log_dir_path"
 
+  # Linux grep(1) does not support \d.
+
   # cat -n "$log_dir_path"/process1-stdout.log
   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
   grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process1-stdout.log
