@@ -339,6 +339,7 @@ subcmd_run_processes() {
   then
     echo 5871cc1 >&2
     ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
+    echo 896bba3 >&2
     echo
     before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
   elif is_windows
