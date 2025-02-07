@@ -368,7 +368,11 @@ test_bg_exec() (
   # All sub processes should be finished.
   for pid in $pids
   do
-    ps -p "$pid" >/dev/null 2>&1 && return 1
+    if ps -p "$pid" >/dev/null 2>&1
+    then
+      echo "Process $pid is still running
+      return 1
+    fi
   done
 
   # cat -n "$log_dir_path"/process1-stdout.log
