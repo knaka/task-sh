@@ -18,7 +18,7 @@ jobs:
       - name: Environment Variables
         run: env
       - name: Processes
-        run: ps -ww -o pid,ppid,command
+        run: ps -aww -o pid,ppid,command
       - name: Run Test
         run: ./task --verbose test
   test-windows:
