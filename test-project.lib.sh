@@ -350,7 +350,7 @@ is_ci() {
 }
 
 is_ci_mac() {
-  is_ci && test "${CI_MAC+set}" = set
+  is_ci && is_mac
 }
 
 test_bg_exec() (
