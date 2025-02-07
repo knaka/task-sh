@@ -37,7 +37,8 @@ task_pages__functions__build() { # Build the Functions files into a JS file.
   then
     set -- "$@" "$pages_functions_src_pattern"
   fi
-  subcmd_esbuild --bundle --format=esm --outdir="$pages_functions_dir_path" "$@"
+  # `--platform=node` is required to use the Node.js built-in modules even for `require()`.
+  subcmd_esbuild --platform=node --bundle --format=esm --outdir="$pages_functions_dir_path" "$@"
 }
 
 task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
