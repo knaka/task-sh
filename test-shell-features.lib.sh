@@ -70,11 +70,11 @@ foo
 $var
 bar
 EOF
-  assert_eq "$(sha1sum "$output1_path" | field 1)" "$(sha1sum "$output2_path" | field 1)"
+  assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output2_path" | field 1)"
 
   output3_path="$(get_temp_dir_path)/output3.txt"
   here_doc_107d344 "$var" >"$output3_path"
-  assert_eq "$(sha1sum "$output1_path" | field 1)" "$(sha1sum "$output3_path" | field 1)" 
+  assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output3_path" | field 1)" 
 )
 
 # # dash annd ash does not support
@@ -103,5 +103,5 @@ EOF
 #   echo -n "foo" >"$output1_path"
 #   output2_path="$(get_temp_dir_path)/output2.txt"
 #   printf "%s" "foo" >"$output2_path"
-#   assert_eq "$(sha1sum "$output1_path" | field 1)" "$(sha1sum "$output2_path" | field 1)"
+#   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output2_path" | field 1)"
 # )
