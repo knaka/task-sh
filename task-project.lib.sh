@@ -332,25 +332,35 @@ subcmd_run_processes() {
   local before=
   local pid=
   pid=$$
-  if is_bsd || is_windows
+  if is_mac
   then
-    before="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
+    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid "
+    echo
+    before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
+  elif is_windows
+  then
+    before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   else
     before="$(ps --ppid "$pid" | wc -l)"
   fi
   sleep 2
   echo >&2
   local after=
-  if is_bsd || is_windows
+  if is_mac
   then
-    after="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
+    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid "
+    echo
+    after="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
+  elif is_windows
+  then
+    after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   else
     after="$(ps --ppid "$pid" | wc -l)"
   fi
   # echo 6b12f9d: "$before" "$after"
   if ! test $((before - after)) -eq 4
   then
-    echo "The number of child processes is not 4 but $((before - after))." >&2
+    echo "The number of child processes is not 4 but $before - $after." >&2
     return 1
   fi
   echo Finishing >&2
