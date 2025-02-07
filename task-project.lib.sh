@@ -329,7 +329,7 @@ subcmd_run_processes() {
     --stdout="$parent_temp_dir_path"/process3-merged.log \
     --stderr="$parent_temp_dir_path"/process3-merged.log \
     "$SH" task.sh wait_and_date process3
-  sleep 1
+  sleep 0.1
   echo Launched all processes. Waiting for them to finish. >&2
   local before=
   local pid=
@@ -339,13 +339,13 @@ subcmd_run_processes() {
   if is_mac
   then
     echo 5871cc1 >&2
-    ps -o ppid | sed -e 's/^ *//' | grep "^$pid " | cat
+    ps -o ppid,command "$pid" >&2
     echo 591e809 >&2
     # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
-    ps -o ppid | sed -e 's/^ *//' | grep "^$pid " | cat
+    ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
     echo 896bba3 >&2
     echo
-    before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
+    before="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
   elif is_windows
   then
     before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
@@ -361,8 +361,9 @@ subcmd_run_processes() {
   then
     # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
     # ps -o ppid | sed -e 's/^ *//' | grep "^$pid " >&2
-    echo
-    after="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
+    echo 450fe96 >&2
+    ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
+    after="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
   elif is_windows
   then
     after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
