@@ -242,7 +242,7 @@ b: hoge fuga hare
 z: 012 345 678 900
 EOF
 
-  assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
+  assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
 )
 
 # Parse with sed(1) and execute the commands.
@@ -300,7 +300,7 @@ EOF
 foo BAR baz QUX HOGE fuga
 other lines
 EOF
-  assert_eq "$(sha1sum "$expected_path" | field 1)" "$(sha1sum "$output_path" | field 1)"
+  assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
 )
 
 # Test IFS push/pop functions.
