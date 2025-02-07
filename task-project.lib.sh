@@ -329,6 +329,7 @@ subcmd_run_processes() {
     --stdout="$parent_temp_dir_path"/process3-merged.log \
     --stderr="$parent_temp_dir_path"/process3-merged.log \
     "$SH" task.sh wait_and_date process3
+  echo Launched all processes. Waiting for them to finish. >&2
   local before=
   local pid=
   pid=$$
