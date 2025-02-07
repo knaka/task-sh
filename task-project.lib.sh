@@ -343,13 +343,14 @@ subcmd_run_processes() {
   local after=
   if is_bsd || is_windows
   then
-    after="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$$\b" | wc -l)"
+    after="$(ps -o ppid | sed -e 's/^ *//' | grep "\b$pid\b" | wc -l)"
   else
     after="$(ps --ppid "$pid" | wc -l)"
   fi
   # echo 6b12f9d: "$before" "$after"
   if ! test $((before - after)) -eq 4
   then
+    echo "The number of child processes is not 4 but $((before - after))." >&2
     return 1
   fi
   echo Finishing >&2
