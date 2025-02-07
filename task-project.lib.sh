@@ -335,7 +335,7 @@ subcmd_run_processes() {
   pid=$$
   if is_mac
   then
-    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid "
+    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
     echo
     before="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
   elif is_windows
@@ -344,12 +344,14 @@ subcmd_run_processes() {
   else
     before="$(ps --ppid "$pid" | wc -l)"
   fi
+  echo Sleeping for 2 seconds. >&2
   sleep 2
+  echo Waking up. >&2
   echo >&2
   local after=
   if is_mac
   then
-    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid "
+    ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
     echo
     after="$(ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | wc -l)"
   elif is_windows
