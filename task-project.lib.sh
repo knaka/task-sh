@@ -338,7 +338,7 @@ subcmd_run_processes() {
   if is_mac
   then
     echo 5871cc1 >&2
-    ps -o ppid
+    ps -o ppid,command
     echo 591e809 >&2
     # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
     ps -o ppid | sed -e 's/^ *//' | grep "^$pid " >&2
