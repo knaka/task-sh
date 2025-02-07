@@ -314,6 +314,14 @@ subcmd_wait_and_date() {
   echo "Done: $name" >&2
 }
 
+is_ci() {
+  test "${CI+set}" = set
+}
+
+is_ci_mac() {
+  is_ci && is_mac
+}
+
 subcmd_run_processes() {
   local parent_temp_dir_path="$1"
   bg_exec /bin/sleep 10
@@ -331,11 +339,16 @@ subcmd_run_processes() {
     "$SH" task.sh wait_and_date process3
   sleep 0.1
   echo Launched all processes. Waiting for them to finish. >&2
+  echo pids: "$pids"
   local before=
   local pid=
   echo 5f0646d >&2
   pid=$$
   echo 7f9860d >&2
+  if is_ci_mac
+  then 
+    return 0
+  fi
   if is_mac
   then
     echo 5871cc1 >&2

@@ -354,12 +354,22 @@ is_ci_mac() {
 }
 
 test_bg_exec() (
-  skip_if is_ci_mac
+  # skip_if is_ci_mac
 
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
-  "$SH" task.sh run_processes "$log_dir_path"
+  # "$SH" task.sh run_processes "$log_dir_path"
+  "$SH" task.sh run_processes "$log_dir_path" </dev/null 2>&1 | tee "$log_dir_path"/run_processes.log
   ls -l "$log_dir_path"
+
+  pids="$(sed -En -e 's/^pids: (.*)/\1/p' <"$log_dir_path"/run_processes.log)"
+  echo Gotten pids: "$pids"
+
+  # All sub processes should be finished.
+  for pid in $pids
+  do
+    ps -p "$pid" >/dev/null 2>&1 && return 1
+  done
 
   # cat -n "$log_dir_path"/process1-stdout.log
   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
