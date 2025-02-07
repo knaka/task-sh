@@ -358,24 +358,24 @@ test_bg_exec() (
 
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
-  "$SH" task.sh run_processes "$log_dir_path"
+  # "$SH" task.sh run_processes "$log_dir_path"
   # On Windows, This fails? `sh: An internal error occurred. Error 0xc0000374``
   # "$SH" task.sh run_processes "$log_dir_path" </dev/null 2>&1 | tee "$log_dir_path"/run_processes.log
+  "$SH" task.sh run_processes "$log_dir_path" 2>&1 | tee "$log_dir_path"/run_processes.log
   ls -l "$log_dir_path"
 
-  # Something goes wrong on Windows.
-  # pids="$(sed -En -e 's/^pids: (.*)/\1/p' <"$log_dir_path"/run_processes.log)"
-  # echo Gotten pids: "$pids"
-  #
-  # # All sub processes should be finished.
-  # for pid in $pids
-  # do
-  #   if ps -p "$pid" >/dev/null 2>&1
-  #   then
-  #     echo "Process $pid is still running"
-  #     return 1
-  #   fi
-  # done
+  pids="$(sed -En -e 's/^pids: (.*)/\1/p' <"$log_dir_path"/run_processes.log)"
+  echo Gotten pids: "$pids"
+
+  # All sub processes should be finished.
+  for pid in $pids
+  do
+    if ps -p "$pid" >/dev/null 2>&1
+    then
+      echo "Process $pid is still running"
+      return 1
+    fi
+  done
 
   # cat -n "$log_dir_path"/process1-stdout.log
   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
