@@ -370,7 +370,7 @@ test_bg_exec() (
   do
     if ps -p "$pid" >/dev/null 2>&1
     then
-      echo "Process $pid is still running
+      echo "Process $pid is still running"
       return 1
     fi
   done
