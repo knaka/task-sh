@@ -99,7 +99,7 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
     pop_ifs
   fi
   some_failed=false
-  log_file_path="$(get_temp_dir_path)/485d347"
+  log_file_path="$(temp_dir_path)/485d347"
   verbose && echo "Running tests: $*" >&2
   for test_name in "$@"
   do

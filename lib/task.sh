@@ -18,7 +18,7 @@ fi
 # BusyBox sh not supports `-t prefix`.
 temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
-get_temp_dir_path() {
+temp_dir_path() {
   if ! test -d "$temp_dir_path_d4a4197"
   then
     mkdir -p "$temp_dir_path_d4a4197"
@@ -957,21 +957,21 @@ ensure_file() {
 memoize() {
   local cache_file_name="$1"
   shift
-  if ! test -r "$(get_temp_dir_path)/$cache_file_name"
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
   then
-    "$@" > "$(get_temp_dir_path)/$cache_file_name"
+    "$@" > "$(temp_dir_path)/$cache_file_name"
   fi
-  cat "$(get_temp_dir_path)/$cache_file_name"
+  cat "$(temp_dir_path)/$cache_file_name"
 }
 
 memoize_silent() (
   local cache_file_name="$1"
   shift
-  if ! test -r "$(get_temp_dir_path)/$cache_file_name"
+  if ! test -r "$(temp_dir_path)/$cache_file_name"
   then
-    "$@" > "$(get_temp_dir_path)/$cache_file_name" 2> /dev/null
+    "$@" > "$(temp_dir_path)/$cache_file_name" 2> /dev/null
   fi
-  cat "$(get_temp_dir_path)/$cache_file_name"
+  cat "$(temp_dir_path)/$cache_file_name"
 )
 
 first_call() {

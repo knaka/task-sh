@@ -4,8 +4,8 @@ set -o nounset -o errexit
 
 . ./task.sh
 
-ln -sf target "$(get_temp_dir_path)"/symlink
-if ! test -L "$(get_temp_dir_path)"/symlink
+ln -sf target "$(temp_dir_path)"/symlink
+if ! test -L "$(temp_dir_path)"/symlink
 then
   echo "Failed to create symlink." >&2
   if is_windows

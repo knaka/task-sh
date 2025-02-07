@@ -70,7 +70,7 @@ goroot_path() (
   rm -fr "$sdk_dir_path"/go
   if is_windows
   then
-    zip_path="$(get_temp_dir_path)"/temp.zip
+    zip_path="$(temp_dir_path)"/temp.zip
     curl --location -o "$zip_path" "https://go.dev/dl/$go_required_min_ver.$goos-$goarch.zip"
     (
       cd "$sdk_dir_path" || exit 1
