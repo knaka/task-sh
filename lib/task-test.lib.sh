@@ -37,6 +37,11 @@ skip_unless_all() {
   return "$rc_test_skipped"
 }
 
+skip_if() {
+  "$@" && return "$rc_test_skipped"
+  return 0
+}
+
 subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
   OPTIND=1; while getopts a-: OPT
   do

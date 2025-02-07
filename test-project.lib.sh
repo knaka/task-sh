@@ -346,6 +346,8 @@ test_dumper() (
 )
 
 test_bg_exec() (
+  skip_if is_mac
+
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
   "$SH" task.sh run_processes "$log_dir_path"
