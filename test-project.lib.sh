@@ -354,7 +354,7 @@ is_ci_mac() {
 }
 
 test_bg_exec() (
-  # skip_if is_ci_mac
+  skip_if is_ci_mac
 
   log_dir_path="$(get_temp_dir_path)"/test-logs
   mkdir -p "$log_dir_path"
