@@ -5,7 +5,7 @@ test "${sourced_0f9d2de-}" = true && return 0; sourced_0f9d2de=true
 set -o nounset -o errexit
 # set -o xtrace # For debugging
 
-ensure_executed_with_sh() {
+ensure_executed_with_posix_sh() {
   if test "${SH+set}" = set
   then
     return 0
@@ -30,6 +30,6 @@ ensure_executed_with_sh() {
   return 1
 }
 
-ensure_executed_with_sh "$0" "$@"
+ensure_executed_with_posix_sh "$0" "$@"
 
 echo 1e0aa9d "$0" >&2
