@@ -1211,7 +1211,7 @@ kill_children() {
     local jids
     jids="$(temp_dir_path)"/jids
     # ash provides “jobs pipe”.
-    jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running.*/\1/' >"$jids"
+    jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
     while read -r jid
     do
       kill "%$jid" || :
