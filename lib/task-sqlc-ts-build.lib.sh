@@ -18,7 +18,7 @@ task_sqlc__ts__build() { # Builds the gen-typescript plugin.
     cd build
     if ! test -d ./sqlc-gen-typescript
     then
-      cross_run git clone https://github.com/sqlc-dev/sqlc-gen-typescript.git
+      invoke git clone https://github.com/sqlc-dev/sqlc-gen-typescript.git
     fi
     cd sqlc-gen-typescript
     subcmd_npm install

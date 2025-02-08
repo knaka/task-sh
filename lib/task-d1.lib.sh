@@ -28,6 +28,21 @@ task_d1__list() { # List the remote D1 databases.
   subcmd_wrangler d1 list
 }
 
+subcmd_d1__binding() { # [index = 0] Show the binding name of the D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".d1_databases.$index.binding" ./wrangler.toml
+}
+
+subcmd_d1__name() { # [index = 0] Show the name of the D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".d1_databases.$index.database_name" ./wrangler.toml
+}
+
+subcmd_d1__id() { # [index = 0] Show the ID of the D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".d1_databases.$index.database_id" ./wrangler.toml
+}
+
 get_d1_name() {
   memoize 9764143 subcmd_yq --exit-status eval '.d1_databases.0.database_name' ./wrangler.toml
 }

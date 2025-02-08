@@ -7,12 +7,12 @@ test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=true
 
 subcmd_npm() { # Run npm.
   set_node_env
-  cross_run npm "$@"
+  invoke npm "$@"
 }
 
 subcmd_npx() { # Run npx.
   set_node_env
-  cross_run npx "$@"
+  invoke npx "$@"
 } 
 
 subcmd_node() { # Run Node.js.
@@ -47,25 +47,22 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
   local p="$SCRIPT_DIR"/node_modules/"$pkg"/"$bin_path"
   if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
   then
-    subcmd_node "$p" "$@"
-    return $?
+    if ! invoke subcmd_node "$p" "$@"
+    then
+      return $?
+    fi
+    return 0
   fi
   if is_windows
   then
-    if test -f "$p".exe
-    then
-      "$p".exe "$@"
-      return $?
-    fi
-    for ext in .cmd .bat .ps1
+    for ext in .exe .cmd .bat
     do
       if test -f "$p$ext"
       then
-        "$p$ext" "$@"
-        return $?
+        p="$p$ext"
+        break
       fi
     done
-    return 1
   fi
-  "$p" "$@"
+  invoke "$p" "$@"
 }

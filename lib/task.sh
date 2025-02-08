@@ -662,80 +662,184 @@ newer() {
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 }
 
-# Busybox sh seems to fail to detect proper executable if a file without executable extension exists in the same directory.
-cross_exec() {
-  cleanup
-  if ! is_windows
-  then
-    exec "$@"
-  fi
-  if ! test "${1+set}" = set
-  then
-    exit 1
-  fi
-  local cmd_path="$1"
-  shift
-  if type "$cmd_path.exe" >/dev/null 2>&1
-  then
-    exec "$cmd_path.exe" "$@"
-  fi
-  if type "$cmd_path.cmd" >/dev/null 2>&1
-  then
-    exec "$cmd_path.cmd" "$@"
-  fi
-  if type "$cmd_path.bat" >/dev/null 2>&1
-  then
-    exec "$cmd_path.bat" "$@"
-  fi
-  exec "$cmd_path" "$@"
-}
-
-# Run a command preferring the Windows version if available.
-cross_run() {
-  if ! is_windows
-  then
-    "$@"
-    return $?
-  fi
-  local cmd="$1"
-  shift
-  local ext
-  for ext in .exe .cmd .bat
+# Invoke command with the specified invocation mode.
+invoke() {
+  local invocation_mode=standard
+  local arg
+  for arg in "$@"
   do
-    if type "$cmd$ext" > /dev/null 2>&1
-    then
-      "$cmd$ext" "$@"
-      return $?
-    fi
+    case "$arg" in
+      (--invocation=*) invocation_mode=${arg#--invocation=};;
+      (*) set -- "$@" "$arg";;
+    esac
+    shift
   done
-  "$cmd" "$@"
-}
-
-# Ensure an argument for an option.
-ensure_opt_arg() {
-  if test -z "$2"
+  if test $# -eq 0
   then
-    echo "No argument for option --$1." >&2
-    usage
+    echo "No command specified" >&2
     exit 1
   fi
-  echo "$2"
-}
-
-# Open a URL in a browser.
-open_browser() {
-  case "$(uname -s)" in
-    (Linux)
-      xdg-open "$1" ;;
-    (Darwin)
-      open "$1" ;;
-    (Windows_NT)
-      PowerShell -Command "Start-Process '$1'" ;;
+  case "$1" in
+    (*/*)
+      if is_windows
+      then
+        local ext
+        for ext in .exe .cmd .bat
+        do
+          if test -x "$1$ext"
+          then
+            shift
+            set -- "$1$ext" "$@"
+            break
+          fi
+        done
+      fi
+      if ! test -x "$1"
+      then
+        echo "Command not found: $1" >&2
+        exit 1
+      fi
+      ;;
     (*)
-      echo "Unsupported OS: $(uname -s)" >&2
-      exit 1
+      if is_windows
+      then
+        local ext
+        for ext in .exe .cmd .bat
+        do
+          if command -v "$1$ext"
+          then
+            shift
+            set -- "$1$ext" "$@"
+            break
+          fi
+        done
+      fi
+      if ! command -v "$1" >/dev/null
+      then
+        echo "Command not found: $1" >&2
+        exit 1
+      fi
       ;;
   esac
+  case "$invocation_mode" in
+    (exec) exec "$@";;
+    (background) "$@" &;;
+    (standard) "$@";;
+  esac
+}
+
+# Open the URL in the browser.
+browse() {
+  if is_linux
+  then
+    xdg-open "$1"
+  elif is_mac
+  then
+    open "$1"
+  elif is_windows
+  then
+    PowerShell -Command "Start-Process '$1'"
+  else
+    echo "Unsupported OS: $(uname -s)" >&2
+    exit 1
+  fi
+}
+
+install_pkg_cmd() {
+  local apk_id=
+  local deb_id=
+  local cmd_name=
+  local winget_id=
+  local win_cmd_path=
+  local scoop_id=
+  local brew_id=
+  local brew_cmd_path=
+  OPTIND=1; while getopts a:d:c:p:b:P:w:s:-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (a|apk-id) apk_id=$OPTARG;;
+      (b|brew-id) brew_id=$OPTARG;;
+      (B|brew-cmd-path) brew_cmd_path=$OPTARG;;
+      (c|cmd) cmd_name=$OPTARG;;
+      (d|deb-id) deb_id=$OPTARG;;
+      (w|winget-id) winget_id=$OPTARG;;
+      (p|winget-cmd-path) win_cmd_path=$OPTARG;;
+      (s|scoop-id) scoop_id=$OPTARG;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  local cmd_path="$cmd_name"
+  if command -v "$cmd_name" >/dev/null 2>&1
+  then
+    :
+  elif is_windows
+  then
+    if test -n "$scoop_id"
+    then
+      if ! type scoop > /dev/null 2>&1
+      then
+        powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression" 1>&2
+      fi
+      cmd_path="$HOME"/scoop/shims/ghcup
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        scoop install "$scoop_id" 1>&2
+      fi
+    elif test -n "$winget_id"
+    then
+      cmd_path="$win_cmd_path"
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        winget install --accept-package-agreements --accept-source-agreements --exact --id "$winget_id" 2>&1
+      fi
+    else
+      echo "No package ID for Windows specified." >&2
+      exit 1
+    fi
+  elif is_darwin
+  then
+    if test -n "$brew_id"
+    then
+      if test -n "$brew_cmd_path"
+      then
+        cmd_path="$brew_cmd_path"
+      fi
+      if ! type "$cmd_path" > /dev/null 2>&1
+      then
+        brew install "$brew_id" 1>&2
+      fi
+    else
+      echo "No package ID for macOS specified." >&2
+      exit 1
+    fi
+  elif command -v apt-get >/dev/null 2>&1
+  then
+    apt-get update 1>&2
+    apt-get install -y "$deb_id" 1>&2
+  elif command -v apk >/dev/null 2>&1
+  then
+    apk add "$apk_id" 1>&2
+  else
+    echo "No package manager found." >&2
+    exit 1
+  fi
+  if command -v "$cmd_path" >/dev/null 2>&1
+  then
+    command -v "$cmd_path"
+  else
+    echo "Command not installed: $cmd_path" >&2
+    exit 1
+  fi
 }
 
 # Ensure a package is installed and return the command and arguments separated by tabs.
@@ -748,7 +852,7 @@ install_pkg_cmd_tabsep_args() {
   local scoop_id=
   local brew_id=
   local brew_cmd_path=
-  OPTIND=1; while getopts a:d:nc:p:b:P:w:s:-: OPT
+  OPTIND=1; while getopts a:d:c:p:b:P:w:s:-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -758,14 +862,14 @@ install_pkg_cmd_tabsep_args() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      (a|apk-id) apk_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (b|brew-id) brew_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (B|brew-cmd-path) brew_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (c|cmd) cmd_name="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (d|deb-id) deb_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (w|winget-id) winget_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (p|winget-cmd-path) win_cmd_path="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (s|scoop-id) scoop_id="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (a|apk-id) apk_id=$OPTARG;;
+      (b|brew-id) brew_id=$OPTARG;;
+      (B|brew-cmd-path) brew_cmd_path=$OPTARG;;
+      (c|cmd) cmd_name=$OPTARG;;
+      (d|deb-id) deb_id=$OPTARG;;
+      (w|winget-id) winget_id=$OPTARG;;
+      (p|winget-cmd-path) win_cmd_path=$OPTARG;;
+      (s|scoop-id) scoop_id=$OPTARG;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -841,22 +945,20 @@ install_pkg_cmd_tabsep_args() {
   done
 }
 
-install_pkg_cmd() {
-  push_ifs
-  IFS="$(printf "\t")"
-  # shellcheck disable=SC2046
-  set -- $(install_pkg_cmd_tabsep_args "$@")
-  pop_ifs
-  echo "$1"
-}
-
 run_pkg_cmd() { # Run a command after ensuring it is installed.
-  push_ifs
-  IFS="$(printf "\t")"
-  # shellcheck disable=SC2046
-  set -- $(install_pkg_cmd_tabsep_args "$@")
-  pop_ifs
-  cross_run "$@"
+  local cmd_path=
+  cmd_path="$(install_pkg_cmd "$@")"
+  local arg
+  while test $# -gt 0
+  do
+    if test "$1" = "--"
+    then
+      shift
+      break
+    fi
+    shift
+  done
+  invoke "$cmd_path" "$@"
 }
 
 subcmd_curl() { # Run curl(1).
@@ -1223,7 +1325,6 @@ kill_children() {
   if is_mac
   then
     pkill -P $$ || :
-    echo "Terminated child processes." >&2
     return
   fi
   local pid=
@@ -1528,7 +1629,7 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      (d|directory) user_specified_directory="$(ensure_opt_arg "$OPT" "$OPTARG")";;
+      (d|directory) user_specified_directory="$OPTARG";;
       (h|help) shows_help=true;;
       (s|skip-missing) skip_missing=true;;
       (i|ignore-missing) ignore_missing=true;;
