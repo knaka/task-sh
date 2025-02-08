@@ -436,3 +436,36 @@ subcmd_run_processes() {
   # fi
   # echo Finishing >&2
   # return 0
+
+sleep_cmd=/bin/sleep
+if is_windows
+then
+  sleep_cmd=sleep.exe
+fi
+
+subcmd_my_sleep_bg() {
+  "$sleep_cmd" 5678 &
+  wait $!
+}
+
+subcmd_my_sleep_exec() {
+  cleanup
+  exec "$sleep_cmd" 6789
+}
+
+task_killng_test() {
+  bg_exec "$sleep_cmd" 1234
+  bg_exec "$sleep_cmd" 2345
+  "$sleep_cmd" 3456 &
+  "$SH" task.sh my_sleep_bg &
+  "$SH" task.sh my_sleep_exec &
+  "$sleep_cmd" 1
+  cleanup
+  "$sleep_cmd" 1
+  if ps ww | grep slee[p]
+  then
+    echo "Some sleep processes are still running." >&2
+    return 1
+  fi
+  return 0
+}
