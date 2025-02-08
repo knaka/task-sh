@@ -922,8 +922,14 @@ get_key() {
   fi
   local key
   # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
-  # shellcheck disable=SC3045
-  read -rsn1 key
+  if test "$SH" = "bash" || is_windows_busybox_shell
+  then
+    # shellcheck disable=SC3045
+    read -rsn1 key
+    return
+  else
+    read -r key
+  fi
   echo "$key"
 }
 
