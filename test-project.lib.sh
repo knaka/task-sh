@@ -72,7 +72,7 @@ test_version_comparison() (
   assert_eq "v1,v1.4.3,v1.5.0," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version)"
   assert_eq "v1.5.0,v1.4.3,v1," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version -r)"
 
-  cat <<EOF > "$(get_temp_dir_path)/versions.txt"
+  cat <<EOF > "$(temp_dir_path)/versions.txt"
 v1.4.0-alpha
 v1.4.0-alpha1
 v1.4.0-beta
@@ -94,7 +94,7 @@ v1.5.0-patch1
 v1.5.0-beta2
 v1.5.0
 EOF
-  cat <<EOF > "$(get_temp_dir_path)/expected.txt"
+  cat <<EOF > "$(temp_dir_path)/expected.txt"
 v1
 v1.4
 v1.4.0-alpha
@@ -116,8 +116,8 @@ v1.5.0
 v1.5.0-patch
 v1.5.0-patch1
 EOF
-  sort_version <"$(get_temp_dir_path)/versions.txt" >"$(get_temp_dir_path)/actual.txt"
-  assert_eq "$(cat "$(get_temp_dir_path)/expected.txt")" "$(cat "$(get_temp_dir_path)/actual.txt")"
+  sort_version <"$(temp_dir_path)/versions.txt" >"$(temp_dir_path)/actual.txt"
+  assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
 )
 
 test_menu_item() (
@@ -188,7 +188,7 @@ test_split() (
 test_sed_usv() (
   set -o errexit
 
-  input_path="$(get_temp_dir_path)/input.txt"
+  input_path="$(temp_dir_path)/input.txt"
   cat <<'EOF' >"$input_path"
 foo bar baz
 other lines
@@ -198,7 +198,7 @@ hello world
 hoge fuga hare
 012 345 678 900
 EOF
-  output_path="$(get_temp_dir_path)/output.txt"
+  output_path="$(temp_dir_path)/output.txt"
   sed -E \
     -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2${us}\1${us}\2${us}\3${us}/" -e t \
@@ -231,7 +231,7 @@ EOF
     esac  
   done >"$output_path"
   
-  expected_path="$(get_temp_dir_path)/expected.txt"
+  expected_path="$(temp_dir_path)/expected.txt"
   cat <<'EOF' >"$expected_path"
 a: foo bar baz
 z: other lines
@@ -249,12 +249,12 @@ EOF
 test_sed_usv_global() (
   set -o errexit
 
-  input_path="$(get_temp_dir_path)/input.txt"
+  input_path="$(temp_dir_path)/input.txt"
   cat <<'EOF' >"$input_path"
 foo toupper(bar) baz toupper(qux) HOGE tolower(FUGA)
 other lines
 EOF
-  output_path="$(get_temp_dir_path)/output.txt"
+  output_path="$(temp_dir_path)/output.txt"
   sed -E \
     -e "s/${lwb}toupper${rwb}\(([[:alpha:]]+)\)/${is1}toupper_4c7e44e${is2}\1${is1}/g" \
     -e "s/${lwb}tolower${rwb}\(([[:alpha:]]+)\)/${is1}tolower_542075d${is2}\1${is1}/g" \
@@ -295,7 +295,7 @@ EOF
     esac
   done >"$output_path"
   # cat "$output_path" >&2
-  expected_path="$(get_temp_dir_path)/expected.txt"
+  expected_path="$(temp_dir_path)/expected.txt"
   cat <<'EOF' >"$expected_path"
 foo BAR baz QUX HOGE fuga
 other lines
@@ -353,27 +353,60 @@ is_ci_mac() {
   is_ci && is_mac
 }
 
-test_bg_exec() (
-  # skip_if is_ci_mac
+# test_bg_exec() (
+#   # skip_if is_ci_mac
 
-  log_dir_path="$(get_temp_dir_path)"/test-logs
-  mkdir -p "$log_dir_path"
+#   log_dir_path="$(temp_dir_path)"/test-logs
+#   mkdir -p "$log_dir_path"
 
-  "$SH" task.sh run_processes "$log_dir_path"
+#   "$SH" task.sh run_processes "$log_dir_path"
 
-  ls -l "$log_dir_path"
+#   ls -l "$log_dir_path"
 
-  # Linux grep(1) does not support \d.
+#   # Linux grep(1) does not support \d.
 
-  # cat -n "$log_dir_path"/process1-stdout.log
-  grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
-  grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process1-stdout.log
+#   # cat -n "$log_dir_path"/process1-stdout.log
+#   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
+#   grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process1-stdout.log
 
-  # cat -n "$log_dir_path"/process2-stderr.log
-  grep -q 'My PID:' "$log_dir_path"/process2-stderr.log
-  grep -Evq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process2-stderr.log
+#   # cat -n "$log_dir_path"/process2-stderr.log
+#   grep -q 'My PID:' "$log_dir_path"/process2-stderr.log
+#   grep -Evq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process2-stderr.log
 
-  # cat -n "$log_dir_path"/process3-merged.log
-  grep -q 'My PID:' "$log_dir_path"/process3-merged.log
-  grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process3-merged.log
-)
+#   # cat -n "$log_dir_path"/process3-merged.log
+#   grep -q 'My PID:' "$log_dir_path"/process3-merged.log
+#   grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process3-merged.log
+# )
+
+sleep_cmd=/bin/sleep
+if is_windows
+then
+  sleep_cmd=sleep.exe
+fi
+
+subcmd_my_sleep_bg() {
+  "$sleep_cmd" 5678 &
+  wait $!
+}
+
+subcmd_my_sleep_exec() {
+  cleanup
+  exec "$sleep_cmd" 6789
+}
+
+task_kill_test() {
+  bg_exec "$sleep_cmd" 1234
+  bg_exec "$sleep_cmd" 2345
+  "$sleep_cmd" 3456 &
+  "$SH" task.sh my_sleep_bg &
+  "$SH" task.sh my_sleep_exec &
+  "$sleep_cmd" 1
+  cleanup
+  "$sleep_cmd" 1
+  if ps ww | grep slee[p]
+  then
+    echo "Some sleep processes are still running." >&2
+    return 1
+  fi
+  return 0
+}

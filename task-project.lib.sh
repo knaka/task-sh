@@ -295,7 +295,7 @@ subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two
 
 task_dupcheck() {
   local log_path
-  log_path="$(get_temp_dir_path)"/dupcheck.log
+  log_path="$(temp_dir_path)"/dupcheck.log
   grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./lib/*.sh \
   | sed -E -e 's/^(task_|subcmd_)//' \
   | sed -E -e 's/\(.*//' \
@@ -370,18 +370,6 @@ subcmd_run_processes() {
   return 0
 }
 
-subcmd_my_win_sleep() {
-  sleep.exe 5000
-}
-
-task_win_kill_test() {
-  bg_exec sleep.exe 1000
-  bg_exec sleep.exe 2000
-  sleep.exe 3000 &
-  "$SH" task.sh my_win_sleep &
-  sleep.exe 1
-}
-
   # echo Launched all processes. Waiting for them to finish. >&2
   # echo pids: "$pids"
   # local before=
@@ -415,10 +403,10 @@ task_win_kill_test() {
   # echo Waking up. >&2
   # if is_mac
   # then
-  #   jobs >"$(get_temp_dir_path)"/jobs.log
+  #   jobs >"$(temp_dir_path)"/jobs.log
   #   echo 3abdbd9
-  #   grep Running "$(get_temp_dir_path)"/jobs.log | cat
-  #   if ! test "$(grep Running "$(get_temp_dir_path)"/jobs.log | cat | wc -l)" -eq 0
+  #   grep Running "$(temp_dir_path)"/jobs.log | cat
+  #   if ! test "$(grep Running "$(temp_dir_path)"/jobs.log | cat | wc -l)" -eq 0
   #   then
   #     echo "Some jobs are still running." >&2
   #     return 1

@@ -1220,6 +1220,12 @@ kill_children() {
     done <"$jids"
     return
   fi
+  if is_mac
+  then
+    pkill -P $$ || :
+    echo "Terminated child processes." >&2
+    return
+  fi
   local pid=
   for pid in $pids
   do
@@ -1246,9 +1252,7 @@ get_cache_dir_path() {
 csv_cleanup_handlers=
 
 # Main cleanup handler.
-cleanup_79d5d1d() {
-  # Save the return code.
-  local rc=$?
+cleanup() {
   kill_children
 
   if test -d "$temp_dir_path_d4a4197"
@@ -1256,25 +1260,28 @@ cleanup_79d5d1d() {
     rm -fr "$temp_dir_path_d4a4197"
   fi
   
-  # echo "Cleaned up temporary files." >&2
-
-  if test "$rc" -ne 0
-  then
-    echo "Exiting with status $rc" >&2
-    if type on_error > /dev/null 2>&1
-    then
-      on_error
-    fi
-  fi
+  # if test "$rc" -ne 0
+  # then
+  #   echo "Exiting with status $rc" >&2
+  #   if type on_error > /dev/null 2>&1
+  #   then
+  #     on_error
+  #   fi
+  # fi
 
   push_ifs
   IFS=,
+  local cleanup_handler
   for cleanup_handler in $csv_cleanup_handlers
   do
     "$cleanup_handler"
   done
   pop_ifs
+}
 
+on_exit() {
+  local rc="$?"
+  cleanup
   exit "$rc"
 }
 
@@ -1450,9 +1457,9 @@ main() {
   esac
   export SH
 
-  # Set the cleanup handlers caller.
+  # Set the exit handlers caller.
   # Bash3 of macOS exits successfully if `nounset` error is trapped.
-  trap cleanup_79d5d1d EXIT
+  trap on_exit EXIT TERM INT
 
   # Run in the script directory.
   chdir_script
