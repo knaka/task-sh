@@ -370,16 +370,16 @@ subcmd_run_processes() {
   return 0
 }
 
-subcmd_my_sleep() {
-  sleep 5000
+subcmd_my_win_sleep() {
+  sleep.exe 5000
 }
 
-task_kill_test() {
-  bg_exec sleep 1000
-  bg_exec sleep 2000
-  sleep 3000 &
-  "$SH" task.sh my_sleep &
-  sleep 1
+task_win_kill_test() {
+  bg_exec sleep.exe 1000
+  bg_exec sleep.exe 2000
+  sleep.exe 3000 &
+  "$SH" task.sh my_win_sleep &
+  sleep.exe 1
 }
 
   # echo Launched all processes. Waiting for them to finish. >&2
