@@ -43,7 +43,7 @@ task_pages__functions__build() { # Build the Functions files into a JS file.
 
 task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
   # Specify "forever" to keep the process running even after the stdin is closed.
-  task_pages__functions__build --invocation=exec --watch=forever
+  task_pages__functions__build --invocation-mode=exec --watch=forever
 }
 
 # --------------------------------------------------------------------------

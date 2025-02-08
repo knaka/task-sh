@@ -669,7 +669,7 @@ invoke() {
   for arg in "$@"
   do
     case "$arg" in
-      (--invocation=*) invocation_mode=${arg#--invocation=};;
+      (--invocation-mode=*) invocation_mode=${arg#--invocation-mode=};;
       (*) set -- "$@" "$arg";;
     esac
     shift
