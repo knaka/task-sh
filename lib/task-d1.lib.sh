@@ -32,6 +32,10 @@ get_d1_name() {
   memoize 9764143 subcmd_yq --exit-status eval '.d1_databases.0.database_name' ./wrangler.toml
 }
 
+get_d1_id() {
+  memoize c37ba06 subcmd_yq --exit-status eval '.d1_databases.0.database_id' ./wrangler.toml
+}
+
 subcmd_d1__create() { # Create the remote D1 database. This must be executed only once through the project lifecycle.
   subcmd_wrangler d1 create "$1"
 }

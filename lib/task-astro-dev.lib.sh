@@ -12,7 +12,7 @@ task_astro__dev() { # Launch the Astro development server.
   set -- "$@" --host "$host"
   set -- "$@" --port "$port"
   local log_path
-  log_path="$(get_temp_dir_path)"/astro-dev.log
+  log_path="$(temp_dir_path)"/astro-dev.log
   sh task.sh subcmd_astro dev "$@" </dev/null 2>&1 | tee "$log_path" &
   while true
   do
