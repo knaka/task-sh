@@ -1198,14 +1198,28 @@ bg_exec() {
 }
 
 kill_children() {
+  if is_windows
+  then
+    # Windows BusyBox ash
+    # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
+    local jids
+    jids="$(temp_dir_path)"/jids
+    # ash provides “jobs pipe”.
+    jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running.*/\1/' >"$jids"
+    while read -r jid
+    do
+      kill "%$jid" || :
+      wait "%$jid" || :
+      echo Killed "%$jid" >&2
+    done <"$jids"
+    return
+  fi
   local pid=
   for pid in $pids
   do
     kill "$pid" >/dev/null 2>&1 || :
-    # kill -TERM "$pid" || :
-    # kill -KILL "$pid" || :
     wait "$pid" || :
-    # echo Killed "$pid" >&2
+    echo Killed "$pid" >&2
   done
   pids=
 }

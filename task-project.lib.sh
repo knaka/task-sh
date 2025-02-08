@@ -370,6 +370,12 @@ subcmd_run_processes() {
   return 0
 }
 
+task_kill_test() {
+  bg_exec sleep 1000
+  bg_exec sleep 2000
+  sleep 3000 &
+}
+
   # echo Launched all processes. Waiting for them to finish. >&2
   # echo pids: "$pids"
   # local before=
