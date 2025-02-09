@@ -8,6 +8,6 @@ subcmd_yq() { # Run jq(1).
     --cmd=yq \
     --brew-id=yq \
     --winget-id=mikefarah.yq \
-    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/yq.exe \
+    --win-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/yq.exe \
     -- "$@"
 }

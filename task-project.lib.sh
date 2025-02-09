@@ -469,3 +469,10 @@ task_killng_test() {
   fi
   return 0
 }
+
+task_key() {
+  echo "Press a key."
+  local key
+  key="$(get_key)"
+  printf "Key %02x pressed.\n" "'$key"
+}

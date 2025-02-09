@@ -13,10 +13,10 @@ subcmd_pg__run() (
   cmd_path=$(
     install_pkg_cmd \
       --cmd="$psql_cmd" \
+      --mac-cmd-path="$brew_psql_cmd_path" \
       --brew-id=postgresql@15 \
-      --brew-cmd-path="$brew_psql_cmd_path" \
-      --winget-id=PostgreSQL.PostgreSQL.15 \
-      --winget-cmd-path="$winget_psql_cmd_path"
+      --win-cmd-path="$winget_psql_cmd_path" \
+      --winget-id=PostgreSQL.PostgreSQL.15
   )
   PATH="$(dirname "$cmd_path"):$PATH"
   export PATH

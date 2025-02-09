@@ -17,44 +17,6 @@ tolower_542075d() {
   printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-test_ifsv_map() (
-  set -o errexit
-
-  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e)"
-  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e _)"
-  assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d)"
-  assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d _)"
-)
-
-test_ifsv_filter() (
-  set -o errexit
-
-  assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n)"
-  assert_eq "foo,bar,baz," "$(IFS=, ifsv_filter "foo,bar,,baz," test -n _)"
-  assert_eq "4,5,6,7," "$(IFS=, ifsv_filter "1,2,3,4,5,6,7," test _ -gt 3)"
-)
-
-test_ifsv_reduce() (
-  set -o errexit
-
-  # shellcheck disable=SC2317
-  add() (
-    echo $(( $1 + $2 ))
-  )
-
-  assert_eq 10 "$(IFS=, ifsv_reduce "1,2,3,4" 0 add)"
-
-  # shellcheck disable=SC1102
-  # shellcheck disable=SC2005
-  # shellcheck disable=SC2086
-  # shellcheck disable=SC2046
-  # shellcheck disable=SC2317
-  rpn() { echo $(($1 $3 $2)); }
-  assert_eq 10 "$(IFS="|" ifsv_reduce "4|3|2|1" 0 rpn _ _ '+')"
-  assert_eq 24 "$(IFS="|" ifsv_reduce "4|3|2|1" 1 rpn _ _ '*')"
-
-)
-
 test_version_comparison() (
   set -o errexit
 
@@ -139,41 +101,6 @@ test_field() (
   assert_eq "foo" "$(echo "foo bar baz" | field 1)"
   assert_eq "bar" "$(echo "   foo      bar   baz  " | field 2)"
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
-)
-
-# Test plist functions.
-test_plist() (
-  set -o errexit
-
-  IFS=,
-  csvpl=
-  csvpl="$(ifsv_put "$csvpl" "key1" "val1")"
-  csvpl="$(ifsv_put "$csvpl" "key2" "val2")"
-
-  assert_eq "key1,key2," "$(ifsv_keys "$csvpl")"
-  assert_eq "" "$(ifsv_keys "")"
-
-  assert_eq "val1,val2," "$(ifsv_values "$csvpl")"
-  assert_eq "" "$(ifsv_values "")"
-
-  assert_eq "val2" "$(ifsv_get "$csvpl" "key2")"
-  assert_false ifsv_get "$csvpl" "key3"
-
-  assert_eq "key1,mod1,key2,val2," "$(ifsv_put "$csvpl" "key1" "mod1")"
-  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsv_put "$csvpl" "key3" "val3")"
-
-  assert_eq "key1,val1,key2,," "$(ifsv_put "$csvpl" "key2" "")"
-  assert_eq "" "$(ifsv_get "key1,val1,key2," "key2")"
-
-  assert_eq "key1,val1,key2,val2,,empty," "$(ifsv_put "$csvpl" "" "empty")"
-  assert_eq "empty" "$(ifsv_get "key1,val1,key2,val2,,empty" "")"
-
-  IFS="$us"
-  usvpl=
-  usvpl=$(ifsv_put "$usvpl" "foo bar" "FOO BAR")
-  usvpl=$(ifsv_put "$usvpl" "baz qux" "BAZ QUX")
-  assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$usvpl"
-  assert_eq "BAZ QUX" "$(ifsv_get "$usvpl" "baz qux")"
 )
 
 # Split the text.
@@ -396,4 +323,19 @@ test_shell() {
     echo "Unsupported platform." >&2
     return 1
   fi
+}
+
+test_newer() {
+  local older current future
+
+  older="$(temp_dir_path)"/older.txt
+  current="$(temp_dir_path)"/current.txt
+  future="$(temp_dir_path)"/future.txt
+
+  touch -t 202101010000 "$older"  
+  touch -t 202101020000 "$current"
+  touch -t 202101030000 "$future" 
+
+  assert_true newer "$current" "$future" --than "$older"
+  assert_false newer "$current" "$older" --than "$future"
 }

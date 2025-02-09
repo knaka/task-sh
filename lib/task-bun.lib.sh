@@ -8,6 +8,6 @@ subcmd_bun() { # Run bun(1).
     --cmd=bun \
     --brew-id=oven-sh/bun/bun \
     --winget-id=Oven-sh.Bun \
-    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/bun.exe \
+    --win-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/bun.exe \
     -- "$@"
 }

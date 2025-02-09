@@ -2,29 +2,18 @@
 # shellcheck shell=sh
 test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
 
-# Update the script by replacing itself with the latest version.
+# Update this script by replacing itself with the latest version.
 if test "${1+set}" = set && test "$1" = "update-me"
 then
   temp_dir_path_5de91af="$(mktemp -d)"
   # shellcheck disable=SC2317
   cleanup_7f0c4de() { rm -fr "$temp_dir_path_5de91af"; }
   trap cleanup_7f0c4de EXIT
-  curl --fail --location --output "$temp_dir_path_5de91af"/task_sh https://raw.githubusercontent.com/knaka/src/main/lib/task.sh
-  cat "$temp_dir_path_5de91af"/task_sh > "$0"
+  # todo: curl alternative, for minimum debian, plain windows
+  curl --fail --location --output "$temp_dir_path_5de91af"/8c7b96d https://raw.githubusercontent.com/knaka/src/main/lib/task.sh
+  cat "$temp_dir_path_5de91af"/8c7b96d > "$0"
   exit 0
 fi
-
-# Create a temporary directory if required.
-# BusyBox sh not supports `-t prefix`.
-temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
-
-temp_dir_path() {
-  if ! test -d "$temp_dir_path_d4a4197"
-  then
-    mkdir -p "$temp_dir_path_d4a4197"
-  fi
-  echo "$temp_dir_path_d4a4197"
-}
 
 # --------------------------------------------------------------------------
 # Constants.
@@ -37,341 +26,19 @@ rc_delegate_task_not_found=10
 rc_test_skipped=11
 
 # --------------------------------------------------------------------------
-# IFS-separated value functions.
+# Misc
 # --------------------------------------------------------------------------
 
-# Head of IFSV.
-ifsv_head() {
-  test $# -eq 0 && return 1
-  # shellcheck disable=SC2086
-  set -- $1
-  printf "%s" "$1"
-}
+# Create a temporary directory if required.
+# Ash does not support `-t prefix`.
+temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
-# Tail of IFSV.
-ifsv_tail() {
-  test $# -eq 0 && return 1
-  # shellcheck disable=SC2086
-  set -- $1
-  shift
-  local item
-  for item in "$@"
-  do
-    printf "%s%s" "$item" "$IFS"
-  done
-}
-
-ifsv_length() {
-  # shellcheck disable=SC2086
-  set -- $1
-  echo "$#"
-}
-
-ifsv_empty() {
-  test -z "$1"
-}
-
-# Join IFS-separated values with a delimiter.
-ifsv_join() {
-  local out_delim="$2"
-  # shellcheck disable=SC2086
-  set -- $1
-  local delim=
-  local arg=
-  for arg in "$@"
-  do
-    printf "%s%s" "$delim" "$arg"
-    delim="$out_delim"
-  done
-}
-
-# Get an item at a specified index.
-ifsv_at() {
-  local i=0
-  local item
-  for item in $1
-  do
-    if test "$i" = "$2"
-    then
-      if test "${3+set}" = set
-      then
-        printf "%s%s" "$3" "$IFS"
-      else
-        printf "%s" "$item"
-        return
-      fi
-    else
-      if test "${3+set}" = set
-      then
-        printf "%s%s" "$item" "$IFS"
-      fi
-    fi
-    i=$((i + 1))
-  done
-}
-
-# Map IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
-ifsv_map() {
-  local arr="$1"
-  shift
-  local should_replace=false
-  local arg
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  local i=0
-  local item
-  for item in $arr
-  do
-    if $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            arg="$item"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        printf "%s%s" "$("$@")" "$IFS"
-      )
-    else
-      printf "%s%s" "$("$@" "$item")" "$IFS"
-    fi
-    i=$((i + 1))
-  done
-}
-
-# Filter IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
-ifsv_filter() {
-  local arr="$1"
-  shift
-  local should_replace=false
-  local arg
-  for arg in "$@"
-  do
-    if test "$arg" = "_"
-    then
-      should_replace=true
-    fi
-  done
-  local item
-  for item in $arr
-  do
-    if $should_replace
-    then
-      if ! (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            arg="$item"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )
-      then
-        continue
-      fi
-    elif ! "$@" "$item"
-    then
-      continue
-    fi
-    printf "%s%s" "$item" "$IFS"
-  done
-}
-
-# Reduce IFS-separated values with a function. If the function contains "_", then it is replaced with the accumulator and the item.
-ifsv_reduce() {
-  local arr="$1"
-  shift
-  local acc="$1"
-  shift
-  local has_place_holder=false
-  local arg
-  for arg in "$@"
-  do
-    if test "$arg" = "_"
-    then
-      has_place_holder=true
-    fi
-  done
-  local item
-  for item in $arr
-  do
-    if $has_place_holder
-    then
-      acc="$(
-        first_place_holder=true
-        for arg2 in "$@"
-        do
-          if test "$arg2" = "_"
-          then
-            if $first_place_holder
-            then
-              arg2="$acc"
-              first_place_holder=false
-            else
-              arg2="$item"
-            fi
-          fi
-          set -- "$@" "$arg2"
-          shift
-        done
-        "$@"
-      )"
-    else
-      acc="$("$@" "$acc" "$item")"
-    fi
-  done
-  printf "%s" "$acc"
-}
-
-# Check if an IFS-separated value contains a specified item.
-ifsv_contains() {
-  local arr="$1"
-  local target="$2"
-  local item
-  for item in $arr
-  do
-    if test "$item" = "$target"
-    then
-      return
-    fi
-  done
-  return 1
-}
-
-# Sort IFS-separated values.
-ifsv_sort() {
-  local arr="$1"
-  if test -z "$arr"
+temp_dir_path() {
+  if ! test -d "$temp_dir_path_d4a4197"
   then
-    return
+    mkdir -p "$temp_dir_path_d4a4197"
   fi
-  shift
-  local vers
-  # shellcheck disable=SC2086
-  vers="$(
-    printf "%s\n" $arr \
-    | if test "$#" -eq 0
-    then
-      sort
-    else
-      "$@"
-    fi
-  )"
-  push_ifs
-  ifs_newline
-  # shellcheck disable=SC2086
-  set -- $vers
-  pop_ifs
-  local item
-  for item in "$@"
-  do
-    printf "%s%s" "$item" "$IFS"
-  done
-}
-
-if ! type shuf > /dev/null 2>&1
-then
-  alias shuf='sort -R'
-fi
-
-# --------------------------------------------------------------------------
-# Associative array functions. It is represented as propty list.
-# --------------------------------------------------------------------------
-
-# Get a value from an associative array implemented as a property list.
-ifsv_get() {
-  local plist="$1"
-  local target_key="$2"
-  local key=
-  local i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        printf "%s" "$item"
-        return
-      fi
-    fi
-    i=$((i + 1))
-  done
-  return 1
-}
-
-# Keys of an associative array implemented as a property list.
-ifsv_keys() {
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      printf "%s%s" "$item" "$IFS"
-    fi
-    i=$((i + 1))
-  done
-}
-
-# Values of an associative array implemented as a property list.
-ifsv_values() {
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 1
-    then
-      printf "%s%s" "$item" "$IFS"
-    fi
-    i=$((i + 1))
-  done
-}
-
-# Put a value in an associative array implemented as a property list.
-ifsv_put() {
-  local plist="$1"
-  local target_key="$2"
-  local value="$3"
-  local found=false
-  local key=
-  local i=0
-  local item
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        found=true
-        printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
-      else
-        printf "%s%s%s%s" "$key" "$IFS" "$item" "$IFS"
-      fi
-    fi
-    i=$((i + 1))
-  done
-  if ! "$found"
-  then
-    printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
-  fi
+  echo "$temp_dir_path_d4a4197"
 }
 
 # --------------------------------------------------------------------------
@@ -381,39 +48,40 @@ ifsv_put() {
 # shellcheck disable=SC2034
 readonly unit_sep=""
 
+# Unit separator.
 # shellcheck disable=SC2034
 readonly us=""
 
+# Information separator one.
 # shellcheck disable=SC2034
 readonly is1=""
 
+# Information separator two.
 # shellcheck disable=SC2034
 readonly is2=""
 
+# Information separator three.
 # shellcheck disable=SC2034
 readonly is3=""
 
+# Information separator four.
 # shellcheck disable=SC2034
 readonly is4=""
 
-ifs_newline() {
+set_ifs_newline() {
   IFS="$(printf '\n\r')"
 }
 
-newline() {
-  printf '\n\r'
-}
-
 # To split path.
-ifs_slashes() {
+set_ifs_slashes() {
   printf "/\\"
 }
 
-ifs_default() {
+set_ifs_default() {
   printf ' \t\n\r'
 }
 
-ifs_blank() {
+set_ifs_blank() {
   printf ' \t'
 }
 
@@ -425,7 +93,7 @@ push_ifs() {
   then
     csv_ifss_6b672ac="$(printf "%s" "$IFS" | base64),$csv_ifss_6b672ac"
   else
-    csv_ifss_6b672ac=",$csv_ifss_6b672ac"
+    csv_ifss_6b672ac="$csv_ifss_6b672ac,"
   fi
 }
 
@@ -436,8 +104,8 @@ pop_ifs() {
     return 1
   fi
   local v
-  v="$(IFS=, ifsv_head "$csv_ifss_6b672ac")"
-  csv_ifss_6b672ac="$(IFS=, ifsv_tail "$csv_ifss_6b672ac")"
+  v="${csv_ifss_6b672ac%%,*}"
+  csv_ifss_6b672ac="${csv_ifss_6b672ac#*,}"
   if test -n "$v"
   then
     IFS="$(printf "%s" "$v" | base64 -d)"
@@ -450,11 +118,16 @@ pop_ifs() {
 # Utility functions.
 # --------------------------------------------------------------------------s
 
-unset shell_flags_c225b8f
+if ! type shuf > /dev/null 2>&1
+then
+  alias shuf='sort -R'
+fi
+
+shell_flags_c225b8f=
 
 # Backup the current shell flags.
 backup_shell_flags() {
-  if test "${shell_flags_c225b8f+set}" = set
+  if test -n "$shell_flags_c225b8f"
   then
     # Fails to save the state if it was already saved. Does not nest.
     return 1
@@ -464,20 +137,35 @@ backup_shell_flags() {
 
 # Restore the shell flags saved by `backup_shell_flags`.
 restore_shell_flags() {
-  if ! test "${shell_flags_c225b8f+set}" = set
+  if test -z "$shell_flags_c225b8f"
   then
     # Fails to restore the state if it was not saved.
     return 1
   fi
   eval "$shell_flags_c225b8f"
-  unset shell_flags_c225b8f
+  shell_flags_c225b8f=
 }
 
 is_lin() {
-  if test "$(uname -s)" = "Linux"
-  then
-    return 0
-  fi
+  test "$(uname -s)" = "Linux"
+}
+
+is_bsd() {
+  stat -f "%z" . > /dev/null 2>&1
+}
+
+is_mac() {
+  test "$(uname -s)" = "Darwin"
+}
+
+is_darwin() {
+  test "$(uname -s)" = "Darwin"
+}
+
+is_win() {
+  case "$(uname -s)" in
+    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
+  esac
   return 1
 }
 
@@ -489,33 +177,6 @@ exe_ext() {
   fi
 }
 
-is_bsd() {
-  if stat -f "%z" . > /dev/null 2>&1
-  then
-    return 0
-  fi
-  return 1
-}
-
-is_mac() {
-  if test "$(uname -s)" = "Darwin"
-  then
-    return 0
-  fi
-  return 1
-}
-
-is_darwin() {
-  is_mac
-}
-
-is_win() {
-  case "$(uname -s)" in
-    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
-    (*) return 1 ;;
-  esac
-}
-
 is_alpine() {
   if test -f /etc/alpine-release
   then
@@ -524,81 +185,41 @@ is_alpine() {
   return 1
 }
 
-# Set the extra attributes of the file/directory.
-set_path_attr() {
-  local path="$1"
-  local attribute="$2"
-  local value="$3"
-  if which xattr > /dev/null 2>&1
+shell_name() {
+  if test "${BASH+set}" = set
   then
-    xattr -w "$attribute" "$value" "$path"
-  elif which PowerShell > /dev/null 2>&1
+    echo "bash"
+    return
+  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
+  elif is_win && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
-    # Run in the background because it takes much time to run.
-    PowerShell -Command "Set-Content -Path '$path' -Stream '$attribute' -Value '$value'" &
-  elif which attr > /dev/null 2>&1
-  then
-    attr -s "$attribute" -V "$value" "$path" >/dev/null 2>&1
-  else
-    echo "No command to set attribute: $attribute" >&2
-    # exit 1
+    echo "ash"
+    return
   fi
+  local sh=
+  if test -e /proc/$$/exe
+  then
+    sh="$(basename "$(readlink -f /proc/$$/exe)")" || return 1
+  else
+    sh="$(basename "$(ps -p $$ -o comm=)")" || return 1
+  fi
+  case "$sh" in
+    (sh|busybox)
+      if "$sh" --help 2>&1 | grep -q "BusyBox"
+      then
+        echo "ash"
+      fi
+      ;;
+  esac
+  echo "$sh"
 }
 
-readonly psv_file_sharing_ignorance_attributes="com.dropbox.ignored|com.apple.fileprovider.ignore#P|"
-
-# Set the file/directory to be ignored by file sharing such as Dropbox.
-set_sync_ignored() {
-  local path
-  for path in "$@"
-  do
-    if ! test -e "$path"
-    then
-      continue
-    fi
-    push_ifs
-    IFS='|'
-    for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
-    done
-    pop_ifs
-  done
+is_dash() {
+  test "$(shell_name)" = "dash"
 }
 
-# Create a directory and set it to be ignored by file sharing such as Dropbox.
-mkdir_sync_ignored() {
-  local path
-  for path in "$@"
-  do
-    if test -d "$path"
-    then
-      continue
-    fi
-    mkdir -p "$path"
-    push_ifs
-    IFS='|'
-    for attribute in $psv_file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-    pop_ifs
-  done
-}
-
-# Set the file/directory to be ignored by file sharing such as Dropbox.
-force_sync_ignored() {
-  local path
-  for path in "$@"
-  do
-    push_ifs
-    IFS='|'
-    for attribute in $psv_file_sharing_ignorance_attributes
-    do
-      set_path_attr "$path" "$attribute" 1
-    done
-    pop_ifs
-  done
+is_ash() {
+  test "$(shell_name)" = "ash"
 }
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
@@ -748,13 +369,13 @@ browse() {
 install_pkg_cmd() {
   local apk_id=
   local deb_id=
-  local cmd_name=
+  local cmd=
   local winget_id=
   local win_cmd_path=
   local scoop_id=
   local brew_id=
-  local brew_cmd_path=
-  OPTIND=1; while getopts a:d:c:p:b:P:w:s:-: OPT
+  local mac_cmd_path=
+  OPTIND=1; while getopts -: OPT
   do
     if test "$OPT" = "-"
     then
@@ -764,88 +385,91 @@ install_pkg_cmd() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      (a|apk-id) apk_id=$OPTARG;;
-      (b|brew-id) brew_id=$OPTARG;;
-      (B|brew-cmd-path) brew_cmd_path=$OPTARG;;
-      (c|cmd) cmd_name=$OPTARG;;
-      (d|deb-id) deb_id=$OPTARG;;
-      (w|winget-id) winget_id=$OPTARG;;
-      (p|winget-cmd-path) win_cmd_path=$OPTARG;;
-      (s|scoop-id) scoop_id=$OPTARG;;
+      (apk-id) apk_id=$OPTARG;;
+      (brew-id) brew_id=$OPTARG;;
+      (mac-cmd-path) mac_cmd_path=$OPTARG;;
+      (cmd) cmd=$OPTARG;;
+      (deb-id) deb_id=$OPTARG;;
+      (winget-id) winget_id=$OPTARG;;
+      (win-cmd-path) win_cmd_path=$OPTARG;;
+      (scoop-id) scoop_id=$OPTARG;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
 
-  local cmd_path="$cmd_name"
-  if command -v "$cmd_name" >/dev/null 2>&1
+  # If found, do not install.
+  if command -v "$cmd" >/dev/null 2>&1
   then
     :
+  # Otherwise, install.
   elif is_win
   then
-    if test -n "$scoop_id"
+    if test -n "$win_cmd_path"
     then
-      if ! type scoop > /dev/null 2>&1
+      cmd="$win_cmd_path"
+    fi
+    if command -v "$cmd" >/dev/null 2>&1
+    then
+      :
+    elif test -n "$scoop_id"
+    then
+      if ! command -v scoop > /dev/null 2>&1
       then
         powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression" 1>&2
       fi
-      cmd_path="$HOME"/scoop/shims/ghcup
-      if ! type "$cmd_path" > /dev/null 2>&1
-      then
-        scoop install "$scoop_id" 1>&2
-      fi
+      scoop install "$scoop_id" 1>&2
     elif test -n "$winget_id"
     then
-      cmd_path="$win_cmd_path"
-      if ! type "$cmd_path" > /dev/null 2>&1
-      then
-        winget install --accept-package-agreements --accept-source-agreements --exact --id "$winget_id" 2>&1
-      fi
+      winget install --accept-package-agreements --accept-source-agreements --exact --id "$winget_id" 2>&1
     else
       echo "No package ID for Windows specified." >&2
       exit 1
     fi
-  elif is_darwin
+  elif is_mac
   then
-    if test -n "$brew_id"
+    if test -n "$mac_cmd_path"
     then
-      if test -n "$brew_cmd_path"
-      then
-        cmd_path="$brew_cmd_path"
-      fi
-      if ! type "$cmd_path" > /dev/null 2>&1
-      then
-        brew install "$brew_id" 1>&2
-      fi
+      cmd="$mac_cmd_path"
+    fi
+    if command -v "$cmd" >/dev/null 2>&1
+    then
+      :
+    elif test -n "$brew_id"
+    then
+      brew install "$brew_id" 1>&2
     else
       echo "No package ID for macOS specified." >&2
       exit 1
     fi
-  elif command -v apt-get >/dev/null 2>&1
+  elif is_lin
   then
-    apt-get update 1>&2
-    apt-get install -y "$deb_id" 1>&2
-  elif command -v apk >/dev/null 2>&1
-  then
-    apk add "$apk_id" 1>&2
+    if command -v apt-get >/dev/null 2>&1
+    then
+      apt-get update 1>&2
+      apt-get install -y "$deb_id" 1>&2
+    elif command -v apk >/dev/null 2>&1
+    then
+      apk add "$apk_id" 1>&2
+    fi
   else
-    echo "No package manager found." >&2
+    echo "Unsupported OS: $(uname -s)" >&2
     exit 1
   fi
-  if command -v "$cmd_path" >/dev/null 2>&1
+
+  if command -v "$cmd" >/dev/null 2>&1
   then
-    command -v "$cmd_path"
+    command -v "$cmd"
   else
-    echo "Command not installed: $cmd_path" >&2
-    exit 1
+    echo "Command not installed: $cmd" >&2
+    return 1
   fi
 }
 
 run_pkg_cmd() { # Run a command after ensuring it is installed.
   local cmd_path=
   cmd_path="$(install_pkg_cmd "$@")"
-  local arg
   while test $# -gt 0
   do
     if test "$1" = "--"
@@ -866,53 +490,56 @@ subcmd_curl() { # Run curl(1).
     -- "$@"
 }
 
-load() {
+# Load environment variables from the specified file.
+load_env_file() {
   if ! test -r "$1"
   then
     return 0
   fi
-  IFS=
-  while read -r line_0e9c96b
+  local line
+  local key
+  local value
+  while read -r line
   do
-    key_07bde23="$(echo "$line_0e9c96b" | sed -E -n -e 's/^([a-zA-Z_][[:alnum:]_]*)=.*$/\1/p')"
-    if test -z "$key_07bde23"
+    key="${line%%=*}"
+    if test -z "$key" || test "$key" = "$line"
     then
       continue
     fi
-    val_5d77cea="$(eval "echo \"\${$key_07bde23:=}\"")"
-    # echo bcff3d2 "$val" >&2
-    if test -n "$val_5d77cea"
+    value="$(eval "echo \"\${$key:=}\"")"
+    # No to overwrite.
+    if test -n "$value"
     then
       continue
     fi
-    eval "$line_0e9c96b"
+    eval "$line"
   done < "$1"
-  unset IFS
 }
 
-load_env() { # Load environment variables.
+# Load environment variables.
+load_env() {
+  # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
   then
-    load "$SCRIPT_DIR"/.env."$APP_ENV".dynamic
-    load "$SCRIPT_DIR"/.env."$APP_ENV".local
+    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV".dynamic
+    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV".local
   fi
-  if test "${APP_SENV+set}" != set || test "${APP_SENV}" != "test"
+  if test "${APP_ENV+set}" != set || test "${APP_ENV}" != "test"
   then
-    load "$SCRIPT_DIR"/.env.dynamic
-    load "$SCRIPT_DIR"/.env.local
+    load_env_file "$SCRIPT_DIR"/.env.dynamic
+    load_env_file "$SCRIPT_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
   then
-    load "$SCRIPT_DIR"/.env."$APP_ENV"
+    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV"
   fi
   # shellcheck disable=SC1091
-  load "$SCRIPT_DIR"/.env
+  load_env_file "$SCRIPT_DIR"/.env
 }
 
 # Get a key from the user without echoing.
 get_key() {
-  # Dash does not support `-s` option.
-  if is_lin
+  if is_lin || is_mac
   then
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
@@ -921,7 +548,7 @@ get_key() {
   fi
   local key
   # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
-  if test "$SH" = "bash" || is_win_ash
+  if test is_ash || test "$(shell_name)" = "bash"
   then
     # shellcheck disable=SC3045
     read -rsn1 key
@@ -932,7 +559,7 @@ get_key() {
   echo "$key"
 }
 
-# Show a message and get a input from the user.
+# Show a message and get an input from the user.
 prompt() {
   local message="${1:-Text}"
   local default="${2:-}"
@@ -959,32 +586,25 @@ ensure_file() {
   cat >"$file_path"
 }
 
+# Memoize the command output.
 memoize() {
-  local cache_file_name="$1"
+  local cache_file_path
+  cache_file_path="$(temp_dir_path)/$1"
   shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
+  if ! test -r "$cache_file_path"
   then
-    "$@" > "$(temp_dir_path)/$cache_file_name"
+    "$@" >"$cache_file_path"
   fi
-  cat "$(temp_dir_path)/$cache_file_name"
+  cat "$cache_file_path"
 }
 
-memoize_silent() (
-  local cache_file_name="$1"
-  shift
-  if ! test -r "$(temp_dir_path)/$cache_file_name"
-  then
-    "$@" > "$(temp_dir_path)/$cache_file_name" 2> /dev/null
-  fi
-  cat "$(temp_dir_path)/$cache_file_name"
-)
-
+# Guard against multiple calls.
 first_call() {
-  if eval "test \"\${guard_$1+set}\" = set"
+  if eval "test \"\${called_$1-}\" = true"
   then
     return 1
   fi
-  eval "guard_$1=x"
+  eval "called_$1=true"
 }
 
 underline() {
@@ -1202,8 +822,8 @@ bg_exec() {
   echo "Started $pid: $*" >&2
 }
 
-kill_children() {
-  if is_win
+kill_child_processes() {
+  if is_win && is_ash
   then
     # Windows BusyBox ash
     # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
@@ -1218,28 +838,32 @@ kill_children() {
       echo Killed "%$jid" >&2
     done <"$jids"
     return
-  fi
-  if is_mac
+  elif is_mac && is_dash
   then
     pkill -P $$ || :
     return
+  elif is_lin && is_dash
+  then
+    local pid=
+    for pid in $pids
+    do
+      kill "$pid" >/dev/null 2>&1 || :
+      wait "$pid" || :
+      echo Killed "$pid" >&2
+    done
+    pids=
+    return
   fi
-  local pid=
-  for pid in $pids
-  do
-    kill "$pid" >/dev/null 2>&1 || :
-    wait "$pid" || :
-    echo Killed "$pid" >&2
-  done
-  pids=
+  echo "kill_child_processes: Unsupported platform or shell." >&2
+  exit 1
 }
 
-get_cache_dir_path() {
+cache_dir_path() {
   local cache_dir_path="$HOME/.cache"
   # if is_win
   # then
   #   cache_dir_path="$LOCALAPPDATA"
-  # elif is_darwin
+  # elif is_mac
   # then
   #   cache_dir_path="$HOME/Library/Caches"
   # fi
@@ -1247,36 +871,28 @@ get_cache_dir_path() {
   echo "$cache_dir_path"
 }
 
-csv_cleanup_handlers=
+cleanup_handlers_2181b77=
 
-# Main cleanup handler.
+# Main cleanup handler. This does not `exit`.
 cleanup() {
-  kill_children
+  kill_child_processes
 
+  # Call cleanup handlers.
+  local cleanup_handler
+  for cleanup_handler in $cleanup_handlers_2181b77
+  do
+    "$cleanup_handler"
+  done
+  cleanup_handlers_2181b77=
+
+  # Remove temporary directories.
   if test -d "$temp_dir_path_d4a4197"
   then
     rm -fr "$temp_dir_path_d4a4197"
   fi
-  
-  # if test "$rc" -ne 0
-  # then
-  #   echo "Exiting with status $rc" >&2
-  #   if type on_error > /dev/null 2>&1
-  #   then
-  #     on_error
-  #   fi
-  # fi
-
-  push_ifs
-  IFS=,
-  local cleanup_handler
-  for cleanup_handler in $csv_cleanup_handlers
-  do
-    "$cleanup_handler"
-  done
-  pop_ifs
 }
 
+# Exit handler.
 on_exit() {
   local rc="$?"
   cleanup
@@ -1285,7 +901,7 @@ on_exit() {
 
 # Add a cleanup handler, not replacing the existing ones.
 add_cleanup_handler() {
-  csv_cleanup_handlers="$csv_cleanup_handlers$1,"
+  cleanup_handlers_2181b77="${cleanup_handlers_2181b77:+$cleanup_handlers_2181b77 }$1"
 }
 
 # Verbose flag.
@@ -1409,87 +1025,35 @@ get_sh() {
   echo "$SH"
 }
 
-shell_name() {
-  if test "${BASH+set}" = set
-  then
-    echo "bash"
-    return
-  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-  elif is_win && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
-  then
-    echo "ash"
-    return
-  fi
-  local sh=
-  if test -e /proc/$$/exe
-  then
-    sh="$(basename "$(readlink -f /proc/$$/exe)")" || return 1
-  else
-    sh="$(basename "$(ps -p $$ -o comm=)")" || return 1
-  fi
-  case "$sh" in
-    (sh|busybox)
-      if "$sh" --help 2>&1 | grep -q "BusyBox"
-      then
-        echo "ash"
-      fi
-      ;;
-  esac
-  echo "$sh"
-}
-
-is_dash() {
-  test "$(shell_name)" = "dash"
-}
-
-is_ash() {
-  test "$(shell_name)" = "ash"
-}
-
 main() {
   set -o nounset -o errexit
 
-  # Error exit if executed with unexpected shell.
-  if test "${BASH+SET}" = SET && test -x "$BASH"
-  then
-    SH="$BASH"
-  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-  elif is_win && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
-  then
-    SH="$SHELL"
-  elif test -e /proc/$$/exe
-  then
-    SH="$(readlink -f /proc/$$/exe)" || exit 1
-  else
-    SH="$(ps -p $$ -o comm=)" || exit 1
-    if test "${SH#/}" = "$SH"
+  local SH
+  SH="$(shell_name)"
+  while true
+  do
+    if is_win
     then
-      SH=$(which "$SH")
-    fi
-  fi
-  case "$SH" in
-    (*/ash|*/dash)
-      ;;
-    (*/sh|*/bash)
-      if test "${BASH_VERSION+set}" = set && case "${BASH_VERSION-}" in (4.*|5.*|6.*) true;; (*) false;; esac
+      if test "$SH" = "ash"
       then
-        :
-      elif "$SH" --help 2>&1 | grep -q "BusyBox"
-      then
-        :
-      else
-        echo "Unexpected shell executable: $SH" >&2
-        exit 1
+        break
       fi
-      ;;
-    (*/busybox)
-      SH=/bin/sh
-      ;;
-    (*)
-      echo "Unexpected shell executable: $SH" >&2
-      exit 1
-      ;;
-  esac
+    elif is_mac
+    then
+      if test "$SH" = "dash"
+      then
+        break
+      fi
+    elif is_lin
+    then
+      if test "$SH" = "dash"
+      then
+        break
+      fi
+    fi
+    echo "Unsupported environment: $(uname -s)", "$SH" >&2
+    exit 1
+  done
   export SH
 
   # Set the exit handlers caller.

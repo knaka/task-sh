@@ -10,6 +10,6 @@ subcmd_jq() { # Run jq(1).
     --cmd=jq \
     --brew-id=jq \
     --winget-id=jqlang.jq \
-    --winget-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
+    --win-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/jq.exe \
     -- "$@"
 }

@@ -10,7 +10,7 @@ subcmd_aws() {
     --cmd=aws \
     --brew-id=awscli \
     --winget-id=Amazon.AWSCLI \
-    --winget-cmd-path=C:/"Program Files"/Amazon/AWSCLIV2/aws.exe \
+    --win-cmd-path=C:/"Program Files"/Amazon/AWSCLIV2/aws.exe \
     -- "$@"
 }
 

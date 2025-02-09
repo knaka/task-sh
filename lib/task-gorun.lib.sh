@@ -12,7 +12,7 @@ set_gorun_version() {
 
 subcmd_gorun() { # Executes Go main package `pkg_name@ver` with arguments and cache the binary to reuse.
   local app_dir_path
-  app_dir_path="$(get_cache_dir_path)"/app-gorun
+  app_dir_path="$(cache_dir_path)"/app-gorun
   mkdir -p "$app_dir_path"
   local cmd_ext=
   if is_win
