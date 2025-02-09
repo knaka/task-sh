@@ -5,13 +5,14 @@ test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
 # Update this script by replacing itself with the latest version.
 if test "${1+set}" = set && test "$1" = "update-me"
 then
-  temp_dir_path_5de91af="$(mktemp -d)"
+  temp_dir_path_6856fe8="$(mktemp -d)"
   # shellcheck disable=SC2317
-  cleanup_7f0c4de() { rm -fr "$temp_dir_path_5de91af"; }
+  cleanup_7f0c4de() { rm -fr "$temp_dir_path_6856fe8"; }
   trap cleanup_7f0c4de EXIT
-  # todo: curl alternative, for minimum debian, plain windows
-  curl --fail --location --output "$temp_dir_path_5de91af"/8c7b96d https://raw.githubusercontent.com/knaka/src/main/lib/task.sh
-  cat "$temp_dir_path_5de91af"/8c7b96d > "$0"
+  curl_cmd_9f94dce=curl
+  command -v curl.exe && curl_cmd_9f94dce=curl.exe
+  "$curl_cmd_9f94dce" --fail --location --output "$temp_dir_path_6856fe8"/8c7b96d https://raw.githubusercontent.com/knaka/src/main/lib/task.sh
+  cat "$temp_dir_path_6856fe8"/8c7b96d >"$0"
   exit 0
 fi
 
@@ -30,6 +31,7 @@ rc_test_skipped=11
 # --------------------------------------------------------------------------
 
 # Create a temporary directory if required.
+
 # Ash does not support `-t prefix`.
 temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
 
@@ -873,7 +875,7 @@ cache_dir_path() {
 
 cleanup_handlers_2181b77=
 
-# Main cleanup handler. This does not `exit`.
+# Main cleanup function. This does not `exit`.
 cleanup() {
   kill_child_processes
 
@@ -904,7 +906,7 @@ add_cleanup_handler() {
   cleanup_handlers_2181b77="${cleanup_handlers_2181b77:+$cleanup_handlers_2181b77 }$1"
 }
 
-# Verbose flag.
+# Verbosity flag.
 
 verbose_f26120b=false 
 
