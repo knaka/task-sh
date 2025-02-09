@@ -187,7 +187,19 @@ is_alpine() {
   return 1
 }
 
-shell_name() {
+# Memoize the command output.
+memoize() {
+  local cache_file_path
+  cache_file_path="$(temp_dir_path)/$1"
+  shift
+  if ! test -r "$cache_file_path"
+  then
+    "$@" >"$cache_file_path"
+  fi
+  cat "$cache_file_path"
+}
+
+shell_name_f0ebcb7() {
   if test "${BASH+set}" = set
   then
     echo "bash"
@@ -216,12 +228,20 @@ shell_name() {
   echo "$sh"
 }
 
+shell_name() {
+  memoize c3dcd27 shell_name_f0ebcb7
+}
+
 is_dash() {
   test "$(shell_name)" = "dash"
 }
 
 is_ash() {
   test "$(shell_name)" = "ash"
+}
+
+is_bash() {
+  test "$(shell_name)" = "bash"
 }
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
@@ -279,6 +299,7 @@ newer() {
 # Invoke command with the specified invocation mode.
 # 
 #   --invocation-mode=exec: Replace the process with the command.
+#   --invocation-mode=exec-sub: Replace the process with the command, without calling clearups.
 #   --invocation-mode=background: Run the command in the background.
 #   --invocation-mode=standard: Run the command in the current process.
 invoke() {
@@ -344,6 +365,7 @@ invoke() {
       cleanup
       exec "$@"
       ;;
+    (exec-sub) exec "$@";;
     (background) "$@" &;;
     (standard) "$@";;
     (*)
@@ -552,7 +574,7 @@ get_key() {
   fi
   local key
   # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
-  if test is_ash || test "$(shell_name)" = "bash"
+  if test is_ash || is_bash
   then
     # shellcheck disable=SC3045
     read -rsn1 key
@@ -588,18 +610,6 @@ ensure_file() {
   echo "Creating the $file_path file." >&2
   mkdir -p "$(dirname "$file_path")"
   cat >"$file_path"
-}
-
-# Memoize the command output.
-memoize() {
-  local cache_file_path
-  cache_file_path="$(temp_dir_path)/$1"
-  shift
-  if ! test -r "$cache_file_path"
-  then
-    "$@" >"$cache_file_path"
-  fi
-  cat "$cache_file_path"
 }
 
 # Guard against multiple calls.
@@ -842,7 +852,7 @@ kill_child_processes() {
       echo Killed "%$jid" >&2
     done <"$jids"
     return
-  elif is_mac && is_dash
+  elif is_mac
   then
     pkill -P $$ || :
     return
