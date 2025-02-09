@@ -95,7 +95,7 @@ push_ifs() {
   then
     csv_ifss_6b672ac="$(printf "%s" "$IFS" | base64),$csv_ifss_6b672ac"
   else
-    csv_ifss_6b672ac="$csv_ifss_6b672ac,"
+    csv_ifss_6b672ac=",$csv_ifss_6b672ac"
   fi
 }
 
@@ -221,7 +221,7 @@ shell_name_f0ebcb7() {
     (sh|busybox)
       if "$sh" --help 2>&1 | grep -q "BusyBox"
       then
-        echo "ash"
+        sh="ash"
       fi
       ;;
   esac
