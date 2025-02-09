@@ -8,7 +8,7 @@ if ! test -L ./sh/task.sh
 then
   # shellcheck disable=SC2016
   echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
-  if is_win
+  if is_windows
   then
     echo "To enable symlink creation on Windows, enable Developer Mode or run as Administrator." >&2
   fi
@@ -318,8 +318,8 @@ is_ci() {
   test "${CI+set}" = set
 }
 
-is_ci_mac() {
-  is_ci && is_mac
+is_ci_macos() {
+  is_ci && is_macos
 }
 
 subcmd_run_processes() {
@@ -377,11 +377,11 @@ subcmd_run_processes() {
   # echo 5f0646d >&2
   # pid=$$
   # echo 7f9860d >&2
-  # if is_ci_mac
+  # if is_ci_macos
   # then 
   #   return 0
   # fi
-  # if is_mac
+  # if is_macos
   # then
   #   :
   #   # echo 5871cc1 >&2
@@ -392,7 +392,7 @@ subcmd_run_processes() {
   #   # echo 896bba3 >&2
   #   # echo
   #   # before="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  # elif is_win
+  # elif is_windows
   # then
   #   before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   # else
@@ -401,7 +401,7 @@ subcmd_run_processes() {
   # echo Sleeping for 2 seconds. >&2
   # sleep 2
   # echo Waking up. >&2
-  # if is_mac
+  # if is_macos
   # then
   #   jobs >"$(temp_dir_path)"/jobs.log
   #   echo 3abdbd9
@@ -415,14 +415,14 @@ subcmd_run_processes() {
   # fi
   # echo >&2
   # local after=
-  # if is_mac
+  # if is_macos
   # then
   #   # ps -o ppid,command | sed -e 's/^ *//' | grep "^$pid " >&2
   #   # ps -o ppid | sed -e 's/^ *//' | grep "^$pid " >&2
   #   echo 450fe96 >&2
   #   ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
   #   after="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  # elif is_win
+  # elif is_windows
   # then
   #   after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   # else
@@ -438,7 +438,7 @@ subcmd_run_processes() {
   # return 0
 
 sleep_cmd=/bin/sleep
-if is_win
+if is_windows
 then
   sleep_cmd=sleep.exe
 fi

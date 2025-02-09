@@ -31,7 +31,7 @@ task_docker__start() { # Start Docker.
   fi
   echo "Docker is not running. Starting Docker." >&2
   # Restart Docker from command line - Docker Desktop - Docker Community Forums https://forums.docker.com/t/restart-docker-from-command-line/9420/9
-  if is_mac
+  if is_macos
   then
     # open --background -a Docker
     open -a "Docker"

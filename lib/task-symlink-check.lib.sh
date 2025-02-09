@@ -8,7 +8,7 @@ ln -sf target "$(temp_dir_path)"/symlink
 if ! test -L "$(temp_dir_path)"/symlink
 then
   echo "Failed to create symlink." >&2
-  if is_win
+  if is_windows
   then
     echo "To enable symlink creation on Windows, enable Developer Mode or run as Administrator." >&2
   fi

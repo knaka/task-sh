@@ -63,7 +63,7 @@ set_dynamic_entry() {
 # Checks if the port is available.
 is_available_port() (
   port="$1"
-  if is_win
+  if is_windows
   then
     echo "Not implemented" >&2
     return 1

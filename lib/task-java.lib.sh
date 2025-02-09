@@ -69,7 +69,7 @@ java_home() (
   if ! test -d "$JAVA_HOME"
   then
     arc_ext=.tar.gz
-    if is_win
+    if is_windows
     then
       arc_ext=.zip
     fi
@@ -80,7 +80,7 @@ java_home() (
     ls -l "$arc_path" >&2
     (
       cd "$bin_dir_path" || exit 1
-      if is_win
+      if is_windows
       then
         unzip -q "$arc_path"
       else
@@ -89,7 +89,7 @@ java_home() (
     )
     rm -fr "$temp_dir_path"
   fi
-  if is_win
+  if is_windows
   then
     echo "$JAVA_HOME" |  sed -e 's|/|\\|g'
   else

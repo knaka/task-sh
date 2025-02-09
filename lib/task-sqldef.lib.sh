@@ -35,7 +35,7 @@ subcmd_mssqldef() { # Idempotent MSSQL DB schema management by SQL.
 #   name="$(basename "$package")"
 #   version=v0.17.19
 
-#   if ! is_win
+#   if ! is_windows
 #   then
 #     gopath="$(subcmd_go env GOPATH)"
 #     bin_dir_path="$gopath"/bin

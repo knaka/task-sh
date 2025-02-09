@@ -12,7 +12,7 @@ subcmd_gobin() { # Run the gobin command.
   local bin_dir_path="$HOME"/.bin
   local app_dir_path="$bin_dir_path"/gobin
   local cmd_ext=
-  if is_win
+  if is_windows
   then
     cmd_ext=".cmd"
   fi

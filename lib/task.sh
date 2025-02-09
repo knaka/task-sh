@@ -148,7 +148,7 @@ restore_shell_flags() {
   shell_flags_c225b8f=
 }
 
-is_lin() {
+is_linux() {
   test "$(uname -s)" = "Linux"
 }
 
@@ -156,7 +156,7 @@ is_bsd() {
   stat -f "%z" . > /dev/null 2>&1
 }
 
-is_mac() {
+is_macos() {
   test "$(uname -s)" = "Darwin"
 }
 
@@ -164,7 +164,7 @@ is_darwin() {
   test "$(uname -s)" = "Darwin"
 }
 
-is_win() {
+is_windows() {
   case "$(uname -s)" in
     (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
   esac
@@ -173,7 +173,7 @@ is_win() {
 
 # Executable file extension.
 exe_ext() {
-  if is_win
+  if is_windows
   then
     echo ".exe"
   fi
@@ -205,7 +205,7 @@ shell_name_f0ebcb7() {
     echo "bash"
     return
   # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-  elif is_win && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     echo "ash"
     return
@@ -320,7 +320,7 @@ invoke() {
   fi
   case "$1" in
     (*/*)
-      if is_win
+      if is_windows
       then
         local ext
         for ext in .exe .cmd .bat
@@ -340,7 +340,7 @@ invoke() {
       fi
       ;;
     (*)
-      if is_win
+      if is_windows
       then
         local ext
         for ext in .exe .cmd .bat
@@ -377,13 +377,13 @@ invoke() {
 
 # Open the URL in the browser.
 browse() {
-  if is_lin
+  if is_linux
   then
     xdg-open "$1"
-  elif is_mac
+  elif is_macos
   then
     open "$1"
-  elif is_win
+  elif is_windows
   then
     PowerShell -Command "Start-Process '$1'"
   else
@@ -430,7 +430,7 @@ install_pkg_cmd() {
   then
     :
   # Otherwise, install.
-  elif is_win
+  elif is_windows
   then
     if test -n "$win_cmd_path"
     then
@@ -453,7 +453,7 @@ install_pkg_cmd() {
       echo "No package ID for Windows specified." >&2
       exit 1
     fi
-  elif is_mac
+  elif is_macos
   then
     if test -n "$mac_cmd_path"
     then
@@ -469,7 +469,7 @@ install_pkg_cmd() {
       echo "No package ID for macOS specified." >&2
       exit 1
     fi
-  elif is_lin
+  elif is_linux
   then
     if command -v apt-get >/dev/null 2>&1
     then
@@ -565,7 +565,7 @@ load_env() {
 
 # Get a key from the user without echoing.
 get_key() {
-  if is_lin || is_mac
+  if is_linux || is_macos
   then
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
@@ -639,7 +639,7 @@ emph() {
   then
     return
   fi
-  if is_win
+  if is_windows
   then
     enclose_with_brackets "$(bold "$(underline "$1")")"
   else
@@ -837,7 +837,7 @@ bg_exec() {
 }
 
 kill_child_processes() {
-  if is_win && is_ash
+  if is_windows && is_ash
   then
     # Windows BusyBox ash
     # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
@@ -852,11 +852,11 @@ kill_child_processes() {
       echo Killed "%$jid" >&2
     done <"$jids"
     return
-  elif is_mac
+  elif is_macos
   then
     pkill -P $$ || :
     return
-  elif is_lin && is_dash
+  elif is_linux && is_dash
   then
     local pid=
     for pid in $pids
@@ -874,10 +874,10 @@ kill_child_processes() {
 
 cache_dir_path() {
   local cache_dir_path="$HOME/.cache"
-  # if is_win
+  # if is_windows
   # then
   #   cache_dir_path="$LOCALAPPDATA"
-  # elif is_mac
+  # elif is_macos
   # then
   #   cache_dir_path="$HOME/Library/Caches"
   # fi
@@ -1046,19 +1046,19 @@ main() {
   SH="$(shell_name)"
   while true
   do
-    if is_win
+    if is_windows
     then
       if test "$SH" = "ash"
       then
         break
       fi
-    elif is_mac
+    elif is_macos
     then
       if test "$SH" = "dash"
       then
         break
       fi
-    elif is_lin
+    elif is_linux
     then
       if test "$SH" = "dash"
       then

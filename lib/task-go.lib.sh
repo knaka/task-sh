@@ -19,7 +19,7 @@ echo_go_paths() (
     go env GOROOT
   fi
   # System-wide installation
-  if is_win
+  if is_windows
   then
     echo "C:/Program Files/Go"
   else
@@ -68,7 +68,7 @@ goroot_path() (
   esac
   mkdir -p "$sdk_dir_path"
   rm -fr "$sdk_dir_path"/go
-  if is_win
+  if is_windows
   then
     zip_path="$(temp_dir_path)"/temp.zip
     curl --location -o "$zip_path" "https://go.dev/dl/$go_required_min_ver.$goos-$goarch.zip"

@@ -277,7 +277,7 @@ is_ci() {
 }
 
 is_ci_mac() {
-  is_ci && is_mac
+  is_ci && is_macos
 }
 
 # test_bg_exec() (
@@ -310,10 +310,10 @@ test_killing() {
 }
 
 test_shell() {
-  if is_mac
+  if is_macos
   then
     assert_eq "dash" "$(shell_name)"
-  elif is_win
+  elif is_windows
   then
     assert_eq "ash" "$(shell_name)"
   elif is_lin

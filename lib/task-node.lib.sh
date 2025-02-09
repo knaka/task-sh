@@ -53,7 +53,7 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
     fi
     return 0
   fi
-  if is_win
+  if is_windows
   then
     for ext in .exe .cmd .bat
     do
