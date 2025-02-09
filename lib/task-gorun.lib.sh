@@ -15,7 +15,7 @@ subcmd_gorun() { # Executes Go main package `pkg_name@ver` with arguments and ca
   app_dir_path="$(get_cache_dir_path)"/app-gorun
   mkdir -p "$app_dir_path"
   local cmd_ext=
-  if is_windows
+  if is_win
   then
     cmd_ext=.cmd
   fi

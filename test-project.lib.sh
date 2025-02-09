@@ -381,3 +381,19 @@ is_ci_mac() {
 test_killing() {
   "$SH" task.sh killng_test
 }
+
+test_shell() {
+  if is_mac
+  then
+    assert_eq "dash" "$(shell_name)"
+  elif is_win
+  then
+    assert_eq "ash" "$(shell_name)"
+  elif is_lin
+  then
+    assert_true test "dash" = "$(shell_name)" -o "ash" = "$(shell_name)"
+  else
+    echo "Unsupported platform." >&2
+    return 1
+  fi
+}

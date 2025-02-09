@@ -473,7 +473,7 @@ restore_shell_flags() {
   unset shell_flags_c225b8f
 }
 
-is_linux() {
+is_lin() {
   if test "$(uname -s)" = "Linux"
   then
     return 0
@@ -483,7 +483,7 @@ is_linux() {
 
 # Executable file extension.
 exe_ext() {
-  if is_windows
+  if is_win
   then
     echo ".exe"
   fi
@@ -509,7 +509,7 @@ is_darwin() {
   is_mac
 }
 
-is_windows() {
+is_win() {
   case "$(uname -s)" in
     (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
     (*) return 1 ;;
@@ -518,15 +518,6 @@ is_windows() {
 
 is_alpine() {
   if test -f /etc/alpine-release
-  then
-    return 0
-  fi
-  return 1
-}
-
-# Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-is_win_ash() {
-  if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     return 0
   fi
@@ -681,7 +672,7 @@ invoke() {
   fi
   case "$1" in
     (*/*)
-      if is_windows
+      if is_win
       then
         local ext
         for ext in .exe .cmd .bat
@@ -701,7 +692,7 @@ invoke() {
       fi
       ;;
     (*)
-      if is_windows
+      if is_win
       then
         local ext
         for ext in .exe .cmd .bat
@@ -739,13 +730,13 @@ invoke() {
 
 # Open the URL in the browser.
 browse() {
-  if is_linux
+  if is_lin
   then
     xdg-open "$1"
   elif is_mac
   then
     open "$1"
-  elif is_windows
+  elif is_win
   then
     PowerShell -Command "Start-Process '$1'"
   else
@@ -791,7 +782,7 @@ install_pkg_cmd() {
   if command -v "$cmd_name" >/dev/null 2>&1
   then
     :
-  elif is_windows
+  elif is_win
   then
     if test -n "$scoop_id"
     then
@@ -921,7 +912,7 @@ load_env() { # Load environment variables.
 # Get a key from the user without echoing.
 get_key() {
   # Dash does not support `-s` option.
-  if is_linux
+  if is_lin
   then
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
@@ -1014,7 +1005,7 @@ emph() {
   then
     return
   fi
-  if is_windows
+  if is_win
   then
     enclose_with_brackets "$(bold "$(underline "$1")")"
   else
@@ -1212,7 +1203,7 @@ bg_exec() {
 }
 
 kill_children() {
-  if is_windows
+  if is_win
   then
     # Windows BusyBox ash
     # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
@@ -1245,7 +1236,7 @@ kill_children() {
 
 get_cache_dir_path() {
   local cache_dir_path="$HOME/.cache"
-  # if is_windows
+  # if is_win
   # then
   #   cache_dir_path="$LOCALAPPDATA"
   # elif is_darwin
@@ -1418,6 +1409,43 @@ get_sh() {
   echo "$SH"
 }
 
+shell_name() {
+  if test "${BASH+set}" = set
+  then
+    echo "bash"
+    return
+  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
+  elif is_win && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    echo "ash"
+    return
+  fi
+  local sh=
+  if test -e /proc/$$/exe
+  then
+    sh="$(basename "$(readlink -f /proc/$$/exe)")" || return 1
+  else
+    sh="$(basename "$(ps -p $$ -o comm=)")" || return 1
+  fi
+  case "$sh" in
+    (sh|busybox)
+      if "$sh" --help 2>&1 | grep -q "BusyBox"
+      then
+        echo "ash"
+      fi
+      ;;
+  esac
+  echo "$sh"
+}
+
+is_dash() {
+  test "$(shell_name)" = "dash"
+}
+
+is_ash() {
+  test "$(shell_name)" = "ash"
+}
+
 main() {
   set -o nounset -o errexit
 
@@ -1426,7 +1454,7 @@ main() {
   then
     SH="$BASH"
   # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-  elif is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  elif is_win && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     SH="$SHELL"
   elif test -e /proc/$$/exe

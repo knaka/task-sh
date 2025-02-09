@@ -8,7 +8,7 @@ if ! test -L ./sh/task.sh
 then
   # shellcheck disable=SC2016
   echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
-  if is_windows
+  if is_win
   then
     echo "To enable symlink creation on Windows, enable Developer Mode or run as Administrator." >&2
   fi
@@ -392,7 +392,7 @@ subcmd_run_processes() {
   #   # echo 896bba3 >&2
   #   # echo
   #   # before="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  # elif is_windows
+  # elif is_win
   # then
   #   before="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   # else
@@ -422,7 +422,7 @@ subcmd_run_processes() {
   #   echo 450fe96 >&2
   #   ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat >&2
   #   after="$(ps -a -o ppid,command | sed -e 's/^ *//' | grep "^$pid " | cat | wc -l)"
-  # elif is_windows
+  # elif is_win
   # then
   #   after="$(ps -o ppid | sed -e 's/^ *//' | grep "^$pid$" | wc -l)"
   # else
@@ -438,7 +438,7 @@ subcmd_run_processes() {
   # return 0
 
 sleep_cmd=/bin/sleep
-if is_windows
+if is_win
 then
   sleep_cmd=sleep.exe
 fi
