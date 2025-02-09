@@ -6,14 +6,6 @@ test "${guard_a543be5+set}" = set && return 0; guard_a543be5=x
 . ./task.sh
 . ./task-pgclt.lib.sh
 
-mkdir -p pgdata
-set_sync_ignored pgdata
-
-touch .env.dynamic
-set_sync_ignored .env.dynamic
-
-set_sync_ignored .env.local || :
-
 subcmd_pg_ctl() (
   subcmd_pg__run pg_ctl "$@"
 )

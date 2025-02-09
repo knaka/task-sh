@@ -5,9 +5,6 @@ test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=x
 
 . ./task.sh
 
-mkdir -p .idea
-set_sync_ignored .idea
-
 java_arch() {
   case "$(uname -m)" in
     arm64) echo "aarch64" ;;
