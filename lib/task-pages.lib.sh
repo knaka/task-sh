@@ -41,9 +41,9 @@ task_pages__functions__build() { # Build the Functions files into a JS file.
   subcmd_esbuild --platform=node --bundle --format=esm --outdir="$pages_functions_dir_path" "$@"
 }
 
-subcmd_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
+task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
   # Specify "forever" to keep the process running even after the stdin is closed.
-  task_pages__functions__build --invocation-mode=exec --watch=forever "$@"
+  task_pages__functions__build --watch=forever "$@"
 }
 
 # --------------------------------------------------------------------------

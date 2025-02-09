@@ -278,8 +278,7 @@ newer() {
 
 # Invoke command with the specified invocation mode.
 # 
-#   --invocation-mode=exec: Replace the current process with the command.
-#   --invocation-mode=main-exec: Replace the main process with the command. Cleanup handlers are called before the replacement.
+#   --invocation-mode=exec: Replace the process with the command.
 #   --invocation-mode=background: Run the command in the background.
 #   --invocation-mode=standard: Run the command in the current process.
 invoke() {
@@ -341,14 +340,12 @@ invoke() {
       ;;
   esac
   case "$invocation_mode" in
-    (exec) exec "$@";;
+    (exec)
+      cleanup
+      exec "$@"
+      ;;
     (background) "$@" &;;
     (standard) "$@";;
-    (main-exec) # exec by main process
-      cleanup
-      exec
-      "$@"
-      ;;
     (*)
       echo "Unknown invocation mode: $invocation_mode" >&2
       exit 1
