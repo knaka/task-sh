@@ -497,7 +497,7 @@ is_bsd() {
   return 1
 }
 
-is_darwin() {
+is_mac() {
   if test "$(uname -s)" = "Darwin"
   then
     return 0
@@ -505,8 +505,8 @@ is_darwin() {
   return 1
 }
 
-is_mac() {
-  is_darwin
+is_darwin() {
+  is_mac
 }
 
 is_windows() {
@@ -525,7 +525,7 @@ is_alpine() {
 }
 
 # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
-is_windows_busybox_shell() {
+is_win_ash() {
   if is_windows && test "${SHELL+SET}" = SET && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     return 0
@@ -725,6 +725,15 @@ invoke() {
     (exec) exec "$@";;
     (background) "$@" &;;
     (standard) "$@";;
+    (main-exec) # exec by main process
+      cleanup
+      exec
+      "$@"
+      ;;
+    (*)
+      echo "Unknown invocation mode: $invocation_mode" >&2
+      exit 1
+      ;;
   esac
 }
 
@@ -921,7 +930,7 @@ get_key() {
   fi
   local key
   # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
-  if test "$SH" = "bash" || is_windows_busybox_shell
+  if test "$SH" = "bash" || is_win_ash
   then
     # shellcheck disable=SC3045
     read -rsn1 key
