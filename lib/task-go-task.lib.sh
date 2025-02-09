@@ -4,6 +4,7 @@ set -o nounset -o errexit
 test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
 
 . ./task.sh
+. ./task-go.lib.sh
 
 delegate_tasks() (
   chdir_script
@@ -22,7 +23,7 @@ delegate_tasks() (
   then
     # echo Building >&2
     # shellcheck disable=SC2086
-    "$SH" task.sh go build -o "$cmd_file" $task_go_files
+    subcmd_go build -o "$cmd_file" $task_go_files
   fi
   $cmd_file "$@"
 )

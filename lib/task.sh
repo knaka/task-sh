@@ -277,6 +277,11 @@ newer() {
 }
 
 # Invoke command with the specified invocation mode.
+# 
+#   --invocation-mode=exec: Replace the current process with the command.
+#   --invocation-mode=main-exec: Replace the main process with the command. Cleanup handlers are called before the replacement.
+#   --invocation-mode=background: Run the command in the background.
+#   --invocation-mode=standard: Run the command in the current process.
 invoke() {
   local invocation_mode=standard
   local arg
