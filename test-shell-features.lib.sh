@@ -105,3 +105,8 @@ EOF
 #   printf "%s" "foo" >"$output2_path"
 #   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output2_path" | field 1)"
 # )
+
+test_lineno() {
+  echo 036da98 "$LINENO"
+  echo 650a360 "$LINENO"
+}

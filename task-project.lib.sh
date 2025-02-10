@@ -454,15 +454,16 @@ subcmd_my_sleep_exec() {
 }
 
 task_killng_test() {
-  bg_exec "$sleep_cmd" 1234
-  bg_exec "$sleep_cmd" 2345
+  "$sleep_cmd" 1234 &
+  invoke --invocation-mode=background "$sleep_cmd" 2345
   "$sleep_cmd" 3456 &
   "$SH" task.sh my_sleep_bg &
-  "$SH" task.sh my_sleep_exec &
+  invoke --invocation-mode=background "$SH" task.sh my_sleep_exec
   "$sleep_cmd" 1
   cleanup
   "$sleep_cmd" 1
-  if ps ww | grep slee[p]
+  # shellcheck disable=SC2009
+  if ps ww | grep 'slee[p]'
   then
     echo "Some sleep processes are still running." >&2
     return 1
@@ -474,5 +475,5 @@ task_key() {
   echo "Press a key."
   local key
   key="$(get_key)"
-  printf "Key %02x pressed.\n" "'$key"
+  printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
 }
