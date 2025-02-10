@@ -27,14 +27,14 @@ then
   # shellcheck disable=SC1090
   . "$env_file_path"
 fi
-for sh in /bin/dash /bin/ash /bin/bash /bin/sh
+for sh in /bin/dash /bin/ash /bin/bash
 do
   # Avoid using Dash on Debian because which is built with --disable-lineno option.
   if test "$sh" = "/bin/dash" && test -e /etc/debian_version
   then
     continue
   fi
-  # Avoid using Bash on macOS because it's version is locked to 3.x.
+  # Avoid using Bash on macOS because which is locked to version 3.* and buggy.
   if test "$sh" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist
   then
     continue
@@ -46,3 +46,5 @@ do
     exec "$sh" "$sh_dir_path/$script_name.sh" "$@"
   fi
 done
+echo "No appropriate shell found." >&2
+exit 1
