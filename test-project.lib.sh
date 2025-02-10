@@ -339,3 +339,22 @@ test_newer() {
   assert_true newer "$current" "$future" --than "$older"
   assert_false newer "$current" "$older" --than "$future"
 }
+
+test_dir_stack() {
+  cd "$SCRIPT_DIR"
+
+  push_dir ./lib
+  assert_eq "$SCRIPT_DIR/lib" "$PWD"
+  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR|"
+  pop_dir
+  assert_eq "$SCRIPT_DIR" "$PWD"
+  assert_eq "$dirs_4c15d80" ""
+
+  push_dir ./go
+  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR|"
+  push_dir ../sh
+  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR/go|$SCRIPT_DIR|"
+  assert_eq "$SCRIPT_DIR/sh" "$PWD"
+  pop_dir
+  pop_dir
+}

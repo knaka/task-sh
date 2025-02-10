@@ -3,7 +3,6 @@ test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 
 . ./task.sh
 . ./task-json2sh.lib.sh
-. ./task-curl.lib.sh
 
 task_my_ip_addr() { # Shows my IP address for testing.
   local cache_file_path

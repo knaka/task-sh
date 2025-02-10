@@ -116,6 +116,31 @@ pop_ifs() {
   fi
 }
 
+dirs_4c15d80=
+
+# `pushd` alternative.
+push_dir() {
+  local pwd="$PWD"
+  if ! cd "$1"
+  then
+    echo "No such directory: $1" >&2
+    return 1
+  fi
+  dirs_4c15d80="$pwd|$dirs_4c15d80"
+}
+
+# `popd` alternative.
+pop_dir() {
+  if test -z "$dirs_4c15d80"
+  then
+    echo "Directory stack is empty." >&2
+    return 1
+  fi
+  local dir="${dirs_4c15d80%%|*}"
+  dirs_4c15d80="${dirs_4c15d80#*|}"
+  cd "$dir" || return 1
+}
+
 # --------------------------------------------------------------------------
 # Utility functions.
 # --------------------------------------------------------------------------s
@@ -1042,40 +1067,38 @@ get_sh() {
 main() {
   set -o nounset -o errexit
 
-  local SH
-  SH="$(shell_name)"
+  local sh
+  sh="$(shell_name)"
   while true
   do
     if is_windows
     then
-      if test "$SH" = "ash"
+      if test "$sh" = "ash"
       then
         break
       fi
     elif is_macos
     then
-      if test "$SH" = "dash"
+      if test "$sh" = "dash"
       then
         break
       fi
     elif is_linux
     then
-      if test "$SH" = "dash"
+      if test "$sh" = "dash"
       then
         break
       fi
     fi
-    echo "Unsupported environment: $(uname -s)", "$SH" >&2
+    echo "Unsupported environment: $(uname -s)", "$sh" >&2
     exit 1
   done
+  SH="$sh"
   export SH
 
   # Set the exit handlers caller.
   # Bash3 of macOS exits successfully if `nounset` error is trapped.
   trap on_exit EXIT TERM INT
-
-  # Run in the script directory.
-  chdir_script
 
   # Set the environment variables according to the script name.
   if test "${ARG0BASE+set}" = "set"
@@ -1107,6 +1130,7 @@ main() {
 
   # Load all the task files in the script directory.
   psv_task_file_paths="$(realpath "$0")|"
+  push_dir "$SCRIPT_DIR"
   for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
   do
     if ! test -r "$task_file_path"
@@ -1123,6 +1147,7 @@ main() {
     # shellcheck disable=SC1090
     . "$task_file_path"
   done
+  pop_dir
 
   # Parse the command line arguments.
   shows_help=false
