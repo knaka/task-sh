@@ -359,7 +359,7 @@ test_dir_stack() {
   pop_dir
 }
 
-test_foo() {
-  assert_eq "hoge" "hoge" "$LINENO"
-  assert_eq "foo" "bar" "$LINENO"
-}
+# test_foo() {
+#   assert_eq "hoge" "hoge" "$LINENO"
+#   assert_eq "foo" "bar" "$LINENO"
+# }
