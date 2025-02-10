@@ -316,7 +316,7 @@ test_shell() {
   elif is_windows
   then
     assert_eq "ash" "$(shell_name)"
-  elif is_lin
+  elif is_linux
   then
     assert_true test "dash" = "$(shell_name)" -o "ash" = "$(shell_name)"
   else
