@@ -29,6 +29,16 @@ then
 fi
 for sh in /bin/dash /bin/ash /bin/bash /bin/sh
 do
+  # Avoid using Dash on Debian because which is built with --disable-lineno option.
+  if test "$sh" = "/bin/dash" && test -e /etc/debian_version
+  then
+    continue
+  fi
+  # Avoid using Bash on macOS because it's version is locked to 3.x.
+  if test "$sh" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist
+  then
+    continue
+  fi
   if test -x "$sh"
   then
     SH="$(basename "$sh")"

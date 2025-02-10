@@ -318,7 +318,7 @@ test_shell() {
     assert_eq "ash" "$(shell_name)"
   elif is_linux
   then
-    assert_true test "dash" = "$(shell_name)" -o "ash" = "$(shell_name)"
+    assert_true test "dash" = "$(shell_name)" -o "ash" = "$(shell_name)" -o "bash" = "$(shell_name)"
   else
     echo "Unsupported platform." >&2
     return 1

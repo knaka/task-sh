@@ -1016,10 +1016,11 @@ main() {
       fi
     elif is_linux
     then
-      if test "$sh" = "dash"
-      then
-        break
-      fi
+      case "$sh" in
+        (ash|dash|bash)
+          break
+          ;;
+      esac
     fi
     echo "Unsupported environment: $(uname -s)", "$sh" >&2
     exit 1
