@@ -31,6 +31,8 @@ for sh in /bin/dash /bin/ash /bin/bash /bin/sh
 do
   if test -x "$sh"
   then
+    SH="$(basename "$sh")"
+    export SH
     exec "$sh" "$sh_dir_path/$script_name.sh" "$@"
   fi
 done

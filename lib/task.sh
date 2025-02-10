@@ -1031,7 +1031,7 @@ run_post_task() {
   fi
 }
 
-# Full path to the shell executable.
+# Base name of the shell executable.
 : "${SH:=}"
 export SH
 
