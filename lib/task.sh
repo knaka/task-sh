@@ -27,6 +27,25 @@ rc_delegate_task_not_found=10
 rc_test_skipped=11
 
 # --------------------------------------------------------------------------
+# Directories.
+# --------------------------------------------------------------------------
+
+# Original directory in which the script is invoked.
+
+ORIGINAL_DIR="$PWD"
+export ORIGINAL_DIR
+
+# Directory in which the main script is located.
+
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+export SCRIPT_DIR
+
+# Check if the working directory is in the script directory.
+in_script_dir() {
+  realpath "$PWD" | grep -q "^$SCRIPT_DIR"
+}
+
+# --------------------------------------------------------------------------
 # Misc
 # --------------------------------------------------------------------------
 
@@ -780,87 +799,6 @@ oct_restore() {
 # Main.
 # --------------------------------------------------------------------------
 
-# Original directory when the script is invoked.
-
-ORIGINAL_DIR="$PWD"
-export ORIGINAL_DIR
-
-chdir_original() {
-  cd "$ORIGINAL_DIR" || exit 1
-}
-
-# Directory in which the main script is located.
-
-SCRIPT_DIR="$(realpath "$(dirname "$0")")"
-export SCRIPT_DIR
-
-chdir_script() {
-  cd "$SCRIPT_DIR" || exit 1
-}
-
-# Directory specified by the user with the `-d` option.
-
-user_specified_directory=
-
-chdir_user() {
-  if test -n "$user_specified_directory"
-  then
-    cd "$user_specified_directory" || exit 1
-  else
-    chdir_original
-  fi
-}
-
-# Check if the working directory is in the script directory.
-in_script_dir() {
-  echo "$PWD" | grep -q "^$SCRIPT_DIR"
-}
-
-pids=
-
-bg_exec() {
-  local stdout=
-  local stderr=
-  OPTIND=1; while getopts o:e:-: OPT
-  do
-    if test "$OPT" = "-"
-    then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
-    case "$OPT" in
-      (o|stdout) stdout="$OPTARG";;
-      (e|stderr) stderr="$OPTARG";;
-      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
-    esac
-  done
-  shift $((OPTIND-1))
-
-  if test -n "$stdout" && test "$stdout" = "$stderr"
-  then
-    "$@" >"$stdout" 2>&1 </dev/null &
-  elif test -n "$stdout"
-  then
-    if test -n "$stderr"
-    then
-      "$@" >"$stdout" 2>"$stderr" </dev/null &
-    else
-      "$@" >"$stdout" </dev/null &
-    fi
-  elif test -n "$stderr"
-  then
-    "$@" 2>"$stderr" </dev/null &
-  else
-    "$@" </dev/null &
-  fi
-
-  local pid=$!
-  pids="${pids:+$pids }$pid"
-  echo "Started $pid: $*" >&2
-}
-
 kill_child_processes() {
   if is_windows && is_ash
   then
@@ -881,16 +819,9 @@ kill_child_processes() {
   then
     pkill -P $$ || :
     return
-  elif is_linux && is_dash
+  elif is_linux
   then
-    local pid=
-    for pid in $pids
-    do
-      kill "$pid" >/dev/null 2>&1 || :
-      wait "$pid" || :
-      echo Killed "$pid" >&2
-    done
-    pids=
+    pkill -P $$ || :
     return
   fi
   echo "kill_child_processes: Unsupported platform or shell." >&2
@@ -1153,7 +1084,7 @@ main() {
   shows_help=false
   skip_missing=false
   ignore_missing=false
-  OPTIND=1; while getopts d:hvsi-: OPT
+  OPTIND=1; while getopts hvsi-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -1166,7 +1097,6 @@ main() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      (d|directory) user_specified_directory="$OPTARG";;
       (h|help) shows_help=true;;
       (s|skip-missing) skip_missing=true;;
       (i|ignore-missing) ignore_missing=true;;

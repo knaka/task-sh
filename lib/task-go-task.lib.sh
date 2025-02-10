@@ -7,7 +7,7 @@ test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
 . ./task-go.lib.sh
 
 delegate_tasks() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   cmd_file=build/60f20fa"$(exe_ext)"
   task_go_files=task.go
   for task_go_file in task-*.go

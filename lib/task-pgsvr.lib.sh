@@ -20,7 +20,7 @@ modify_postgresql_conf() (
 )
 
 task_pg__cluster__create() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   if test -d pgdata/base
   then
     echo "Database cluster already exists." >&2
@@ -40,13 +40,13 @@ task_pg__cluster__create() (
 )
 
 task_pg__cluster__drop() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   task_pg__stop || :
   rm -fr pgdata/*
 )
 
 task_pg__start() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   if ! test -d pgdata/base
   then
     echo "Database cluster does not exist." >&2
@@ -56,11 +56,11 @@ task_pg__start() (
 )
 
 task_pg__stop() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   subcmd_pg_ctl -D "$SCRIPT_DIR"/pgdata stop
 )
 
 task_pg__status() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   subcmd_pg_ctl -D "$SCRIPT_DIR"/pgdata status
 )

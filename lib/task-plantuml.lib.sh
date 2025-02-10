@@ -19,7 +19,7 @@ subcmd_plantuml() (
 )
 
 task_image__build() (
-  chdir_script
+  cd "$SCRIPT_DIR"
   cd ./img
   for infile in *.in.puml
   do
