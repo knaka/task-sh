@@ -5,7 +5,7 @@ test "${guard_dce0096+set}" = set && return 0; guard_dce0096=x
 
 . ./task.sh
 
-set_sync_ignored .venv
+# set_sync_ignored .venv
 
 # https://github.com/astral-sh/uv/releases/download/0.4.21/uv-i686-pc-windows-msvc.zip
 # https://github.com/astral-sh/uv/releases/download/0.4.21/uv-x86_64-pc-windows-msvc.zip
@@ -74,10 +74,10 @@ set_uv_env() {
 
 subcmd_uv() {
   set_uv_env
-  cross_run uv "$@"
+  invoke uv "$@"
 }
 
 subcmd_uvx() {
   set_uv_env
-  cross_run uvx "$@"
+  invoke uvx "$@"
 }
