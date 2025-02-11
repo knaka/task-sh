@@ -798,10 +798,10 @@ oct_restore() {
 # Encode positional parameters into a string which can be passed to `eval` to restore the positional parameters.
 #
 # Example:
-#   local eval_args="$(gen_eval_args "$@")"
+#   local eval_args="$(make_eval_args "$@")"
 #   set --
 #   eval "set -- $eval_args"
-gen_eval_args() {
+make_eval_args() {
   local arg
   local first
   # Quotation character inside parameter expansion confuses static analysis tools.
