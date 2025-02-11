@@ -9,7 +9,7 @@ test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"
 
-  chdir_script
+  cd "$SCRIPT_DIR"
   js_bin_dir_path="$HOME"/js-bin
   mkdir -p "$js_bin_dir_path"
   rm -f "$js_bin_dir_path"/*
@@ -47,8 +47,8 @@ EOF
 )
 
 subcmd_run() { # Run JS script in the original working directory.
-  chdir_script
-  script_ac72EF8='
+  cd "$SCRIPT_DIR"
+  local script_ac72EF8='
 const { spawn } = require("child_process");
 spawn(
   process.execPath,

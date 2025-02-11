@@ -93,6 +93,9 @@ set_ifs_newline() {
   IFS="$(printf '\n\r')"
 }
 
+# shellcheck disable=SC2034
+readonly newline='\n\r'
+
 # To split path.
 set_ifs_slashes() {
   printf "/\\"
@@ -106,15 +109,27 @@ set_ifs_blank() {
   printf ' \t'
 }
 
+oct_dump() {
+  od -A n -t o1 -v | xargs printf "%s "
+}
+
+oct_restore() {
+  xargs printf '\\\\0%s\n' | xargs printf '%b'
+}
+
 csv_ifss_6b672ac=
 
 # Push IFS to the stack.
 push_ifs() {
   if test "${IFS+set}" = set
   then
-    csv_ifss_6b672ac="$(printf "%s" "$IFS" | base64),$csv_ifss_6b672ac"
+    csv_ifss_6b672ac="$(printf "%s" "$IFS" | oct_dump),$csv_ifss_6b672ac"
   else
     csv_ifss_6b672ac=",$csv_ifss_6b672ac"
+  fi
+  if test $# -gt 0
+  then
+    IFS="$1"
   fi
 }
 
@@ -129,7 +144,7 @@ pop_ifs() {
   csv_ifss_6b672ac="${csv_ifss_6b672ac#*,}"
   if test -n "$v"
   then
-    IFS="$(printf "%s" "$v" | base64 -d)"
+    IFS="$(printf "%s" "$v" | oct_restore)"
   else
     unset IFS
   fi
@@ -785,14 +800,6 @@ hex_restore() {
   fi
   # shellcheck disable=SC2016
   xargs printf "%s\n" | "$@" '{ printf("%c", int("0x" $1)) }'
-}
-
-oct_dump() {
-  od -A n -t o1 -v | xargs printf "%s "
-}
-
-oct_restore() {
-  xargs printf '\\\\0%s\n' | xargs printf '%b'
 }
 
 # Encode positional parameters into a string which can be passed to `eval` to restore the positional parameters.

@@ -1,10 +1,12 @@
-#!/bin/sh
-test "${guard_500d066+set}" = set && return 0; guard_500d066=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_ce1c863-}" = true && return 0; sourced_ce1c863=true
 
 . ./task-pages.lib.sh
 . ./task-yq.lib.sh
 . ./task-sqldef.lib.sh
 . ./task-sqlite3.lib.sh
+. ./task-node.lib.sh
 
 db_schema_path_d4253e5="$SCRIPT_DIR/schema.sql"
 
@@ -118,17 +120,35 @@ task_d1__local__dump() { # Dump the development database.
   subcmd_wrangler d1 export --local --output=/dev/stdout "$(subcmd_d1__name)"
 }
 
+subcmd_d1__local__object__id() { # Calculate the object ID of the Miniflare D1 database object.
+  # Release v3.20230918.0 · cloudflare/miniflare https://github.com/cloudflare/miniflare/releases/tag/v3.20230918.0
+  local unique_key name
+  unique_key="miniflare-D1DatabaseObject"
+  local name="$(subcmd_d1__id)"
+  cat <<EOF | subcmd_node --input-type=module
+import crypto from "node:crypto";
+const key = crypto.createHash("sha256").update("${unique_key}").digest();
+const nameHmac = crypto.createHmac("sha256", key).update("${name}").digest().subarray(0, 16);
+const hmac = crypto.createHmac("sha256", key).update(nameHmac).digest().subarray(0, 16);
+console.log(Buffer.concat([nameHmac, hmac]).toString("hex"));
+EOF
+}
+
+subcmd_d1__local__files() {
+  local hash="$(subcmd_d1__local__object__id)"
+  find "$SCRIPT_DIR"/.wrangler -type f -name "$hash.sqlite*"
+}
+
 task_d1__local__drop() { # Drop the development database.
   local hash
+  local response
   hash="$(subcmd_node "$SCRIPT_DIR"/scripts/gen-hash.js miniflare-D1DatabaseObject "$(subcmd_d1__id)")"
-  push_ifs
-  set_ifs_newline
+  push_ifs "$newline"
   # shellcheck disable=SC2046
   set -- $(find "$SCRIPT_DIR"/.wrangler -type f -name "$hash.sqlite*" -print)
   pop_ifs
   if test "$#" -gt 0
   then
-    local response
     response="$(prompt "Do you really want to drop the database files? [y/N]" "N")" 
     if test "$response" = "y"
     then
