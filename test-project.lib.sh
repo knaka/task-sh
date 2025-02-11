@@ -341,7 +341,7 @@ args_restore_test() {
   before3="$3"
 
   local eval_args
-  eval_args="$(prepare_eval_args "$@")"
+  eval_args="$(gen_eval_args "$@")"
 
   set --
   assert_true test $# -eq 0
