@@ -42,7 +42,7 @@ export SCRIPT_DIR
 
 # Check if the working directory is in the script directory.
 in_script_dir() {
-  realpath "$PWD" | grep -q "^$SCRIPT_DIR"
+  realpath "$PWD" | grep -q -e "^$SCRIPT_DIR$" -e "^$SCRIPT_DIR/"
 }
 
 # --------------------------------------------------------------------------
@@ -793,6 +793,39 @@ oct_dump() {
 
 oct_restore() {
   xargs printf '\\\\0%s\n' | xargs printf "%b"
+}
+
+# Encode positional parameters.
+#
+# Example:
+#   local encoded_args="$(encode_args "$@")"
+encode_args() {
+  while test "${1+set}" = set
+  do  
+    printf "%s" "$1" | oct_dump
+    printf ","
+    shift
+  done
+}
+
+# Decode positional parameters.
+#
+# Example:
+#   eval "set -- $(decode_args "$encoded_args")"
+decode_args() {
+  local arg
+  local args="$1"
+  while ! test -z "$args"
+  do
+    arg="${args%%,*}"
+    args="${args#*,}"
+    # %q is not supported in POSIX Shell printf
+    printf '"%s" ' "$(
+      printf "%s" "$arg" \
+      | oct_restore \
+      | sed -E \
+        -e 's/"/\\"/g')"
+  done
 }
 
 # --------------------------------------------------------------------------

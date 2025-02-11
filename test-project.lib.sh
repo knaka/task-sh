@@ -359,7 +359,27 @@ test_dir_stack() {
   pop_dir
 }
 
-# test_foo() {
-#   assert_eq "hoge" "hoge" "$LINENO"
-#   assert_eq "foo" "bar" "$LINENO"
-# }
+args_restore_test() {
+  local before1 before2 before3
+  before1="$1"
+  before2="$2"
+  before3="$3"
+
+  local saved_args
+  saved_args="$(encode_args "$@")"
+
+  set --
+  assert_true test $# -eq 0
+
+  eval "set -- $(decode_args "$saved_args")"
+
+  assert_true test $# -eq 3
+
+  assert_eq "$before1" "$1"
+  assert_eq "$before2" "$2"
+  assert_eq "$before3" "$3"
+}
+
+test_args_restore() {
+  args_restore_test "hoge ' fuga" 'foo " bar' "$(printf "bar\nbaz")"
+}
