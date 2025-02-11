@@ -280,31 +280,6 @@ is_ci_mac() {
   is_ci && is_macos
 }
 
-# test_bg_exec() (
-#   # skip_if is_ci_mac
-
-#   log_dir_path="$(temp_dir_path)"/test-logs
-#   mkdir -p "$log_dir_path"
-
-#   "$SH" task.sh run_processes "$log_dir_path"
-
-#   ls -l "$log_dir_path"
-
-#   # Linux grep(1) does not support \d.
-
-#   # cat -n "$log_dir_path"/process1-stdout.log
-#   grep -qv 'My PID:' "$log_dir_path"/process1-stdout.log
-#   grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process1-stdout.log
-
-#   # cat -n "$log_dir_path"/process2-stderr.log
-#   grep -q 'My PID:' "$log_dir_path"/process2-stderr.log
-#   grep -Evq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process2-stderr.log
-
-#   # cat -n "$log_dir_path"/process3-merged.log
-#   grep -q 'My PID:' "$log_dir_path"/process3-merged.log
-#   grep -Eq '[0-9]+:[0-9]+:[0-9]+' "$log_dir_path"/process3-merged.log
-# )
-
 test_killing() {
   "$SH" task.sh killng_test
 }
@@ -365,13 +340,13 @@ args_restore_test() {
   before2="$2"
   before3="$3"
 
-  local saved_args
-  saved_args="$(encode_args "$@")"
+  local eval_args
+  eval_args="$(prepare_eval_args "$@")"
 
   set --
   assert_true test $# -eq 0
 
-  eval "set -- $(decode_args "$saved_args")"
+  eval "set -- $eval_args"
 
   assert_true test $# -eq 3
 

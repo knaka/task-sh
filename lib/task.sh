@@ -792,39 +792,30 @@ oct_dump() {
 }
 
 oct_restore() {
-  xargs printf '\\\\0%s\n' | xargs printf "%b"
+  xargs printf '\\\\0%s\n' | xargs printf '%b'
 }
 
-# Encode positional parameters.
+# Encode positional parameters into a string which can be passed to `eval` to restore the positional parameters.
 #
 # Example:
-#   local encoded_args="$(encode_args "$@")"
-encode_args() {
-  while test "${1+set}" = set
-  do  
-    printf "%s" "$1" | oct_dump
-    printf ","
-    shift
-  done
-}
-
-# Decode positional parameters.
-#
-# Example:
-#   eval "set -- $(decode_args "$encoded_args")"
-decode_args() {
+#   local eval_args="$(prepare_eval_args "$@")"
+#   set --
+#   eval "set -- $eval_args"
+prepare_eval_args() {
   local arg
-  local args="$1"
-  while ! test -z "$args"
+  local first
+  # Quotation character inside parameter expansion confuses static analysis tools.
+  local quote="'"
+  for arg in "$@"
   do
-    arg="${args%%,*}"
-    args="${args#*,}"
-    # %q is not supported in POSIX Shell printf
-    printf '"%s" ' "$(
-      printf "%s" "$arg" \
-      | oct_restore \
-      | sed -E \
-        -e 's/"/\\"/g')"
+    printf "'"
+    until test "$arg" = "${arg#*"$quote"}"
+    do
+      first="${arg%%"$quote"*}"
+      arg="${arg#*"$quote"}"
+      printf "%s'\"'\"'" "$first"
+    done
+    printf "%s' " "$arg" 
   done
 }
 
