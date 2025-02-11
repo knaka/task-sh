@@ -73,5 +73,5 @@ set_node_env() {
 
 subcmd_volta() { # Run Volta.
   set_volta_env
-  volta"$(exe_ext)" "$@"
+  invoke volta "$@"
 }
