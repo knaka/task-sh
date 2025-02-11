@@ -1,5 +1,6 @@
-#!/bin/sh
-test "${guard_c42742c+set}" = set && return 0; guard_c42742c=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_5268aba-}" = true && return 0; sourced_5268aba=true
 
 . ./task-pages.lib.sh
 

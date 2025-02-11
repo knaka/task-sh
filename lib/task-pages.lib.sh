@@ -1,7 +1,6 @@
-#!/bin/sh
-# shellcheck disable=SC3043
-test "${guard_82d2bd6+set}" = set && return 0; guard_82d2bd6=x
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_6b40fea-}" = true && return 0; sourced_6b40fea=true
 
 . ./task.sh
 . ./task-node.lib.sh
@@ -18,13 +17,13 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 # Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
 
-: "${pages_functions_src_pattern:=./src/functions/**/*.ts}"
+: "${pages_functions_src_pattern:="$SCRIPT_DIR"/src/functions/**/*.ts}"
 
 set_pages_functions_src_pattern() {
   pages_functions_src_pattern="$1"
 }
 
-: "${pages_functions_dir_path:=./functions}"
+: "${pages_functions_dir_path:="$SCRIPT_DIR"/functions}"
 
 set_pages_functions_dir_path() {
   pages_functions_dir_path="$1"
@@ -42,7 +41,7 @@ task_pages__functions__build() { # Build the Functions files into a JS file.
 }
 
 task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
-  # Specify "forever" to keep the process running even after the stdin is closed.
+  # Specify "--watch=forever" to keep the process running even after the stdin is closed.
   task_pages__functions__build --watch=forever "$@"
 }
 
