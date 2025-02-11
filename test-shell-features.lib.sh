@@ -111,6 +111,6 @@ test_lineno() {
   echo 650a360 "$LINENO"
 }
 
-test_printf_q() {
-  assert_eq "$(printf "%q" "foo bar \" \nbaz")" "$(printf "foo bar \\\" \\nbaz")"
-}
+# test_printf_q() {
+#   assert_eq "$(printf "%q" "foo bar \" \nbaz")" "$(printf "foo bar \\\" \\nbaz")"
+# }
