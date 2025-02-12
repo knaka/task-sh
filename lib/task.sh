@@ -94,7 +94,8 @@ set_ifs_newline() {
 }
 
 # shellcheck disable=SC2034
-readonly newline='\n\r'
+readonly newline="
+"
 
 # To split path.
 set_ifs_slashes() {
@@ -656,6 +657,41 @@ prompt() {
     response="$default"
   fi
   printf "%s" "$response"
+}
+
+prompt_confirm() {
+  local message="${1:-Text}"
+  local default="${2:-n}"
+  local selection
+  case "$default" in
+    (y|Y|yes|Yes|YES)
+      default=y
+      selection="Y/n"
+      ;;
+    (n|N|no|No|NO)
+      default=n
+      selection="y/N"
+      ;;
+    (*)
+      echo "Invalid default value: $default" >&2
+      return 1
+  esac
+  printf "%s [%s]: " "$message" "$selection" >&2
+  local response
+  response="$(get_key)"
+  if test -z "$response"
+  then
+    response="$default"
+  fi
+  echo "$response" >&2
+  case "$response" in
+    (y|Y)
+      return 0
+      ;;
+    (n|N)
+      return 1
+      ;;
+  esac
 }
 
 # Create a file from the standard input if it does not exist.
