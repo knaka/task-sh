@@ -218,13 +218,15 @@ subcmd_d1__migrate() { # Apply the schema changes to the development database.
     echo "No schema changes." >&2
     return 0
   fi
+  "Applying the schema changes:" >&2
+  cat "$diff_sql_path" >&2
   subcmd_d1__exec "$mode" --file="$diff_sql_path"
 }
 
-subcmd_d1__local_migrate() {
+subcmd_d1__local__migrate() {
   subcmd_d1__migrate --local
 }
 
-subcmd_d1__remote_migrate() {
+subcmd_d1__remote__migrate() {
   subcmd_d1__migrate --remote
 }
