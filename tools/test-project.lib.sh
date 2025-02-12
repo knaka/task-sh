@@ -7,6 +7,9 @@ test "${sourced_22ca2c6-}" = true && return 0; sourced_22ca2c6=true
 
 test_bcrypt() {
   local password=5f7684b
-  assert_true subcmd_bcrypt__verify --password="$password" --hash="$(subcmd_bcrypt__hash "$password")"
-  assert_false subcmd_bcrypt__verify --password="wrong" --hash="$(subcmd_bcrypt__hash "$password")"
+  local hash
+  hash="$(subcmd_bcrypt__hash "$password")"
+  assert_true test -n "$hash"
+  assert_true subcmd_bcrypt__verify --password="$password" --hash="$hash"
+  assert_false subcmd_bcrypt__verify --password="wrong" --hash="$hash"
 }
