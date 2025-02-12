@@ -16,7 +16,7 @@ subcmd_bcrypt__hash() {
   # -n: Display the results on standard output.
   # -B: Use bcrypt encryption.
   # -C 10: Set the cost for bcrypt encryption to 10.
-  subcmd_htpasswd -bnBC 10 "" "$1" | cut -d: -f2
+  subcmd_htpasswd -bnBC 10 "" "$1" | sed -n -e 's/.*://p'
 }
 
 subcmd_bcrypt__verify() {
