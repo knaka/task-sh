@@ -461,7 +461,7 @@ install_pkg_cmd() {
   local scoop_id=
   local brew_id=
   local mac_cmd_path=
-  OPTIND=1; while getopts -: OPT
+  OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
     then
@@ -533,7 +533,10 @@ install_pkg_cmd() {
   then
     if command -v apt-get >/dev/null 2>&1
     then
-      apt-get update 1>&2
+      if ! test -d /var/lib/apt/lists || is_dir_empty /var/lib/apt/lists
+      then
+        apt-get update 1>&2
+      fi
       apt-get install -y "$deb_id" 1>&2
     elif command -v apk >/dev/null 2>&1
     then
@@ -860,6 +863,19 @@ make_eval_args() {
     done
     printf "%s' " "$arg" 
   done
+}
+
+# Check if the directory is empty.
+is_dir_empty() {
+  if ! test -d "$1"
+  then
+    return 1
+  fi 
+  if ! test -e "$1"/* 2>/dev/null
+  then
+    return 0
+  fi
+  return 1
 }
 
 # --------------------------------------------------------------------------

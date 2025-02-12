@@ -358,3 +358,15 @@ args_restore_test() {
 test_args_restore() {
   args_restore_test "hoge ' fuga" 'foo " bar' "$(printf "bar\nbaz")"
 }
+
+test_is_dir_empty() {
+  local dir_path="$(temp_dir_path)"/17f146e
+
+  assert_false is_dir_empty "$dir_path"
+
+  mkdir -p "$dir_path"
+  assert_true is_dir_empty "$dir_path"
+
+  touch "$dir_path"/file1
+  assert_false is_dir_empty "$dir_path"  
+}
