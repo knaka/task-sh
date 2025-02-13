@@ -531,13 +531,18 @@ install_pkg_cmd() {
     fi
   elif is_linux
   then
+    local sudo=
+    if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null
+    then
+      sudo=sudo
+    fi
     if command -v apt-get >/dev/null 2>&1
     then
       if ! test -d /var/lib/apt/lists || is_dir_empty /var/lib/apt/lists
       then
-        apt-get update 1>&2
+        $sudo apt-get update 1>&2
       fi
-      apt-get install -y "$deb_id" 1>&2
+      $sudo apt-get install -y "$deb_id" 1>&2
     elif command -v apk >/dev/null 2>&1
     then
       apk add "$apk_id" 1>&2

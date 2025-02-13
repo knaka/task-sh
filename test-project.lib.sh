@@ -367,6 +367,13 @@ test_is_dir_empty() {
   mkdir -p "$dir_path"
   assert_true is_dir_empty "$dir_path"
 
-  touch "$dir_path"/file1
+  touch "$dir_path"/*
   assert_false is_dir_empty "$dir_path"  
+}
+
+test_fetch() {
+  local url="https://www.example.com/"
+  local output_path="$(temp_dir_path)"/output.html
+  subcmd_fetch "$url" >"$output_path"
+  grep -q "Example Domain" "$output_path"
 }
