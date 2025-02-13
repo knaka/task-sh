@@ -4,14 +4,14 @@ test "${sourced_880b3c0-}" = true && return 0; sourced_880b3c0=true
 
 . ./task-node.lib.sh
 
-subcmd_bcrypt__hash() {
+subcmd_bcrypt__hash() { # [password] Generate a bcrypt hash for the given password.
   local password="$1"
   local salt_rounds=10
   subcmd_npm__ensure bcryptjs
   subcmd_node -e "console.log(require('bcryptjs').hashSync('${password}', ${salt_rounds}))"
 }
 
-subcmd_bcrypt__verify() {
+subcmd_bcrypt__verify() { # [password hash] Verify the password against the hash.
   local password="$1"
   local hash="${2:-10}"
   case "$hash" in

@@ -111,6 +111,13 @@ test_lineno() {
   echo 650a360 "$LINENO"
 }
 
-# test_printf_q() {
-#   assert_eq "$(printf "%q" "foo bar \" \nbaz")" "$(printf "foo bar \\\" \\nbaz")"
-# }
+test_trailing_comment() {
+  local s="$(
+    printf "foo%s" \
+      "bar" \
+      "baz" \
+      # centinel
+    printf "qux"
+  )"
+  assert_eq "foobarfoobazqux" "$s"
+}
