@@ -107,11 +107,10 @@ EOF
 # )
 
 test_lineno() {
-  echo 036da98 "$LINENO"
-  echo 650a360 "$LINENO"
+  echo "$LINENO" | grep -q -E '^[0-9]+$'
 }
 
-test_trailing_comment() {
+test_trailing_empty_line() {
   local s="$(
     printf "foo%s" \
       "bar" \

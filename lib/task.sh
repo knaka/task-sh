@@ -593,14 +593,46 @@ subcmd_fetch() {
   if command -v wget >/dev/null 2>&1
   then
     # wget(1) follows redirects by default.
-    invoke wget --quiet --output-document=- "$1"
-  elif command -v curl >/dev/null 2>&1
-  then
-    invoke curl --silent --fail --location --output - "$1"
-  else
-    echo "Neither wget nor curl is available." >&2
-    return 1
+    invoke wget --quiet --output-document=- "$@"
+    return $?
   fi
+  local cmd_path=
+  if command -v curl >/dev/null 2>&1
+  then
+    cmd_path="$(command -v curl)"
+  elif test -x "$HOME"/.bin/curl 
+  then
+    cmd_path="$HOME"/.bin/curl
+  elif is_linux && test -x /usr/lib/apt/apt-helper
+  then
+    # Release v8.11.0 · moparisthebest/static-curl https://github.com/moparisthebest/static-curl/releases/tag/v8.11.0
+    local version=v8.11.0
+
+    cmd_path="$HOME"/.bin/curl
+    local apt_conf_path="$(temp_dir_path)"/apt.conf
+    echo 'Acquire::https::Verify-Peer "false";' >"$apt_conf_path"
+    echo 'Acquire::https::Verify-Host "false";' >>"$apt_conf_path"
+    local arch=
+    case "$(uname -m)" in
+      (x86_64) arch=amd64;;
+      (aarch64) arch=aarch64;;
+      (*) echo "Unsupported architecture: $(uname -m)" >&2; return 1;;
+    esac
+    mkdir -p "$(dirname "$cmd_path")"
+    /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "https://github.com/moparisthebest/static-curl/releases/download/$version/curl-$arch" "$cmd_path" 1>&2
+    chmod +x "$cmd_path"
+  fi
+  if ! test -d /etc/ssl
+  then
+    set -- --insecure "$@"
+  fi
+  if test -n "$cmd_path"
+  then
+    invoke "$cmd_path" --silent --location --output - "$@"
+    return $?
+  fi
+  echo "Neither wget nor curl is available." >&2
+  return 1
 }
 
 # Load environment variables from the specified file.
@@ -928,8 +960,23 @@ kill_child_processes() {
     return
   elif is_linux
   then
-    pkill -P $$ || :
-    return
+    if is_bash
+    then
+      local jids
+      jids="$(temp_dir_path)"/jids
+      # Bash provides “jobs pipe”.
+      jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
+      while read -r jid
+      do
+        kill "%$jid" || :
+        wait "%$jid" || :
+        echo Killed "%$jid" >&2
+      done <"$jids"
+      return
+    else
+      pkill -P $$ || :
+      return
+    fi
   fi
   echo "kill_child_processes: Unsupported platform or shell." >&2
   exit 1
