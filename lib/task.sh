@@ -584,6 +584,24 @@ subcmd_curl() { # Run curl(1).
     -- "$@"
 }
 
+subcmd_fetch() {
+  if test $# -eq 0
+  then
+    echo "No URL specified." >&2
+    exit 1
+  fi
+  if command -v wget >/dev/null 2>&1
+  then
+    invoke wget --max-redirect=0 --quiet --output-document=- "$1"
+  elif command -v curl >/dev/null 2>&1
+  then
+    invoke curl --silent --fail --location --output - "$1"
+  else
+    echo "Neither wget nor curl is available." >&2
+    return 1
+  fi
+}
+
 # Load environment variables from the specified file.
 load_env_file() {
   if ! test -r "$1"
