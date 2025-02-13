@@ -367,7 +367,7 @@ test_is_dir_empty() {
   mkdir -p "$dir_path"
   assert_true is_dir_empty "$dir_path"
 
-  touch "$dir_path"/*
+  touch "$dir_path"/file
   assert_false is_dir_empty "$dir_path"  
 }
 

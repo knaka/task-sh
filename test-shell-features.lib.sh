@@ -116,7 +116,7 @@ test_trailing_comment() {
     printf "foo%s" \
       "bar" \
       "baz" \
-      # centinel
+      # nop
     printf "qux"
   )"
   assert_eq "foobarfoobazqux" "$s"

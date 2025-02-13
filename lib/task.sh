@@ -592,7 +592,8 @@ subcmd_fetch() {
   fi
   if command -v wget >/dev/null 2>&1
   then
-    invoke wget --max-redirect=0 --quiet --output-document=- "$1"
+    # wget(1) follows redirects by default.
+    invoke wget --quiet --output-document=- "$1"
   elif command -v curl >/dev/null 2>&1
   then
     invoke curl --silent --fail --location --output - "$1"
