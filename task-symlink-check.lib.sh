@@ -1,1 +1,1 @@
-./lib/task-symlink-check.lib.sh
+tasks/task-symlink-check.lib.sh

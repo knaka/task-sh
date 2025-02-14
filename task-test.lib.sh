@@ -1,1 +1,1 @@
-lib/task-test.lib.sh
+tasks/task-test.lib.sh
