@@ -402,18 +402,19 @@ invoke() {
     (*)
       if is_windows
       then
+        local cmd="$1"
         local ext
         for ext in .exe .cmd .bat
         do
-          if command -v "$1$ext"
+          if command -v "$1$ext" >/dev/null 2>&1
           then
             shift
-            set -- "$1$ext" "$@"
+            set -- "$cmd$ext" "$@"
             break
           fi
         done
       fi
-      if ! command -v "$1" >/dev/null
+      if ! command -v "$1" >/dev/null 2>&1
       then
         echo "Command not found: $1" >&2
         exit 1
