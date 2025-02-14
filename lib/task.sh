@@ -576,7 +576,7 @@ run_pkg_cmd() { # Run a command after ensuring it is installed.
   invoke "$cmd_path" "$@"
 }
 
-subcmd_curl() { # Run curl(1).
+subcmd_curl() { # Run curl(1). This will be deprecated. Use `fetch` instead.
   run_pkg_cmd \
     --cmd=curl \
     --deb-id=curl \
@@ -584,7 +584,29 @@ subcmd_curl() { # Run curl(1).
     -- "$@"
 }
 
-subcmd_fetch() {
+subcmd_apt_download() {
+  local apt_conf_path="$(temp_dir_path)"/apt.conf
+  printf "%s\n" \
+    'Acquire::https::Verify-Peer "false";' \
+    'Acquire::https::Verify-Host "false";' \
+    >"$apt_conf_path"
+  /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
+}
+
+cache_dir_path() {
+  local global_cache_dir_path="$HOME/.cache"
+  # if is_windows
+  # then
+  #   global_cache_dir_path="$LOCALAPPDATA"
+  # elif is_macos
+  # then
+  #   global_cache_dir_path="$HOME/Library/Caches"
+  # fi
+  mkdir -p "$global_cache_dir_path"/task_sh
+  echo "$global_cache_dir_path"/task_sh
+}
+
+subcmd_fetch() { # Fetch a URL.
   if test $# -eq 0
   then
     echo "No URL specified." >&2
@@ -596,43 +618,59 @@ subcmd_fetch() {
     invoke wget --quiet --output-document=- "$@"
     return $?
   fi
-  local cmd_path=
+  local curl_path=
   if command -v curl >/dev/null 2>&1
   then
-    cmd_path="$(command -v curl)"
-  elif test -x "$HOME"/.bin/curl 
+    curl_path="$(command -v curl)"
+  elif test -x "$(cache_dir_path)"/curl
   then
-    cmd_path="$HOME"/.bin/curl
+    curl_path="$(cache_dir_path)"/curl
   elif is_linux && test -x /usr/lib/apt/apt-helper
   then
     # Release v8.11.0 · moparisthebest/static-curl https://github.com/moparisthebest/static-curl/releases/tag/v8.11.0
-    local version=v8.11.0
-
-    cmd_path="$HOME"/.bin/curl
-    local apt_conf_path="$(temp_dir_path)"/apt.conf
-    echo 'Acquire::https::Verify-Peer "false";' >"$apt_conf_path"
-    echo 'Acquire::https::Verify-Host "false";' >>"$apt_conf_path"
+    local curl_version=v8.11.0
+    local curl_sha256sums='
+d18aa1f4e03b50b649491ca2c401cd8c5e89e72be91ff758952ad2ab5a83135d  ./curl-amd64
+1a4747fd88b31b93bf48bcace9d1e3ebf348afbbf8c0a6f4e1751795ea6ff39b  ./curl-i386
+1b050abd1669f9a2ac29b34eb022cdeafb271dce5a4fb57d8ef8fadff6d7be1f  ./curl-aarch64
+779a1bd9f486fd5ff1da25d5e5bb99c58bc79ded22344f2b7ff366cf645a6630  ./curl-armv7
+b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
+50be538158f06fa71a4751d9f3f06932dc90337d43768b4963af51e84ebb65ac  ./curl-ppc64le
+'
+    curl_path="$(cache_dir_path)"/curl
     local arch=
     case "$(uname -m)" in
       (x86_64) arch=amd64;;
       (aarch64) arch=aarch64;;
       (*) echo "Unsupported architecture: $(uname -m)" >&2; return 1;;
     esac
-    mkdir -p "$(dirname "$cmd_path")"
-    /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "https://github.com/moparisthebest/static-curl/releases/download/$version/curl-$arch" "$cmd_path" 1>&2
-    chmod +x "$cmd_path"
+    mkdir -p "$(dirname "$curl_path")"
+    local curl_url="https://github.com/moparisthebest/static-curl/releases/download/$curl_version/curl-$arch"
+    subcmd_apt_download "$curl_url" "$curl_path"
+    if ! echo "$(echo "$curl_sha256sums" | grep "$(basename "$curl_url")" | cut -d' ' -f1)" "$curl_path" | sha256sum --check --status
+    then
+      echo "curl checksum mismatch." >&2
+      return 1
+    fi
+    chmod +x "$curl_path"
+  else
+    echo "Neither wget nor curl is available." >&2
+    return 1
   fi
   if ! test -d /etc/ssl
   then
-    set -- --insecure "$@"
+    # curl - Extract CA Certs from Mozilla https://curl.se/docs/caextract.html
+    local cacert_url="https://curl.se/ca/cacert-2024-12-31.pem"
+    local cacert_sha256sum="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5"
+    invoke "$curl_path" --insecure --location --output "$(cache_dir_path)"/cacert.pem "$cacert_url"
+    if ! echo "$cacert_sha256sum" "$(cache_dir_path)"/cacert.pem | sha256sum --check --status 1>&2
+    then
+      echo "cacert.pem checksum mismatch." >&2
+      return 1
+    fi
+    set -- --cacert "$(cache_dir_path)"/cacert.pem "$@"
   fi
-  if test -n "$cmd_path"
-  then
-    invoke "$cmd_path" --silent --location --output - "$@"
-    return $?
-  fi
-  echo "Neither wget nor curl is available." >&2
-  return 1
+  invoke "$curl_path" --location --output - "$@"
 }
 
 # Load environment variables from the specified file.
@@ -980,19 +1018,6 @@ kill_child_processes() {
   fi
   echo "kill_child_processes: Unsupported platform or shell." >&2
   exit 1
-}
-
-cache_dir_path() {
-  local cache_dir_path="$HOME/.cache"
-  # if is_windows
-  # then
-  #   cache_dir_path="$LOCALAPPDATA"
-  # elif is_macos
-  # then
-  #   cache_dir_path="$HOME/Library/Caches"
-  # fi
-  mkdir -p "$cache_dir_path"
-  echo "$cache_dir_path"
 }
 
 cleanup_handlers_2181b77=
