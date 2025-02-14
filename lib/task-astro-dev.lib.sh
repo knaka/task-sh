@@ -1,19 +1,28 @@
-#!/bin/sh
-test "${guard_b867991+set}" = set && return 0; guard_b867991=-
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_8a52dac-}" = true && return 0; sourced_8a52dac=true
 set -o nounset -o errexit
 
+. ./task.sh
 . ./task-astro.lib.sh
 
 task_astro__dev() { # Launch the Astro development server.
   export APP_ENV=development
+  export NODE_ENV="$APP_ENV"
   load_env
   local host="${ASTRO_DEV_HOST:-127.0.0.1}"
   local port="${ASTRO_DEV_PORT:-3000}"
   set -- "$@" --host "$host"
   set -- "$@" --port "$port"
+  if test "${ASTRO_DYNAMIC_PORT+set}" = set
+  then
+    export ASTRO_DYNAMIC_PORT
+  fi
   local log_path
   log_path="$(temp_dir_path)"/astro-dev.log
-  sh task.sh subcmd_astro dev "$@" </dev/null 2>&1 | tee "$log_path" &
+  subcmd_astro --invocation-mode=background dev "$@" >"$log_path"
+  invoke --invocation-mode=background tail -F "$log_path"
   while true
   do
     sleep 1
@@ -30,17 +39,10 @@ task_astro__dev() { # Launch the Astro development server.
       "Bui&ld" \
       "E&xit"
     case "$(get_key)" in
-      (b) open_browser "http://$host:$port";;
-      (c) clear;;
-      (l)
-        if task_astro__build
-        then
-          echo "Built successfully."
-        else
-          echo "Failed to build."
-        fi
-        ;;
-      (x) break;;
+      (b) browse "http://$host:$port" ;;
+      (c) clear ;;
+      (l) task_astro__build ;;
+      (x) break ;;
       (*) ;;
     esac
   done

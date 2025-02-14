@@ -59,19 +59,19 @@ set_pages_routes_json_path() {
 
 . ./task-yq.lib.sh
 
-get_pages_output_dir() {
+pages_build_output_dir() {
   memoize bf05cb9 subcmd_yq --exit-status eval '.pages_build_output_dir' wrangler.toml
 }
 
-task_put_pages_routes_json() { # Put the routes JSON file.
+task_pages__routes_json__put() { # Put the routes JSON file.
   if test -r "$pages_routes_json_path_6c18f24"
   then
-    cp -f "$pages_routes_json_path_6c18f24" "$(get_pages_output_dir)"/_routes.json
+    cp -f "$pages_routes_json_path_6c18f24" "$(pages_build_output_dir)"/_routes.json
   fi
 }
 
 task_pages__deploy() { # Deploy the project.
-  task_put_pages_routes_json
+  task_pages__routes_json__put
   subcmd_wrangler pages deploy
 }
 
@@ -79,7 +79,7 @@ get_pages_build_output_dir() {
   memoize 96811e6 subcmd_yq --exit-status eval '.pages_build_output_dir' wrangler.toml
 }
 
-subcmd_pages__secret__put() {
+subcmd_pages__secret__put() { # [key] Put the secret to the Cloudflare Pages.
   local key
   key="${1:-}"
   if test -z "$key"
