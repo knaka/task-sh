@@ -381,7 +381,21 @@ test_fetch() {
 test_fifo() {
   if is_windows
   then
-    echo "Skipped FIFO test on Windows." >&2
+    # echo "Skipped FIFO test on Windows." >&2
+    local fifo_path="$(temp_dir_path)"/fifo
+    mkfifo "$fifo_path"
+    (
+      for i in 1 2 3
+      do
+        sleep 1
+        printf "hello%d" "$i"
+      done
+    ) >"$fifo_path" 2>&1 &
+    local pid=$!
+    wait "$pid"
+    local output_path="$(temp_dir_path)"/output
+    cat "$fifo_path" >"$output_path"
+    assert_eq "$(cat "$output_path")" "hello1hello2hello3"
   elif is_linux || is_macos
   then
     local fifo_path="$(temp_dir_path)"/fifo
