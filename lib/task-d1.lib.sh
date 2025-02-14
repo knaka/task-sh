@@ -22,8 +22,6 @@ set_db_seed_path() {
 
 mkdir -p ./build/
 
-: "${wrangler_toml_path:=$SCRIPT_DIR/wrangler.toml}"
-
 # --------------------------------------------------------------------------
 # Parse the Wrangler configuration file
 # --------------------------------------------------------------------------
@@ -218,7 +216,7 @@ subcmd_d1__migrate() { # Apply the schema changes to the development database.
     echo "No schema changes." >&2
     return 0
   fi
-  "Applying the schema changes:" >&2
+  echo "Applying the schema changes:" >&2
   cat "$diff_sql_path" >&2
   subcmd_d1__exec "$mode" --file="$diff_sql_path"
 }

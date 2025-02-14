@@ -13,6 +13,8 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
   run_node_modules_bin wrangler bin/wrangler.js "$@"
 }
 
+: "${wrangler_toml_path:=$SCRIPT_DIR/wrangler.toml}"
+
 # --------------------------------------------------------------------------
 # Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
@@ -75,4 +77,22 @@ task_pages__deploy() { # Deploy the project.
 
 get_pages_build_output_dir() {
   memoize 96811e6 subcmd_yq --exit-status eval '.pages_build_output_dir' wrangler.toml
+}
+
+subcmd_pages__secret__put() {
+  local key
+  key="${1:-}"
+  if test -z "$key"
+  then
+    key="$(prompt "Enter the secret name")"
+  fi
+  subcmd_wrangler pages secret put "$key"
+}
+
+subcmd_pages__name() {
+  subcmd_yq --exit-status eval ".name" "$wrangler_toml_path"
+}
+
+subcmd_pages__log__tail() { # Tail the log of the deployment.
+  subcmd_wrangler pages deployment tail --project-name "$(subcmd_pages__name)"
 }
