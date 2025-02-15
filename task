@@ -3,7 +3,7 @@
 # shellcheck shell=sh
 set -o nounset -o errexit
 
-if test "${1+set}" = set && test "$1" = "update-me"
+if test "${TASK_UPDATE+set}" = set
 then
   temp_dir_path="$(mktemp -d)"
   # shellcheck disable=SC2317
@@ -20,12 +20,24 @@ ARG0BASE="${0##*/}"
 export ARG0BASE
 script_dir_path=$(dirname "$0")
 script_name=$(basename "$0")
-sh_dir_path="$script_dir_path"
+sh_dir_path=
 env_file_path="$script_dir_path"/.env.sh
 if test -r "$env_file_path"
 then
   # shellcheck disable=SC1090
   . "$env_file_path"
+fi
+if test -z "$sh_dir_path"
+then
+  if \
+    test "$script_name" = "task" && \
+    ! test -r "$script_dir_path"/task.sh && \
+    test -r "$script_dir_path"/tasks/task.sh
+  then
+    sh_dir_path="$script_dir_path"/tasks
+  else
+    sh_dir_path="$script_dir_path"
+  fi
 fi
 for sh in /bin/dash /bin/ash /bin/bash
 do

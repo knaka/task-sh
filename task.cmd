@@ -35,10 +35,22 @@ set "ARG0=%~f0"
 set "ARG0BASE=%~n0"
 set script_dir_path=%~dp0
 set script_name=%~n0
-set sh_dir_path=!script_dir_path!
+set sh_dir_path=
 set env_file_path=!script_dir_path!\.env.sh.cmd
 if exist !env_file_path! (
   call !env_file_path!
+)
+if not defined sh_dir_path (
+  if "!script_name!"=="task" (
+    if not exist "!script_dir_path!\task.sh" (
+      if exist "!script_dir_path!\tasks\task.sh" (
+        set "sh_dir_path=!script_dir_path!\tasks"
+      )
+    )
+  )
+  if not defined sh_dir_path (
+    set "sh_dir_path=!script_dir_path!"
+  )
 )
 set BB_GLOBBING=0
 !cmd_path! sh !sh_dir_path!\!script_name!.sh %* || exit /b !ERRORLEVEL!
