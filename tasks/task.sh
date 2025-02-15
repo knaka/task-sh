@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 # vim: set filetype=sh :
 # shellcheck shell=sh
 test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
@@ -30,9 +31,14 @@ rc_test_skipped=11
 # Directories.
 # --------------------------------------------------------------------------
 
-WORKING_DIR=
-TASKS_DIR=
-PROJECT_DIR=
+# Directory in which the script has been invoked.
+: "${WORKING_DIR:=}"
+
+# Directory in which the task files are located.
+: "${TASKS_DIR:=}"
+
+# The root directory of the project.
+: "${PROJECT_DIR:=}"
 
 # --------------------------------------------------------------------------
 # Misc
@@ -694,20 +700,20 @@ load_env() {
   # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
   then
-    load_env_file "$TASKS_DIR"/.env."$APP_ENV".dynamic
-    load_env_file "$TASKS_DIR"/.env."$APP_ENV".local
+    load_env_file "$PROJECT_DIR"/.env."$APP_ENV".dynamic
+    load_env_file "$PROJECT_DIR"/.env."$APP_ENV".local
   fi
   if test "${APP_ENV+set}" != set || test "${APP_ENV}" != "test"
   then
-    load_env_file "$TASKS_DIR"/.env.dynamic
-    load_env_file "$TASKS_DIR"/.env.local
+    load_env_file "$PROJECT_DIR"/.env.dynamic
+    load_env_file "$PROJECT_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
   then
-    load_env_file "$TASKS_DIR"/.env."$APP_ENV"
+    load_env_file "$PROJECT_DIR"/.env."$APP_ENV"
   fi
   # shellcheck disable=SC1091
-  load_env_file "$TASKS_DIR"/.env
+  load_env_file "$PROJECT_DIR"/.env
 }
 
 # Get a key from the user without echoing.
@@ -1202,7 +1208,7 @@ main() {
   WORKING_DIR="$(realpath "$PWD")"
   export WORKING_DIR
 
-  TASKS_DIR="$(realpath "$(realpath "$(dirname "$0")")")"
+  TASKS_DIR="$(realpath "$(realpath "$(dirname "$(realpath "$0")")")")"
   export TASKS_DIR
 
   if test "${ARG0+set}" = set
@@ -1265,6 +1271,7 @@ main() {
   local dir
   for dir in "$TASKS_DIR" "$PROJECT_DIR"
   do
+    # All the task files are sourced in the directory.
     push_dir "$TASKS_DIR"
     for task_file_path in "$dir"/task-*.sh
     do
@@ -1403,7 +1410,8 @@ main() {
 }
 
 # Run the main function if this script is executed as task runner.
-if test "$(basename "$0")" = "task.sh"
-then
-  main "$@"
-fi
+case "$(basename "$0")" in
+  (task|task.sh)
+    main "$@"
+    ;;
+esac
