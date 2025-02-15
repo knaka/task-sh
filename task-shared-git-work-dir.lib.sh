@@ -3,6 +3,7 @@ set -o nounset -o errexit
 
 test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 
+# shellcheck source=tasks/task.sh
 . ./task.sh
 
 # if test "${GITHUB_ACTIONS:-}" != "true"

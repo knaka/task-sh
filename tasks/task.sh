@@ -32,18 +32,27 @@ rc_test_skipped=11
 
 # Original directory in which the script is invoked.
 
-ORIGINAL_DIR="$PWD"
-export ORIGINAL_DIR
+WORKING_DIR="$(realpath "$PWD")"
+export WORKING_DIR
 
 # Directory in which the main script is located.
 
-TASKS_DIR="$(realpath "$(dirname "$0")")"
+TASKS_DIR="$(realpath "$(realpath "$(dirname "$0")")")"
 export TASKS_DIR
 
 # Check if the working directory is in the script directory.
 in_script_dir() {
   realpath "$PWD" | grep -q -e "^$TASKS_DIR$" -e "^$TASKS_DIR/"
 }
+
+PROJECT_DIR=
+
+if test "${ARG0+set}" = set
+then
+  PROJECT_DIR="$(realpath "$(dirname "$ARG0")")"
+fi
+
+export PROJECT_DIR
 
 # --------------------------------------------------------------------------
 # Misc
@@ -1240,26 +1249,31 @@ main() {
     ARG0BASE="$(basename "$0")"
   fi
 
-  # Load all the task files in the script directory.
+  # Load all the task files in the tasks directory and the project directory.
   psv_task_file_paths="$(realpath "$0")|"
-  push_dir "$TASKS_DIR"
-  for task_file_path in "$TASKS_DIR"/task_*.sh "$TASKS_DIR"/task-*.sh
+
+  local dir
+  for dir in "$TASKS_DIR" "$PROJECT_DIR"
   do
-    if ! test -r "$task_file_path"
-    then
-      continue
-    fi
-    case "$(basename "$task_file_path")" in
-      (task-dev.sh|task-prd.sh)
+    push_dir "$TASKS_DIR"
+    for task_file_path in "$dir"/task-*.sh
+    do
+      if ! test -r "$task_file_path"
+      then
         continue
-        ;;
-    esac
-    psv_task_file_paths="$psv_task_file_paths$task_file_path|"
-    # echo Loading "$task_file_path" >&2
-    # shellcheck disable=SC1090
-    . "$task_file_path"
+      fi
+      case "$(basename "$task_file_path")" in
+        (task-dev.sh|task-prd.sh)
+          continue
+          ;;
+      esac
+      psv_task_file_paths="$psv_task_file_paths$task_file_path|"
+      # echo Loading "$task_file_path" >&2
+      # shellcheck disable=SC1090
+      . "$task_file_path"
+    done
+    pop_dir
   done
-  pop_dir
 
   # Parse the command line arguments.
   shows_help=false

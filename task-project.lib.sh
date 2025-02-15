@@ -2,9 +2,12 @@
 # shellcheck shell=sh
 test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 
+# Evaluated in $TASKS_DIR.
+
+# shellcheck source=./tasks/task.sh
 . ./task.sh
 
-if ! test -L ./sh/task.sh
+if ! test -L "$PROJECT_DIR"/sh/task.sh
 then
   # shellcheck disable=SC2016
   echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
@@ -15,8 +18,8 @@ then
   exit 1
 fi
 
+# shellcheck source=./tasks/task-docker.lib.sh
 . ./task-docker.lib.sh
-. ./task-shared-git-work-dir.lib.sh
 
 repl_usage() {
   echo "exit: Exit the program."

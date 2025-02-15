@@ -5,8 +5,9 @@
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 set -o nounset -o errexit
 
-. ./task-test.lib.sh
+# shellcheck source=./tasks/assert.lib.sh
 . ./assert.lib.sh
+# shellcheck source=./tasks/task.sh
 . ./task.sh
 
 toupper_4c7e44e() {
@@ -258,9 +259,9 @@ test_extra() (
 )
 
 test_not_existing_task() (
-  assert_false "$SH" task.sh not_existing_task
-  "$SH" task.sh --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
-  "$SH" task.sh --skip-missing not_existing_task
+  assert_false invoke ./task not_existing_task
+  invoke ./task --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
+  invoke ./task --skip-missing not_existing_task
 )
 
 test_dumper() (
@@ -281,7 +282,7 @@ is_ci_mac() {
 }
 
 test_killing() {
-  "$SH" task.sh killng_test
+  invoke ./task killng_test
 }
 
 test_shell() {
@@ -316,20 +317,20 @@ test_newer() {
 }
 
 test_dir_stack() {
-  cd "$SCRIPT_DIR"
-
-  push_dir ./lib
-  assert_eq "$SCRIPT_DIR/lib" "$PWD"
-  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR|"
+  cd "$PROJECT_DIR"
+  
+  push_dir ./tasks
+  assert_eq "$PROJECT_DIR/tasks" "$PWD"
+  assert_eq "$dirs_4c15d80" "$PROJECT_DIR|"
   pop_dir
-  assert_eq "$SCRIPT_DIR" "$PWD"
+  assert_eq "$PROJECT_DIR" "$PWD"
   assert_eq "$dirs_4c15d80" ""
 
   push_dir ./go
-  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR|"
+  assert_eq "$dirs_4c15d80" "$PROJECT_DIR|"
   push_dir ../sh
-  assert_eq "$dirs_4c15d80" "$SCRIPT_DIR/go|$SCRIPT_DIR|"
-  assert_eq "$SCRIPT_DIR/sh" "$PWD"
+  assert_eq "$dirs_4c15d80" "$PROJECT_DIR/go|$PROJECT_DIR|"
+  assert_eq "$PROJECT_DIR/sh" "$PWD"
   pop_dir
   pop_dir
 }

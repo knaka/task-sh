@@ -64,7 +64,8 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
 
   psv_test_file_paths=
   # Source all the test functions in the test files.
-  for test_file_path in "$TASKS_DIR"/test-*.sh
+  push_dir "$TASKS_DIR"
+  for test_file_path in "$PROJECT_DIR"/test-*.sh
   do
     if ! test -r "$test_file_path"
     then
@@ -75,6 +76,7 @@ subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no t
     . "$test_file_path"
     psv_test_file_paths="$psv_test_file_paths$test_file_path|"
   done
+  pop_dir
   # If not test names are provided, run all tests.
   if test "$#" -eq 0
   then
