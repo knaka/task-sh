@@ -11,7 +11,7 @@ subcmd_htpasswd() {
     -- "$@"
 }
 
-subcmd_bcrypt__hash() {
+subcmd_htpasswd__bcrypt__hash() {
   # -b: Batch mode. No prompt for password.
   # -n: Display the results on standard output.
   # -B: Use bcrypt encryption.
@@ -19,7 +19,7 @@ subcmd_bcrypt__hash() {
   subcmd_htpasswd -bnBC 10 "" "$1" | sed -n -e 's/.*://p'
 }
 
-subcmd_bcrypt__verify() {
+subcmd_htpasswd__bcrypt__verify() {
   # -v: Verify the password.
   local user=fa9a540
   local htpasswd_path="$(temp_dir_path)"/045af3c

@@ -289,7 +289,7 @@ subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two
 task_dupcheck() {
   local log_path
   log_path="$(temp_dir_path)"/dupcheck.log
-  grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./lib/*.sh \
+  grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./tasks/*.sh \
   | sed -E -e 's/^(task_|subcmd_)//' \
   | sed -E -e 's/\(.*//' \
   | sort | uniq -d | tee "$log_path"
