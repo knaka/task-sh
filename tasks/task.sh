@@ -30,29 +30,9 @@ rc_test_skipped=11
 # Directories.
 # --------------------------------------------------------------------------
 
-# Original directory in which the script is invoked.
-
-WORKING_DIR="$(realpath "$PWD")"
-export WORKING_DIR
-
-# Directory in which the main script is located.
-
-TASKS_DIR="$(realpath "$(realpath "$(dirname "$0")")")"
-export TASKS_DIR
-
-# Check if the working directory is in the script directory.
-in_script_dir() {
-  realpath "$PWD" | grep -q -e "^$TASKS_DIR$" -e "^$TASKS_DIR/"
-}
-
+WORKING_DIR=
+TASKS_DIR=
 PROJECT_DIR=
-
-if test "${ARG0+set}" = set
-then
-  PROJECT_DIR="$(realpath "$(dirname "$ARG0")")"
-fi
-
-export PROJECT_DIR
 
 # --------------------------------------------------------------------------
 # Misc
@@ -1202,6 +1182,8 @@ main() {
       if test "$sh" = "dash"
       then
         break
+      else
+        exec /bin/dash "$0" "$@"
       fi
     elif is_linux
     then
@@ -1216,6 +1198,34 @@ main() {
   done
   SH="$sh"
   export SH
+
+  WORKING_DIR="$(realpath "$PWD")"
+  export WORKING_DIR
+
+  TASKS_DIR="$(realpath "$(realpath "$(dirname "$0")")")"
+  export TASKS_DIR
+
+  if test "${ARG0+set}" = set
+  then
+    PROJECT_DIR="$(realpath "$(dirname "$ARG0")")"
+  else
+    dir="$PWD"
+    while true
+    do
+      if test -d "$dir"/tasks
+      then
+        PROJECT_DIR="$dir"
+        break
+      fi
+      if test "$dir" = "$(realpath "$dir"/..)"
+      then
+        echo "Project directory not found." >&2
+        exit 1
+      fi
+      dir="$(realpath "$dir"/..)"
+    done
+  fi
+  export PROJECT_DIR
 
   # Set the exit handlers caller.
   # Bash3 of macOS exits successfully if `nounset` error is trapped.
