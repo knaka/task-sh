@@ -40,9 +40,9 @@ java_home() (
     return
   fi
 
-  if test -r "$SCRIPT_DIR"/.java-version
+  if test -r "$TASKS_DIR"/.java-version
   then
-    ver=$(cat "$SCRIPT_DIR"/.java-version)
+    ver=$(cat "$TASKS_DIR"/.java-version)
   fi
 
   major="${ver%%.*}"

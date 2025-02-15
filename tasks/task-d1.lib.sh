@@ -8,13 +8,13 @@ test "${sourced_ce1c863-}" = true && return 0; sourced_ce1c863=true
 . ./task-sqlite3.lib.sh
 . ./task-node.lib.sh
 
-db_schema_path_d4253e5="$SCRIPT_DIR/schema.sql"
+db_schema_path_d4253e5="$TASKS_DIR/schema.sql"
 
 set_db_schema_path() {
   db_schema_path_d4253e5="$1"
 }
 
-db_seed_path_540ec19="$SCRIPT_DIR/seed.sql"
+db_seed_path_540ec19="$TASKS_DIR/seed.sql"
 
 set_db_seed_path() {
   db_seed_path_540ec19="$1"
@@ -150,7 +150,7 @@ EOF
 
 subcmd_d1__local__files() { # List the local database files.
   local hash="$(subcmd_d1__local__object__id)"
-  find "$SCRIPT_DIR"/.wrangler -type f -name "$hash.sqlite*"
+  find "$TASKS_DIR"/.wrangler -type f -name "$hash.sqlite*"
 }
 
 subcmd_d1__local__delete() { # Delete the local database.

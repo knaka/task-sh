@@ -33,4 +33,4 @@ then
   set -- -i '' "$@"
 fi
 
-echo sed -E "$@"
+sed -E "$@"

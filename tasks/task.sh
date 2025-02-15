@@ -37,12 +37,12 @@ export ORIGINAL_DIR
 
 # Directory in which the main script is located.
 
-SCRIPT_DIR="$(realpath "$(dirname "$0")")"
-export SCRIPT_DIR
+TASKS_DIR="$(realpath "$(dirname "$0")")"
+export TASKS_DIR
 
 # Check if the working directory is in the script directory.
 in_script_dir() {
-  realpath "$PWD" | grep -q -e "^$SCRIPT_DIR$" -e "^$SCRIPT_DIR/"
+  realpath "$PWD" | grep -q -e "^$TASKS_DIR$" -e "^$TASKS_DIR/"
 }
 
 # --------------------------------------------------------------------------
@@ -705,20 +705,20 @@ load_env() {
   # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
   then
-    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV".dynamic
-    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV".local
+    load_env_file "$TASKS_DIR"/.env."$APP_ENV".dynamic
+    load_env_file "$TASKS_DIR"/.env."$APP_ENV".local
   fi
   if test "${APP_ENV+set}" != set || test "${APP_ENV}" != "test"
   then
-    load_env_file "$SCRIPT_DIR"/.env.dynamic
-    load_env_file "$SCRIPT_DIR"/.env.local
+    load_env_file "$TASKS_DIR"/.env.dynamic
+    load_env_file "$TASKS_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
   then
-    load_env_file "$SCRIPT_DIR"/.env."$APP_ENV"
+    load_env_file "$TASKS_DIR"/.env."$APP_ENV"
   fi
   # shellcheck disable=SC1091
-  load_env_file "$SCRIPT_DIR"/.env
+  load_env_file "$TASKS_DIR"/.env
 }
 
 # Get a key from the user without echoing.
@@ -1242,8 +1242,8 @@ main() {
 
   # Load all the task files in the script directory.
   psv_task_file_paths="$(realpath "$0")|"
-  push_dir "$SCRIPT_DIR"
-  for task_file_path in "$SCRIPT_DIR"/task_*.sh "$SCRIPT_DIR"/task-*.sh
+  push_dir "$TASKS_DIR"
+  for task_file_path in "$TASKS_DIR"/task_*.sh "$TASKS_DIR"/task-*.sh
   do
     if ! test -r "$task_file_path"
     then

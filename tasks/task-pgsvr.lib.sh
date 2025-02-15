@@ -15,12 +15,12 @@ subcmd_initdb() (
 )
 
 modify_postgresql_conf() (
-  sed -i '' -E -e "s/^#?port =.*$/port = $PGPORT/" "$SCRIPT_DIR"/pgdata/postgresql.conf
-  sed -i '' -E -e "s/^#?listen_addresses =.*$/listen_addresses = '$PGHOST'/" "$SCRIPT_DIR"/pgdata/postgresql.conf
+  sed -i '' -E -e "s/^#?port =.*$/port = $PGPORT/" "$TASKS_DIR"/pgdata/postgresql.conf
+  sed -i '' -E -e "s/^#?listen_addresses =.*$/listen_addresses = '$PGHOST'/" "$TASKS_DIR"/pgdata/postgresql.conf
 )
 
 task_pg__cluster__create() (
-  cd "$SCRIPT_DIR"
+  cd "$TASKS_DIR"
   if test -d pgdata/base
   then
     echo "Database cluster already exists." >&2
@@ -30,7 +30,7 @@ task_pg__cluster__create() (
   temp_dir_path_d9f5174=$(mktemp -d)
   echo "$PGPASSWORD" > "$temp_dir_path_d9f5174"/password.txt
   subcmd_initdb \
-    --pgdata "$SCRIPT_DIR"/pgdata \
+    --pgdata "$TASKS_DIR"/pgdata \
     --auth=md5 \
     --username="$PGUSER" --pwfile="$temp_dir_path_d9f5174"/password.txt \
     --no-locale \
@@ -40,27 +40,27 @@ task_pg__cluster__create() (
 )
 
 task_pg__cluster__drop() (
-  cd "$SCRIPT_DIR"
+  cd "$TASKS_DIR"
   task_pg__stop || :
   rm -fr pgdata/*
 )
 
 task_pg__start() (
-  cd "$SCRIPT_DIR"
+  cd "$TASKS_DIR"
   if ! test -d pgdata/base
   then
     echo "Database cluster does not exist." >&2
     return 1
   fi
-  subcmd_pg_ctl -D "$SCRIPT_DIR"/pgdata -l "$SCRIPT_DIR"/pgdata/logfile start
+  subcmd_pg_ctl -D "$TASKS_DIR"/pgdata -l "$TASKS_DIR"/pgdata/logfile start
 )
 
 task_pg__stop() (
-  cd "$SCRIPT_DIR"
-  subcmd_pg_ctl -D "$SCRIPT_DIR"/pgdata stop
+  cd "$TASKS_DIR"
+  subcmd_pg_ctl -D "$TASKS_DIR"/pgdata stop
 )
 
 task_pg__status() (
-  cd "$SCRIPT_DIR"
-  subcmd_pg_ctl -D "$SCRIPT_DIR"/pgdata status
+  cd "$TASKS_DIR"
+  subcmd_pg_ctl -D "$TASKS_DIR"/pgdata status
 )

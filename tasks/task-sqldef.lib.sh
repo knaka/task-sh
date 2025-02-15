@@ -54,7 +54,7 @@ subcmd_mssqldef() { # Idempotent MSSQL DB schema management by SQL.
 #   if test -z "$image_id"
 #   then
 #     (
-#       cd "$SCRIPT_DIR"
+#       cd "$TASKS_DIR"
 #       subcmd_docker build --progress plain -t "$tag" -f "$name".Dockerfile --build-arg "version=$version" .
 #     )
 #   fi
