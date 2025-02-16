@@ -454,7 +454,7 @@ task_killng_test() {
   invoke --invocation-mode=background "$sleep_cmd" 2345
   "$sleep_cmd" 3456 &
   "$SH" task.sh my_sleep_bg &
-  invoke --invocation-mode=background "$SH" task.sh my_sleep_exec
+  invoke --invocation-mode=background ./task my_sleep_exec
   "$sleep_cmd" 1
   cleanup
   "$sleep_cmd" 1
