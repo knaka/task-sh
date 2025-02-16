@@ -54,7 +54,10 @@ x${unique_id}() {
 }
 
 case "\${0##*/}" in
-  (x${unique_id}|x${unique_id}.sh) x${unique_id} "\$@";;
+  (x${unique_id}|x${unique_id}.sh)
+    set -o nounset -o errexit
+    x${unique_id} "\$@"
+    ;;
 esac
 EOF
 
