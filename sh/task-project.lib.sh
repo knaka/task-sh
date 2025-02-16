@@ -29,6 +29,10 @@ subcmd_install() ( # Install shell scripts.
     else 
       ln -s "$PWD/task" "$sh_bin_dir_path"/"$sh_name"
     fi
+    cat <<EOF >"$sh_bin_dir_path"/"$sh_name".sh
+#!/usr/bin/env sh
+exec "$SH" "$PROJECT_DIR"/"$sh_file" "\$@"
+EOF
   done
   if is_windows
   then

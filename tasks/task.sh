@@ -3,20 +3,6 @@
 # shellcheck shell=sh
 test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
 
-# Update this script by replacing itself with the latest version.
-if test "${1+set}" = set && test "$1" = "update-me"
-then
-  temp_dir_path_6856fe8="$(mktemp -d)"
-  # shellcheck disable=SC2317
-  cleanup_7f0c4de() { rm -fr "$temp_dir_path_6856fe8"; }
-  trap cleanup_7f0c4de EXIT
-  curl_cmd_9f94dce=curl
-  command -v curl.exe && curl_cmd_9f94dce=curl.exe
-  "$curl_cmd_9f94dce" --fail --location --output "$temp_dir_path_6856fe8"/8c7b96d https://raw.githubusercontent.com/knaka/src/main/lib/task.sh
-  cat "$temp_dir_path_6856fe8"/8c7b96d >"$0"
-  exit 0
-fi
-
 # --------------------------------------------------------------------------
 # Constants.
 # --------------------------------------------------------------------------
@@ -204,15 +190,15 @@ restore_shell_flags() {
 }
 
 is_linux() {
-  test "$(uname -s)" = "Linux"
+  test -d /proc -o -d /sys
 }
 
 is_bsd() {
-  stat -f "%z" . > /dev/null 2>&1
+  stat -f "%z" . >/dev/null 2>&1
 }
 
 is_macos() {
-  test "$(uname -s)" = "Darwin"
+  test -r /System/Library/CoreServices/SystemVersion.plist
 }
 
 is_darwin() {
@@ -220,10 +206,7 @@ is_darwin() {
 }
 
 is_windows() {
-  case "$(uname -s)" in
-    (Windows_NT|CYGWIN*|MINGW*|MSYS*) return 0 ;;
-  esac
-  return 1
+  test -d "c:/windows" -a ! -d /proc
 }
 
 # Executable file extension.
@@ -252,6 +235,36 @@ memoize() {
     "$@" >"$cache_file_path"
   fi
   cat "$cache_file_path"
+}
+
+shell_path_6eac6eb() {
+  if test "${BASH+set}" = set
+  then
+    echo "$BASH"
+    return
+  fi
+  if is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    echo "$SHELL"
+    return
+  fi
+  local path=
+  if test -e /proc/$$/exe
+  then
+    path="$(realpath /proc/$$/exe)" || return 1
+  else
+    path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+  fi
+  echo "$path"
+}
+
+shell_path() {
+  memoize 5e862b5 shell_path_6eac6eb
+}
+
+shell_base() {
+  local shell_path="$(shell_path)"
+  echo "${shell_path##*/}"
 }
 
 shell_name_f0ebcb7() {
@@ -288,15 +301,15 @@ shell_name() {
 }
 
 is_dash() {
-  test "$(shell_name)" = "dash"
+  test "$(shell_base)" = "dash"
 }
 
 is_ash() {
-  test "$(shell_name)" = "ash"
+  test "$(shell_base)" = "ash"
 }
 
 is_bash() {
-  test "$(shell_name)" = "bash"
+  test "$(shell_base)" = "bash"
 }
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
@@ -1173,37 +1186,38 @@ get_sh() {
 main() {
   set -o nounset -o errexit
 
-  local sh
-  sh="$(shell_name)"
-  while true
-  do
-    if is_windows
-    then
-      if test "$sh" = "ash"
+  if test "${SH+set}" != set
+  then
+    SH="$(shell_name)"
+    while true
+    do
+      if is_windows
       then
-        break
-      fi
-    elif is_macos
-    then
-      if test "$sh" = "dash"
-      then
-        break
-      else
-        exec /bin/dash "$0" "$@"
-      fi
-    elif is_linux
-    then
-      case "$sh" in
-        (ash|dash|bash)
+        if test "$SH" = "ash"
+        then
           break
-          ;;
-      esac
-    fi
-    echo "Unsupported environment: $(uname -s)", "$sh" >&2
-    exit 1
-  done
-  SH="$sh"
-  export SH
+        fi
+      elif is_macos
+      then
+        if test "$SH" = "dash"
+        then
+          break
+        else
+          exec /bin/dash "$0" "$@"
+        fi
+      elif is_linux
+      then
+        case "$SH" in
+          (ash|dash|bash)
+            break
+            ;;
+        esac
+      fi
+      echo "Unsupported environment: $(uname -s)", "$SH" >&2
+      exit 1
+    done
+    export SH
+  fi
 
   WORKING_DIR="$(realpath "$PWD")"
   export WORKING_DIR
@@ -1410,7 +1424,7 @@ main() {
 }
 
 # Run the main function if this script is executed as task runner.
-case "$(basename "$0")" in
+case "${0##*/}" in
   (task|task.sh)
     main "$@"
     ;;

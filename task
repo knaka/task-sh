@@ -3,59 +3,36 @@
 # shellcheck shell=sh
 set -o nounset -o errexit
 
-if test "${TASK_UPDATE+set}" = set
+export ARG0="$0"
+export ARG0BASE="${0##*/}"
+arg0_dir_path="${0%/*}"
+script_path=
+if test -r "$arg0_dir_path"/"$ARG0BASE".sh
 then
-  temp_dir_path="$(mktemp -d)"
-  # shellcheck disable=SC2317
-  cleanup_fbeed0c() { rm -fr "$temp_dir_path"; }
-  trap cleanup_fbeed0c EXIT
-  curl --fail --location --output "$temp_dir_path"/task https://raw.githubusercontent.com/knaka/src/main/task
-  cat "$temp_dir_path"/task > "$0"
-  rm -fr "$temp_dir_path"
-  exit 0
-fi
-ARG0="$0"
-export ARG0
-ARG0BASE="${0##*/}"
-export ARG0BASE
-script_dir_path=$(dirname "$0")
-script_name=$(basename "$0")
-sh_dir_path=
-env_file_path="$script_dir_path"/.env.sh
-if test -r "$env_file_path"
+  script_path="$arg0_dir_path"/"$ARG0BASE".sh
+elif test -r "$arg0_dir_path"/tasks/"$ARG0BASE".sh
 then
-  # shellcheck disable=SC1090
-  . "$env_file_path"
+  script_path="$arg0_dir_path"/tasks/"$ARG0BASE".sh
+else
+  echo "No script found for $ARG0BASE." >&2
+  exit 1
 fi
-if test -z "$sh_dir_path"
-then
-  if \
-    test "$script_name" = "task" && \
-    ! test -r "$script_dir_path"/task.sh && \
-    test -r "$script_dir_path"/tasks/task.sh
-  then
-    sh_dir_path="$script_dir_path"/tasks
-  else
-    sh_dir_path="$script_dir_path"
-  fi
-fi
-for sh in /bin/dash /bin/ash /bin/bash
+for SH in /bin/dash /bin/ash /bin/bash
 do
   # Avoid using Dash on Debian because which is built with --disable-lineno option.
-  if test "$sh" = "/bin/dash" && test -e /etc/debian_version
+  if test "$SH" = /bin/dash && test -e /etc/debian_version
   then
     continue
   fi
   # Avoid using Bash on macOS because which is locked to version 3.* and buggy.
-  if test "$sh" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist
+  if test "$SH" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist
   then
     continue
   fi
-  if test -x "$sh"
+  if test -x "$SH"
   then
-    SH="$(basename "$sh")"
     export SH
-    exec "$sh" "$sh_dir_path/$script_name.sh" "$@"
+    exec "$SH" "$script_path" "$@"
   fi
 done
 echo "No appropriate shell found." >&2
