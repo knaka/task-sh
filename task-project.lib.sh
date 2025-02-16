@@ -264,6 +264,9 @@ subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two
     then
       continue
     fi
+    case "${file1_path##*/}" in
+      (task-prj.lib.sh|task-project.lib.sh) continue;;
+    esac
     local file2_path
     file2_path="$dir2_path"/"$(basename "$file1_path")"
     if ! test -r "$file2_path"
