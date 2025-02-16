@@ -288,13 +288,13 @@ test_killing() {
 test_shell() {
   if is_macos
   then
-    assert_eq "dash" "$(shell_name)"
+    assert_eq "dash" "$(shell_path)"
   elif is_windows
   then
-    assert_eq "ash" "$(shell_name)"
+    assert_eq "ash" "$(shell_path)"
   elif is_linux
   then
-    assert_true test "dash" = "$(shell_name)" -o "ash" = "$(shell_name)" -o "bash" = "$(shell_name)"
+    assert_true test "dash" = "$(shell_path)" -o "ash" = "$(shell_path)" -o "bash" = "$(shell_path)"
   else
     echo "Unsupported platform." >&2
     return 1

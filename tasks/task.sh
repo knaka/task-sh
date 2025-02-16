@@ -296,7 +296,7 @@ shell_name_f0ebcb7() {
   echo "$sh"
 }
 
-shell_name() {
+shell_path() {
   memoize c3dcd27 shell_name_f0ebcb7
 }
 
@@ -1186,20 +1186,22 @@ get_sh() {
 main() {
   set -o nounset -o errexit
 
+  # If launched by `task`, $SH is set. Otherwise, determine the shell.
   if test "${SH+set}" != set
   then
-    SH="$(shell_name)"
+    SH="$(shell_path)"
+    local sh_base="${SH##*/}"
     while true
     do
       if is_windows
       then
-        if test "$SH" = "ash"
+        if test "$sh_base" = "ash"
         then
           break
         fi
       elif is_macos
       then
-        if test "$SH" = "dash"
+        if test "$sh_base" = "dash"
         then
           break
         else
@@ -1207,7 +1209,7 @@ main() {
         fi
       elif is_linux
       then
-        case "$SH" in
+        case "$sh_base" in
           (ash|dash|bash)
             break
             ;;
@@ -1222,7 +1224,7 @@ main() {
   WORKING_DIR="$(realpath "$PWD")"
   export WORKING_DIR
 
-  TASKS_DIR="$(realpath "$(realpath "$(dirname "$(realpath "$0")")")")"
+  TASKS_DIR="$(realpath "$(dirname "$(realpath "$0")")")"
   export TASKS_DIR
 
   if test "${ARG0+set}" = set
@@ -1232,7 +1234,7 @@ main() {
     dir="$PWD"
     while true
     do
-      if test -d "$dir"/tasks
+      if test -d "$dir"/tasks || test -f "$dir/task.sh"
       then
         PROJECT_DIR="$dir"
         break
@@ -1281,7 +1283,6 @@ main() {
 
   # Load all the task files in the tasks directory and the project directory.
   psv_task_file_paths="$(realpath "$0")|"
-
   local dir
   for dir in "$TASKS_DIR" "$PROJECT_DIR"
   do
