@@ -991,7 +991,7 @@ is_dir_empty() {
 # --------------------------------------------------------------------------
 
 kill_child_processes() {
-  if is_windows && is_ash
+  if is_windows
   then
     # Windows BusyBox ash
     # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
