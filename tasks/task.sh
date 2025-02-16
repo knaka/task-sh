@@ -390,13 +390,14 @@ invoke() {
     (*/*)
       if is_windows
       then
+        local cmd="$1"
         local ext
         for ext in .exe .cmd .bat
         do
-          if test -x "$1$ext"
+          if test -x "$cmd$ext"
           then
             shift
-            set -- "$1$ext" "$@"
+            set -- "$cmd$ext" "$@"
             break
           fi
         done
@@ -1187,7 +1188,7 @@ main() {
   set -o nounset -o errexit
 
   # If launched by `task`, $SH is set. Otherwise, determine the shell.
-  if test "${SH+set}" != set
+  if test -z "$SH"
   then
     SH="$(shell_path)"
     local sh_base="${SH##*/}"
