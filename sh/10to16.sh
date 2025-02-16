@@ -1,9 +1,18 @@
-#!/bin/sh
-set -o nounset -o errexit
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_25dcfe6-}" = true && return 0; sourced_25dcfe6=true
 
-test "${guard_6b99114+set}" = set && return 0; guard_6b99114=-
+dec_to_hex() {
+  local arg
+  for arg in "$@"
+  do
+    printf "0x%X\n" "$arg"
+  done
+}
 
-for arg in "$@"
-do
-  printf "0x%X\n" "$arg"
-done
+if test "${0##*/}" = "10to16.sh"
+then
+  set -o nounset -o errexit
+  dec_to_hex "$@"
+fi

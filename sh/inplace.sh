@@ -28,6 +28,21 @@ do
 done
 shift $((OPTIND-1))
 
+# e_arg=false
+# for arg in "$@"
+# do
+#   if test "$arg" = -- "-e"
+#   then
+#     e_arg=true
+#   elif "$e_arg"
+#   then
+#     arg="$(echo "$arg" | sed -e 's///g')"
+#     e_arg=false
+#   fi
+#   set -- "$@" "$arg"
+#   shift
+# done
+
 if ! "$dry_run"
 then
   set -- -i '' "$@"

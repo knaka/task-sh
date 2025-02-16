@@ -44,19 +44,18 @@ fi <<EOF
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
 test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
+set -o nounset -o errexit
 
 set -- "\$PWD" "\$@"; test "\${0%/*}" != "\$0" && cd "\${0%/*}"
 cd "\$1"; shift
 
-main_${unique_id}() {
+x${unique_id}() {
   :
 }
 
-if test "\${0##*/}" = "${unique_id}.sh"
-then
-  set -o nounset -o errexit
-  main_${unique_id} "\$@"
-fi
+case "\${0##*/}" in
+  (x${unique_id}|x${unique_id}.sh) x${unique_id} "\$@";;
+esac
 EOF
 
 # set -o monitor # For job control

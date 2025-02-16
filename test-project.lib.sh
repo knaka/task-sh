@@ -5,9 +5,7 @@
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 set -o nounset -o errexit
 
-# shellcheck source=./tasks/assert.lib.sh
 . ./assert.lib.sh
-# shellcheck source=./tasks/task.sh
 . ./task.sh
 
 toupper_4c7e44e() {
@@ -288,13 +286,13 @@ test_killing() {
 test_shell() {
   if is_macos
   then
-    assert_eq "dash" "$(shell_path)"
+    assert_eq "/bin/dash" "$(shell_path)"
   elif is_windows
   then
-    assert_eq "ash" "$(shell_path)"
+    assert_eq "/bin/sh" "$(shell_path)"
   elif is_linux
   then
-    assert_true test "dash" = "$(shell_path)" -o "ash" = "$(shell_path)" -o "bash" = "$(shell_path)"
+    assert_true test "/bin/dash" = "$(shell_path)" -o "/bin/ash" = "$(shell_path)" -o "/bin/bash" = "$(shell_path)"
   else
     echo "Unsupported platform." >&2
     return 1
@@ -319,8 +317,8 @@ test_newer() {
 test_dir_stack() {
   cd "$PROJECT_DIR"
   
-  push_dir ./tasks
-  assert_eq "$PROJECT_DIR/tasks" "$PWD"
+  push_dir ./py
+  assert_eq "$PROJECT_DIR/py" "$PWD"
   assert_eq "$dirs_4c15d80" "$PROJECT_DIR|"
   pop_dir
   assert_eq "$PROJECT_DIR" "$PWD"

@@ -33,9 +33,17 @@ rc_test_skipped=11
 # Create a temporary directory if required.
 
 # Ash does not support `-t prefix`.
-temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
+temp_dir_path_d4a4197=
+
+init_temp_dir_path() {
+  if test -z "$temp_dir_path_d4a4197"
+  then
+    temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
+  fi
+}
 
 temp_dir_path() {
+  init_temp_dir_path
   if ! test -d "$temp_dir_path_d4a4197"
   then
     mkdir -p "$temp_dir_path_d4a4197"
@@ -206,7 +214,7 @@ is_darwin() {
 }
 
 is_windows() {
-  test -d "c:/windows" -a ! -d /proc
+  test -d "c:/" -a ! -d /proc
 }
 
 # Executable file extension.
@@ -1192,7 +1200,7 @@ main() {
     do
       if is_windows
       then
-        if test "$sh_base" = "ash"
+        if test "$sh_base" = "sh"
         then
           break
         fi
@@ -1426,6 +1434,7 @@ main() {
 # Run the main function if this script is executed as task runner.
 case "${0##*/}" in
   (task|task.sh)
+    init_temp_dir_path
     main "$@"
     ;;
 esac

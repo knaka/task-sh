@@ -1,16 +1,19 @@
-#!/bin/sh
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_ac27593-}" = true && return 0; sourced_ac27593=true
 set -o nounset -o errexit
 
-if test "$(uname -s)" = "Windows_NT"
+if command -v clip.exe >/dev/null 2>&1 # Windows
 then
   clip.exe
-elif type pbcopy > /dev/null 2>&1
+elif command -v pbcopy >/dev/null 2>&1 # macOS
 then
   pbcopy
-elif type xclip > /dev/null 2>&1
+elif command -v xclip >/dev/null 2>&1 # Linux
 then
   xclip -selection clipboard
-elif type xsel > /dev/null 2>&1
+elif command -v xsel >/dev/null 2>&1 # Linux
 then
   xsel --clipboard
 else
