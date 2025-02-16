@@ -1,56 +1,66 @@
-#!/bin/sh
-set -o nounset -o errexit
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_ed2e701-}" = true && return 0; sourced_ed2e701=true
 
-pwd_cbe7ee2="$(pwd)"
-cd "$(dirname "$0")"
+# Launch editor
+
+set -- "$PWD" "$@"; test "${0%/*}" != "$0" && cd "${0%/*}"
 . ./task.sh
-cd "$pwd_cbe7ee2"
+cd "$1"; shift
 
-blocks=false
+ed() {
+  local should_block=false
+  OPTIND=1; while getopts b-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (b|block) should_block=true;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
 
-OPTIND=1; while getopts "bt:" opt
-do
-  case "$opt" in
-    b) blocks=true;;
-    *) exit 1;;
-  esac
-done
-shift $((OPTIND-1))
-
-if test "$ARG0BASE" = "edw"
-then
-  blocks=true
-fi
-
-if which code > /dev/null
-then
-  opts=
-  if $blocks
-  then
-    opts="--wait $opts"
-  fi
+  local arg
   for arg in "$@"
   do
     if ! test -e "$arg"
     then
-      printf "%s does not exist. Create? (y/N): " "$arg"
-      read -r yn
-      case "$yn" in
-        [yY]*) ;;
-        *) exit 0 ;;
-      esac
+      printf "%s does not exist. " "$arg" >&2
+      if ! prompt_confirm "Create?" "n" >&2
+      then
+        exit 0
+      fi
       touch "$arg"
     elif test -d "$arg"
     then
-      printf "%s is a directory. Open? (y/N): " "$arg"
-      yn="$(get_key)"
-      echo "$yn"
-      case "$yn" in
-        [yY]*) ;;
-        *) exit 0 ;;
-      esac
+      printf "%s is a directory. " "$arg" >&2
+      if ! prompt_confirm "Open?" "n" >&2
+      then
+        exit 0
+      fi
     fi
   done
-  # shellcheck disable=SC2086
-  exec code $opts "$@"
+
+  if command -v code >/dev/null 2>&1
+  then
+    if $should_block
+    then
+      set -- --wait "$@"
+    fi
+    exec code "$@"
+  fi
+}
+
+if test "${0##*/}" = "ed.sh"
+then
+  set -o nounset -o errexit
+  ed "$@"
 fi

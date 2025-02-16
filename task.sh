@@ -296,10 +296,6 @@ shell_name_f0ebcb7() {
   echo "$sh"
 }
 
-shell_path() {
-  memoize c3dcd27 shell_name_f0ebcb7
-}
-
 is_dash() {
   test "$(shell_base)" = "dash"
 }
@@ -1225,7 +1221,7 @@ main() {
   WORKING_DIR="$(realpath "$PWD")"
   export WORKING_DIR
 
-  TASKS_DIR="$(realpath "$(dirname "$(realpath "$0")")")"
+  TASKS_DIR="$(realpath "$(dirname "$0")")"
   export TASKS_DIR
 
   if test "${ARG0+set}" = set
@@ -1249,6 +1245,8 @@ main() {
     done
   fi
   export PROJECT_DIR
+
+  # echo "0454f8e WORKING_DIR=$WORKING_DIR, TASKS_DIR=$TASKS_DIR, PROJECT_DIR=$PROJECT_DIR" >&2
 
   # Set the exit handlers caller.
   # Bash3 of macOS exits successfully if `nounset` error is trapped.

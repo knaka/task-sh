@@ -1,1 +1,1 @@
-../tasks/assert.lib.sh
+../assert.lib.sh

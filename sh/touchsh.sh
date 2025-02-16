@@ -4,6 +4,10 @@
 test "${sourced_723152a:+}" = true && return 0; sourced_723152a=true
 set -o nounset -o errexit
 
+set -- "$PWD" "$@"; test "${0%/*}" != "$0" && cd "${0%/*}"
+. ./rand7.sh 
+cd "$1"; shift
+
 force=false
 OPTIND=1; while getopts f-: OPT
 do
@@ -15,9 +19,9 @@ do
     OPTARG="${OPTARG#=}"
   fi
   case "$OPT" in
-    f|force) force=true;;
-    \?) usage; exit 2;;
-    *) echo "Unexpected option: $OPT" >&2; exit 2;;
+    (f|force) force=true;;
+    (\?) usage; exit 2;;
+    (*) echo "Unexpected option: $OPT" >&2; exit 2;;
   esac
 done
 shift $((OPTIND-1))
@@ -29,7 +33,7 @@ then
   exit 0
 fi
 
-unique_id="$(sh "$(dirname "$0")"/rand7.sh)"
+unique_id="$(rand7)"
 if test "$1" = "-"
 then
   cat
@@ -40,7 +44,19 @@ fi <<EOF
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
 test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
-set -o nounset -o errexit
+
+set -- "\$PWD" "\$@"; test "\${0%/*}" != "\$0" && cd "\${0%/*}"
+cd "\$1"; shift
+
+main_${unique_id}() {
+  :
+}
+
+if test "\${0##*/}" = "${unique_id}.sh"
+then
+  set -o nounset -o errexit
+  main_${unique_id} "\$@"
+fi
 EOF
 
 # set -o monitor # For job control
