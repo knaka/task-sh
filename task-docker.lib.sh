@@ -68,7 +68,7 @@ task_docker__stop() { # Stop Docker.
   fi
   echo "Docker is running. Stopping Docker." >&2
   # Restart Docker from command line - Docker Desktop - Docker Community Forums https://forums.docker.com/t/restart-docker-from-command-line/9420/9
-  if is_darwin
+  if is_macos
   then
     # osascript -e 'quit app "Docker"'
     # osascript -e 'quit app "Docker Desktop"'

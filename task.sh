@@ -35,6 +35,7 @@ rc_test_skipped=11
 # Ash does not support `-t prefix`.
 temp_dir_path_d4a4197=
 
+# This must be called before being used by subprocesses.
 init_temp_dir_path() {
   if test -z "$temp_dir_path_d4a4197"
   then
@@ -201,16 +202,13 @@ is_linux() {
   test -d /proc -o -d /sys
 }
 
-is_bsd() {
-  stat -f "%z" . >/dev/null 2>&1
-}
-
 is_macos() {
   test -r /System/Library/CoreServices/SystemVersion.plist
 }
 
-is_darwin() {
-  test "$(uname -s)" = "Darwin"
+is_bsd() {
+  # stat -f "%z" . >/dev/null 2>&1
+  is_macos || test -r /etc/rc.subr -o -r /usr/share/misc/magic
 }
 
 is_windows() {
@@ -226,11 +224,7 @@ exe_ext() {
 }
 
 is_alpine() {
-  if test -f /etc/alpine-release
-  then
-    return 0
-  fi
-  return 1
+  test -f /etc/alpine-release
 }
 
 # Memoize the command output.
