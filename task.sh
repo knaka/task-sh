@@ -208,7 +208,7 @@ is_macos() {
 
 is_bsd() {
   # stat -f "%z" . >/dev/null 2>&1
-  is_macos || test -r /etc/rc.subr -o -r /usr/share/misc/magic
+  is_macos || test -r /etc/rc.subr
 }
 
 is_windows() {
