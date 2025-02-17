@@ -46,8 +46,8 @@ fi <<EOF
 test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
 set -o nounset -o errexit
 
-set -- "\$PWD" "\$@"; test "\${0%/*}" != "\$0" && cd "\${0%/*}"
-cd "\$1"; shift
+set -- "\$PWD" "\${0%/*}" "\$@"; test "\$2" != "\$0" && cd "\$2"
+cd "\$1"; shift 2
 
 x${unique_id}() {
   :

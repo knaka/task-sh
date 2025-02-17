@@ -5,9 +5,9 @@ test "${sourced_ed2e701-}" = true && return 0; sourced_ed2e701=true
 
 # Launch editor
 
-set -- "$PWD" "$@"; test "${0%/*}" != "$0" && cd "${0%/*}"
+set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
 . ./task.sh
-cd "$1"; shift
+cd "$1"; shift 2
 
 ed() {
   local should_block=false
