@@ -1289,9 +1289,15 @@ main() {
   fi
 
   # Load all the task files in the tasks directory and the project directory.
+  local eval_args="$(make_eval_args "$@")"
+  set -- "$PROJECT_DIR"
+  if test "$TASKS_DIR" != "$PROJECT_DIR"
+  then
+    set -- "$TASKS_DIR" "$@"
+  fi
   psv_task_file_paths="$(realpath "$0")|"
   local dir
-  for dir in "$TASKS_DIR" "$PROJECT_DIR"
+  for dir in "$@"
   do
     # All the task files are sourced in the directory.
     push_dir "$TASKS_DIR"
@@ -1313,6 +1319,7 @@ main() {
     done
     pop_dir
   done
+  eval "set -- $eval_args"
 
   # Parse the command line arguments.
   shows_help=false
