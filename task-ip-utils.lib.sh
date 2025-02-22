@@ -19,7 +19,7 @@ subcmd_ip_port_in_use() {
   fi
 }
 
-subcmd_ip_port_search_free() {
+subcmd_ip_port_search_free() { # Search for a free port in the dynamic/private range
   local port="${1:-$dyn_priv_begin}"
   while test "${port}" -le "${dyn_priv_end}"
   do
@@ -33,10 +33,10 @@ subcmd_ip_port_search_free() {
   done
 }
 
-subcmd_list_ports() {
+subcmd_ip__ports_in_use() { # List all ports in use
   if is_windows
   then
-    netstat.exe -a -n -p TCP | awk '{ print $2 }' | sed -n -e 's/^.*://p' | sort -n | uniq
+    netstat.exe -a -n -p TCP | grep TCP | awk '{ print $2 }' | sed -n -e 's/^.*://p' | sort -n | uniq
   elif is_macos
   then
     netstat -anvp tcp | grep ^tcp4 | awk '{ print $4 }' | sed 's/.*\.//' | sort -n | uniq
