@@ -15,10 +15,10 @@ else
 fi
 
 subcmd_json2sh() ( # Convert JSON to shell script.
-  if type subcmd_volta >/dev/null 2>&1 && test -r ./json2sh.mjs
+  if command -v subcmd_volta >/dev/null 2>&1 && test -r ./json2sh.mjs
   then
     subcmd_volta run node json2sh.mjs "$@"
-  elif type subcmd_jq >/dev/null 2>&1
+  elif command -v subcmd_jq >/dev/null 2>&1
   then
     # shellcheck disable=SC2016
     subcmd_jq -r '

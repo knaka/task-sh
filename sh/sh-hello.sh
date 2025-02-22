@@ -6,9 +6,9 @@ hello() {
   echo "${hello}"
 }
 
-if test "${ARGV0+SET}" = "SET"
+if test "${ARG0+SET}" = "SET"
 then
-  echo "ARGV0 is “${ARGV0}”."
+  echo "ARGV0 is “${ARG0}”."
 else
   echo "ARGV0 is not set."
 fi

@@ -49,7 +49,7 @@ do
 		Id: $(rand7)
 		Title: Memo
 		Tags:
-		CreatedAtRfc3339: $utc_datetime_rfc3339
+		CreatedAtRfc: $utc_datetime_rfc3339
 		---
 
 		← <!-- mdpplink href=../README.md -->[Memo](../README.md)<!-- /mdpplink -->

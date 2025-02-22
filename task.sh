@@ -223,6 +223,10 @@ exe_ext() {
   fi
 }
 
+is_debian() {
+  test -f /etc/debian_version
+}
+
 is_alpine() {
   test -f /etc/alpine-release
 }

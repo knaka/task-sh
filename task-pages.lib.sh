@@ -13,19 +13,19 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
   run_node_modules_bin wrangler bin/wrangler.js "$@"
 }
 
-: "${wrangler_toml_path:=$TASKS_DIR/wrangler.toml}"
+: "${wrangler_toml_path:=$PROJECT_DIR/wrangler.toml}"
 
 # --------------------------------------------------------------------------
 # Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
 
-: "${pages_functions_src_pattern:="$TASKS_DIR"/src/functions/**/*.ts}"
+: "${pages_functions_src_pattern:="$PROJECT_DIR"/src/functions/**/*.ts}"
 
 set_pages_functions_src_pattern() {
   pages_functions_src_pattern="$1"
 }
 
-: "${pages_functions_dir_path:="$TASKS_DIR"/functions}"
+: "${pages_functions_dir_path:="$PROJECT_DIR"/functions}"
 
 set_pages_functions_dir_path() {
   pages_functions_dir_path="$1"

@@ -1,15 +1,13 @@
-#!/bin/sh
-set -o errexit -o nounset
-
-test "${guard_00bf7e6+set}" = set && return 0; guard_00bf7e6=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+test "${sourced_9076e97-}" = true && return 0; sourced_9076e97=true
 
 . ./task.sh
-. ./task-volta.lib.sh
+. ./task-node.lib.sh
 
 subcmd_install() ( # Install JS scripts.
   excluded_scrs=",invalid.js,"
 
-  cd "$SCRIPT_DIR"
   js_bin_dir_path="$HOME"/js-bin
   mkdir -p "$js_bin_dir_path"
   rm -f "$js_bin_dir_path"/*
@@ -47,29 +45,5 @@ EOF
 )
 
 subcmd_run() { # Run JS script in the original working directory.
-  cd "$SCRIPT_DIR"
-  local script_ac72EF8='
-const { spawn } = require("child_process");
-spawn(
-  process.execPath,
-  process.argv.slice(2),
-  {
-    stdio: "inherit",
-    cwd: process.argv[1],
-  }
-)
-  .on("close",
-    (code) => process.exit(code)
-  )
-  .on("error",
-    (err) => {
-      console.error(err);
-      process.exit(1);
-    }
-  )
-;
-'
-  # Node.js on Windows does not recognize multi-line script passed to -e option. ???
-  script_ac72EF8="$(echo "$script_ac72EF8" | tr -d '\n')"
-  subcmd_node -e "$script_ac72EF8" "$ORIGINAL_DIR" "$@"
+  subcmd_node "$PROJECT_DIR"/scripts/launch-script.cjs "$WORKING_DIR" "$@"
 }

@@ -1,1 +1,1 @@
-../lib/task-node.lib.sh
+../task-node.lib.sh
