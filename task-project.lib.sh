@@ -106,22 +106,49 @@ subcmd_diff() { # Detect differences from the directory.
   done
 }
 
-csv_projects_to_install=sh,go,js
+# csv_projects_to_install=sh,go,js
 
-task_install() { # Install in each directory.
-  push_ifs
-  IFS=,
-  for dir in $csv_projects_to_install
-  do
-    echo "Installing in $dir" >&2
-    (
-      cd "$dir" || exit 1
-      # sh ./task.sh --skip-missing install
-      # --ignore-missing: Prints warning if the task is not found.
-      sh ./task.sh --ignore-missing install
-    )
-  done
-  pop_ifs
+# task_install() { # Install in each directory.
+#   push_ifs
+#   IFS=,
+#   for dir in $csv_projects_to_install
+#   do
+#     echo "Installing in $dir" >&2
+#     (
+#       cd "$dir" || exit 1
+#       # sh ./task.sh --skip-missing install
+#       # --ignore-missing: Prints warning if the task is not found.
+#       sh ./task.sh --ignore-missing install
+#     )
+#   done
+#   pop_ifs
+# }
+
+readonly task_bin_dir_path="$HOME"/task-bin
+
+install_task_bin() {
+  local dir="$1"
+  local task_name="$2"
+  local name="${3:-$task_name}"
+  cat <<EOF >"$task_bin_dir_path"/"$name".sh
+#!/bin/sh
+export PROJECT_DIR="$PWD"/"$dir"
+exec "\$SH" "$PWD"/"$dir"/task.sh "$task_name" "\$@"
+EOF
+  if is_windows
+  then
+    cp -a "$PWD"/task.cmd "$task_bin_dir_path"/"$name".cmd
+  else
+    cp -a "$PWD"/task "$task_bin_dir_path"/"$name"
+  fi
+}
+
+task_install() {
+  push_dir "$PROJECT_DIR"
+  mkdir -p "$task_bin_dir_path"
+  rm -f "$task_bin_dir_path"/*
+  install_task_bin js httpd httpd-mini
+  pop_dir
 }
 
 task_client__foo__build() ( # [args...] Build client.
