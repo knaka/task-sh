@@ -19,7 +19,7 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 # Cloudflare Pages Functions.
 # --------------------------------------------------------------------------
 
-: "${pages_functions_src_pattern:="$PROJECT_DIR"/src/functions/**/*.ts}"
+: "${pages_functions_src_pattern:="$PROJECT_DIR/src/functions/**/*.ts"}"
 
 set_pages_functions_src_pattern() {
   pages_functions_src_pattern="$1"
