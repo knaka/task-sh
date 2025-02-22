@@ -1230,7 +1230,7 @@ main() {
   TASKS_DIR="$(realpath "$(dirname "$0")")"
   export TASKS_DIR
 
-  if test "${PROJECT_DIR+set}" != set
+  if test "${PROJECT_DIR}" = ""
   then
     if test "${ARG0+set}" = set
     then

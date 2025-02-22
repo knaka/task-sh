@@ -4,7 +4,6 @@ test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 
 # Evaluated in $TASKS_DIR.
 
-# shellcheck source=./tasks/task.sh
 . ./task.sh
 
 if ! test -L "$PROJECT_DIR"/sh/task.sh
@@ -18,7 +17,6 @@ then
   exit 1
 fi
 
-# shellcheck source=./tasks/task-docker.lib.sh
 . ./task-docker.lib.sh
 
 repl_usage() {
