@@ -50,7 +50,7 @@ subcmd_run() { # Run JS script in the original working directory.
 
 . ./task-ip-utils.lib.sh
 
-subcmd_httpd() {
+subcmd_httpd() { # Run a simple HTTP server.
   push_dir "$PROJECT_DIR"
   local host=127.0.0.1
   local port
