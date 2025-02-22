@@ -8,30 +8,23 @@ const host = process.argv[2] || '127.0.0.1';
 const port = process.argv[3] || 80;
 const working_dir = process.argv[4] || process.cwd();
 
-const server = createServer(async (req, res) => {
+const server = createServer(async (req, resp) => {
   const filePath = join(working_dir, req.url === '/' ? 'index.html' : req.url);
 
   try {
-    // ファイルのステータスをチェックして、存在するか確認
     const stat = await fs.stat(filePath);
-
     if (stat.isFile()) {
-      // ファイルの拡張子からMIMEタイプを取得
       const ext = extname(filePath);
       const mimeType = lookup(ext) || 'application/octet-stream';
-
-      // ヘッダーにContent-Typeを設定してファイルを配信
-      res.writeHead(200, { 'Content-Type': mimeType });
-      createReadStream(filePath).pipe(res);
+      resp.writeHead(200, { 'Content-Type': mimeType });
+      createReadStream(filePath).pipe(resp);
     } else {
-      // ディレクトリなどの場合は404を返す
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('404 Not Found');
+      resp.writeHead(404, { 'Content-Type': 'text/plain' });
+      resp.end('404 Not Found');
     }
   } catch (err) {
-    // ファイルが見つからない場合のエラーハンドリング
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('404 Not Found');
+    resp.writeHead(404, { 'Content-Type': 'text/plain' });
+    resp.end('404 Not Found');
   }
 });
 

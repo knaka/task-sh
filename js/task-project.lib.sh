@@ -56,12 +56,16 @@ subcmd_httpd() {
   local port
   port="$(ip_random_free_port)"
   subcmd_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.mjs "$host" "$port" "$WORKING_DIR"
+  pop_dir
   while true
   do
-    menu "E&xit"
+    menu \
+      "&List" \
+      "E&xit" \
+      # nop
     case "$(get_key)" in
-      x) break ;;
+      (l) ls -la ;;
+      (x) break ;;
     esac
   done
-  pop_dir
 }
