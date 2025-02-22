@@ -56,7 +56,7 @@ task_docker__start__temp() { # Start Docker temporarily. If Docker is already ru
     echo "Docker is already running. Using the existing Docker." >&2
   else
     task_docker__start
-    add_cleanup_handler task_docker__stop
+    chaintrap task_docker__stop EXIT
   fi
 }
 

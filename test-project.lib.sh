@@ -280,6 +280,7 @@ is_ci_mac() {
 }
 
 test_killing() {
+  skip_unless_all
   invoke ./task killng_test
 }
 

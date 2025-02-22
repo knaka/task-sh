@@ -17,6 +17,39 @@ rc_test_skipped=11
 # Directories.
 # --------------------------------------------------------------------------
 
+TEMP_DIR="$(mktemp -d)"
+export TEMP_DIR
+# shellcheck disable=SC2064
+trap "rm -fr '$TEMP_DIR'" EXIT
+
+# Chain traps not to overwrite the previous trap.
+# shellcheck disable=SC2064
+chaintrap() {
+  local stmts_file="$TEMP_DIR"/b6a5748."$2"
+  local stmts_bak_file="$TEMP_DIR"/347803f
+  if test -f "$stmts_file"
+  then
+    cp "$stmts_file" "$stmts_bak_file"
+  else
+    touch "$stmts_bak_file"
+  fi
+  echo "{ $1; };" >"$stmts_file"
+  cat "$stmts_bak_file" >>"$stmts_file"
+  if test "$2" = "EXIT"
+  then
+    command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$2"
+  else
+    command trap ". '$stmts_file'" "$2"
+  fi
+  # cat -n "$stmts_file" >&2
+  # echo >&2
+}
+
+# Obsolete.
+temp_dir_path() {
+  echo "$TEMP_DIR"
+}
+
 # Directory in which the script has been invoked.
 : "${WORKING_DIR:=}"
 
@@ -29,28 +62,6 @@ rc_test_skipped=11
 # --------------------------------------------------------------------------
 # Misc
 # --------------------------------------------------------------------------
-
-# Create a temporary directory if required.
-
-# Ash does not support `-t prefix`.
-temp_dir_path_d4a4197=
-
-# This must be called before being used by subprocesses.
-init_temp_dir_path() {
-  if test -z "$temp_dir_path_d4a4197"
-  then
-    temp_dir_path_d4a4197="$(mktemp -d --dry-run)"
-  fi
-}
-
-temp_dir_path() {
-  init_temp_dir_path
-  if ! test -d "$temp_dir_path_d4a4197"
-  then
-    mkdir -p "$temp_dir_path_d4a4197"
-  fi
-  echo "$temp_dir_path_d4a4197"
-}
 
 # --------------------------------------------------------------------------
 # IFS manipulation.
@@ -234,7 +245,7 @@ is_alpine() {
 # Memoize the command output.
 memoize() {
   local cache_file_path
-  cache_file_path="$(temp_dir_path)/$1"
+  cache_file_path="$TEMP_DIR/$1"
   shift
   if ! test -r "$cache_file_path"
   then
@@ -364,6 +375,49 @@ newer() {
     return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
+}
+
+# Main cleanup function. This does not `exit`.
+cleanup() {
+  if is_windows
+  then
+    # Windows BusyBox ash
+    # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
+    local jids
+    jids="$TEMP_DIR"/jids
+    # ash provides “jobs pipe”.
+    jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
+    while read -r jid
+    do
+      kill "%$jid" || :
+      wait "%$jid" || :
+      echo Killed "%$jid" >&2
+    done <"$jids"
+  elif is_macos
+  then
+    pkill -P $$ || :
+  elif is_linux
+  then
+    if is_bash
+    then
+      local jids
+      jids="$TEMP_DIR"/jids
+      # Bash provides “jobs pipe”.
+      jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
+      while read -r jid
+      do
+        kill "%$jid" || :
+        wait "%$jid" || :
+        echo Killed "%$jid" >&2
+      done <"$jids"
+    else
+      pkill -P $$ || :
+    fi
+  else
+    echo "kill_child_processes: Unsupported platform or shell." >&2
+    exit 1
+  fi
+  rm -fr "$TEMP_DIR"
 }
 
 # Invoke command with the specified invocation mode.
@@ -597,7 +651,7 @@ subcmd_curl() { # Run curl(1). This will be deprecated. Use `fetch` instead.
 }
 
 subcmd_apt_download() {
-  local apt_conf_path="$(temp_dir_path)"/apt.conf
+  local apt_conf_path="$TEMP_DIR"/apt.conf
   printf "%s\n" \
     'Acquire::https::Verify-Peer "false";' \
     'Acquire::https::Verify-Host "false";' \
@@ -988,83 +1042,6 @@ is_dir_empty() {
 # Main.
 # --------------------------------------------------------------------------
 
-kill_child_processes() {
-  if is_windows
-  then
-    # Windows BusyBox ash
-    # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
-    local jids
-    jids="$(temp_dir_path)"/jids
-    # ash provides “jobs pipe”.
-    jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
-    while read -r jid
-    do
-      kill "%$jid" || :
-      wait "%$jid" || :
-      echo Killed "%$jid" >&2
-    done <"$jids"
-    return
-  elif is_macos
-  then
-    pkill -P $$ || :
-    return
-  elif is_linux
-  then
-    if is_bash
-    then
-      local jids
-      jids="$(temp_dir_path)"/jids
-      # Bash provides “jobs pipe”.
-      jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
-      while read -r jid
-      do
-        kill "%$jid" || :
-        wait "%$jid" || :
-        echo Killed "%$jid" >&2
-      done <"$jids"
-      return
-    else
-      pkill -P $$ || :
-      return
-    fi
-  fi
-  echo "kill_child_processes: Unsupported platform or shell." >&2
-  exit 1
-}
-
-cleanup_handlers_2181b77=
-
-# Main cleanup function. This does not `exit`.
-cleanup() {
-  kill_child_processes
-
-  # Call cleanup handlers.
-  local cleanup_handler
-  for cleanup_handler in $cleanup_handlers_2181b77
-  do
-    "$cleanup_handler"
-  done
-  cleanup_handlers_2181b77=
-
-  # Remove temporary directories.
-  if test -d "$temp_dir_path_d4a4197"
-  then
-    rm -fr "$temp_dir_path_d4a4197"
-  fi
-}
-
-# Exit handler.
-on_exit() {
-  local rc="$?"
-  cleanup
-  exit "$rc"
-}
-
-# Add a cleanup handler, not replacing the existing ones.
-add_cleanup_handler() {
-  cleanup_handlers_2181b77="${cleanup_handlers_2181b77:+$cleanup_handlers_2181b77 }$1"
-}
-
 # Verbosity flag.
 
 verbose_f26120b=false 
@@ -1189,6 +1166,8 @@ get_sh() {
 main() {
   set -o nounset -o errexit
 
+  chaintrap cleanup EXIT
+
   # If launched by `task`, $SH is set. Otherwise, determine the shell.
   if test -z "$SH"
   then
@@ -1208,6 +1187,7 @@ main() {
         then
           break
         else
+          cleanup
           exec /bin/dash "$0" "$@"
         fi
       elif is_linux
@@ -1256,10 +1236,6 @@ main() {
   fi
 
   # echo "0454f8e WORKING_DIR=$WORKING_DIR, TASKS_DIR=$TASKS_DIR, PROJECT_DIR=$PROJECT_DIR" >&2
-
-  # Set the exit handlers caller.
-  # Bash3 of macOS exits successfully if `nounset` error is trapped.
-  trap on_exit EXIT TERM INT
 
   # Set the environment variables according to the script name.
   if test "${ARG0BASE+set}" = "set"
@@ -1442,7 +1418,6 @@ main() {
 # Run the main function if this script is executed as task runner.
 case "${0##*/}" in
   (task|task.sh)
-    init_temp_dir_path
     main "$@"
     ;;
 esac
