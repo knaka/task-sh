@@ -47,3 +47,21 @@ EOF
 subcmd_run() { # Run JS script in the original working directory.
   subcmd_node "$PROJECT_DIR"/scripts/launch-script.cjs "$WORKING_DIR" "$@"
 }
+
+. ./task-ip-utils.lib.sh
+
+subcmd_httpd() {
+  push_dir "$PROJECT_DIR"
+  local host=127.0.0.1
+  local port
+  port="$(ip_random_free_port)"
+  subcmd_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.mjs "$host" "$port" "$WORKING_DIR"
+  while true
+  do
+    menu "E&xit"
+    case "$(get_key)" in
+      x) break ;;
+    esac
+  done
+  pop_dir
+}

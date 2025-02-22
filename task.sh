@@ -1006,6 +1006,7 @@ kill_child_processes() {
     return
   elif is_macos
   then
+    echo 8f6428a
     pkill -P $$ || :
     return
   elif is_linux
