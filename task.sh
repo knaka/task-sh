@@ -27,7 +27,7 @@ readonly stmts_file_base="$TEMP_DIR"/b6a5748
 # shellcheck disable=SC2064
 chaintrap() {
   local stmts="$1"
-  shift 
+  shift
   local stmts_bak_file="$TEMP_DIR"/347803f
   local sigspec
   for sigspec in "$@"
@@ -45,7 +45,7 @@ chaintrap() {
     if test "$sigspec" = "EXIT"
     then
       command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$sigspec"
-    else 
+    else
       command trap ". '$stmts_file'" "$sigspec"
     fi
     # cat -n "$stmts_file" >&2
@@ -435,7 +435,7 @@ kill_child_processes() {
 }
 
 # Invoke command with the specified invocation mode.
-# 
+#
 #   --invocation-mode=exec: Replace the process with the command.
 #   --invocation-mode=exec-sub: Replace the process with the command, without calling clearups.
 #   --invocation-mode=background: Run the command in the background.
@@ -1035,7 +1035,7 @@ make_eval_args() {
       arg="${arg#*"$quote"}"
       printf "%s'\"'\"'" "$first"
     done
-    printf "%s' " "$arg" 
+    printf "%s' " "$arg"
   done
 }
 
@@ -1044,7 +1044,7 @@ is_dir_empty() {
   if ! test -d "$1"
   then
     return 1
-  fi 
+  fi
   if ! test -e "$1"/* 2>/dev/null
   then
     return 0
@@ -1058,7 +1058,7 @@ is_dir_empty() {
 
 # Verbosity flag.
 
-verbose_f26120b=false 
+verbose_f26120b=false
 
 verbose() {
   "$verbose_f26120b"
