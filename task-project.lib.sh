@@ -474,7 +474,7 @@ subcmd_my_sleep_bg() {
 }
 
 subcmd_my_sleep_exec() {
-  cleanup
+  kill_child_processes
   exec "$sleep_cmd" 6789
 }
 
@@ -485,7 +485,7 @@ task_killng_test() {
   "$SH" task.sh my_sleep_bg &
   invoke --invocation-mode=background ./task my_sleep_exec
   "$sleep_cmd" 1
-  cleanup
+  kill_child_processes
   "$sleep_cmd" 1
   # shellcheck disable=SC2009
   if ps ww | grep 'slee[p]'

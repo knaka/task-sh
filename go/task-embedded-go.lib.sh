@@ -1,1 +1,1 @@
-../lib/task-embedded-go.lib.sh
+../task-embedded-go.lib.sh

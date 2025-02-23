@@ -26,7 +26,7 @@ task_gen() { # Generate files.
 }
 
 subcmd_build() ( # Build Go source files incrementally.
-  cd "$SCRIPT_DIR"
+  cd "$PROJECT_DIR"
   go_bin_dir_path=./build
   mkdir -p "$go_bin_dir_path"
   if test "${1+set}" != "set"
@@ -50,7 +50,7 @@ subcmd_build() ( # Build Go source files incrementally.
 )
 
 task_install() { # Install Go tools.
-  cd "$SCRIPT_DIR"
+  cd "$PROJECT_DIR"
   go_sim_dir_path="$HOME"/go-bin
   mkdir -p "$go_sim_dir_path"
   rm -f "$go_sim_dir_path"/*

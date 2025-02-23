@@ -1,1 +1,1 @@
-../lib/task-go-task.lib.sh
+../task-go-task.lib.sh

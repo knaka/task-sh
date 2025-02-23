@@ -18,31 +18,46 @@ rc_test_skipped=11
 # --------------------------------------------------------------------------
 
 TEMP_DIR="$(mktemp -d)"
-export TEMP_DIR
 # shellcheck disable=SC2064
 trap "rm -fr '$TEMP_DIR'" EXIT
+
+readonly stmts_file_base="$TEMP_DIR"/b6a5748
 
 # Chain traps not to overwrite the previous trap.
 # shellcheck disable=SC2064
 chaintrap() {
-  local stmts_file="$TEMP_DIR"/b6a5748."$2"
+  local stmts="$1"
+  shift 
   local stmts_bak_file="$TEMP_DIR"/347803f
-  if test -f "$stmts_file"
-  then
-    cp "$stmts_file" "$stmts_bak_file"
-  else
-    touch "$stmts_bak_file"
-  fi
-  echo "{ $1; };" >"$stmts_file"
-  cat "$stmts_bak_file" >>"$stmts_file"
-  if test "$2" = "EXIT"
-  then
-    command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$2"
-  else
-    command trap ". '$stmts_file'" "$2"
-  fi
-  # cat -n "$stmts_file" >&2
-  # echo >&2
+  local sigspec
+  for sigspec in "$@"
+  do
+    # sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
+    local stmts_file="$stmts_file_base"-"$sigspec"
+    if test -f "$stmts_file"
+    then
+      cp "$stmts_file" "$stmts_bak_file"
+    else
+      touch "$stmts_bak_file"
+    fi
+    echo "{ $stmts; };" >"$stmts_file"
+    cat "$stmts_bak_file" >>"$stmts_file"
+    if test "$sigspec" = "EXIT"
+    then
+      command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$sigspec"
+    else 
+      command trap ". '$stmts_file'" "$sigspec"
+    fi
+    # cat -n "$stmts_file" >&2
+    # echo >&2
+  done
+}
+
+# Call the finalization function before `exec`.
+finalize() {
+  local stmts_file="$stmts_file_base"-EXIT
+  # shellcheck disable=SC1090
+  test -f "$stmts_file" && . "$stmts_file"
 }
 
 # Obsolete.
@@ -181,7 +196,7 @@ pop_dir() {
 # Utility functions.
 # --------------------------------------------------------------------------s
 
-if ! type shuf > /dev/null 2>&1
+if ! command -v shuf >/dev/null 2>&1
 then
   alias shuf='sort -R'
 fi
@@ -377,8 +392,8 @@ newer() {
   test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
 }
 
-# Main cleanup function. This does not `exit`.
-cleanup() {
+# Kill child processes.
+kill_child_processes() {
   if is_windows
   then
     # Windows BusyBox ash
@@ -417,7 +432,6 @@ cleanup() {
     echo "kill_child_processes: Unsupported platform or shell." >&2
     exit 1
   fi
-  rm -fr "$TEMP_DIR"
 }
 
 # Invoke command with the specified invocation mode.
@@ -488,7 +502,7 @@ invoke() {
   esac
   case "$invocation_mode" in
     (exec)
-      cleanup
+      finalize
       exec "$@"
       ;;
     (exec-sub) exec "$@";;
@@ -1166,7 +1180,7 @@ get_sh() {
 main() {
   set -o nounset -o errexit
 
-  chaintrap cleanup EXIT
+  chaintrap kill_child_processes EXIT
 
   # If launched by `task`, $SH is set. Otherwise, determine the shell.
   if test -z "$SH"
@@ -1187,7 +1201,7 @@ main() {
         then
           break
         else
-          cleanup
+          finalize
           exec /bin/dash "$0" "$@"
         fi
       elif is_linux
