@@ -33,7 +33,7 @@ test_version_comparison() (
   assert_eq "v1,v1.4.3,v1.5.0," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version)"
   assert_eq "v1.5.0,v1.4.3,v1," "$(IFS=, ifsv_sort "v1.5.0,v1,v1.4.3," sort_version -r)"
 
-  cat <<EOF > "$(temp_dir_path)/versions.txt"
+  cat <<EOF > "$TEMP_DIR"/versions.txt
 v1.4.0-alpha
 v1.4.0-alpha1
 v1.4.0-beta
@@ -55,7 +55,7 @@ v1.5.0-patch1
 v1.5.0-beta2
 v1.5.0
 EOF
-  cat <<EOF > "$(temp_dir_path)/expected.txt"
+  cat <<EOF > "$TEMP_DIR"/expected.txt
 v1
 v1.4
 v1.4.0-alpha
@@ -77,8 +77,8 @@ v1.5.0
 v1.5.0-patch
 v1.5.0-patch1
 EOF
-  sort_version <"$(temp_dir_path)/versions.txt" >"$(temp_dir_path)/actual.txt"
-  assert_eq "$(cat "$(temp_dir_path)/expected.txt")" "$(cat "$(temp_dir_path)/actual.txt")"
+  sort_version <"$TEMP_DIR"/versions.txt >"$TEMP_DIR"/actual.txt
+  assert_eq "$(cat "$TEMP_DIR"/expected.txt)" "$(cat "$TEMP_DIR"/actual.txt)"
 )
 
 test_menu_item() (
@@ -114,7 +114,7 @@ test_split() (
 test_sed_usv() (
   set -o errexit
 
-  input_path="$(temp_dir_path)/input.txt"
+  input_path="$TEMP_DIR"/input.txt
   cat <<'EOF' >"$input_path"
 foo bar baz
 other lines
@@ -124,7 +124,7 @@ hello world
 hoge fuga hare
 012 345 678 900
 EOF
-  output_path="$(temp_dir_path)/output.txt"
+  output_path="$TEMP_DIR"/output.txt
   sed -E \
     -e "s/^([[:alpha:]]{3}) ([[:alpha:]]{3}) ([[:alpha:]]{3})$/case1${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^([[:alpha:]]{4}) ([[:alpha:]]{4}) ([[:alpha:]]{4})$/case2${us}\1${us}\2${us}\3${us}/" -e t \
@@ -157,7 +157,7 @@ EOF
     esac  
   done >"$output_path"
   
-  expected_path="$(temp_dir_path)/expected.txt"
+  expected_path="$TEMP_DIR"/expected.txt
   cat <<'EOF' >"$expected_path"
 a: foo bar baz
 z: other lines
@@ -175,12 +175,12 @@ EOF
 test_sed_usv_global() (
   set -o errexit
 
-  input_path="$(temp_dir_path)/input.txt"
+  input_path="$TEMP_DIR"/input.txt
   cat <<'EOF' >"$input_path"
 foo toupper(bar) baz toupper(qux) HOGE tolower(FUGA)
 other lines
 EOF
-  output_path="$(temp_dir_path)/output.txt"
+  output_path="$TEMP_DIR"/output.txt
   sed -E \
     -e "s/${lwb}toupper${rwb}\(([[:alpha:]]+)\)/${is1}toupper_4c7e44e${is2}\1${is1}/g" \
     -e "s/${lwb}tolower${rwb}\(([[:alpha:]]+)\)/${is1}tolower_542075d${is2}\1${is1}/g" \
@@ -221,7 +221,7 @@ EOF
     esac
   done >"$output_path"
   # cat "$output_path" >&2
-  expected_path="$(temp_dir_path)/expected.txt"
+  expected_path="$TEMP_DIR"/expected.txt
   cat <<'EOF' >"$expected_path"
 foo BAR baz QUX HOGE fuga
 other lines

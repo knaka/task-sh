@@ -56,7 +56,7 @@ test_indented_here_doc() (
 
   var=aaa
 
-  output1_path="$(temp_dir_path)/output1.txt"
+  output1_path="$TEMP_DIR"/output1.txt
   # shellcheck disable=SC2016
   cat <<-EOF >"$output1_path"
 		foo
@@ -64,7 +64,7 @@ test_indented_here_doc() (
 		bar
 	EOF
 
-  output2_path="$(temp_dir_path)/output2.txt"
+  output2_path="$TEMP_DIR"/output2.txt
   cat <<EOF >"$output2_path"
 foo
 $var
@@ -72,7 +72,7 @@ bar
 EOF
   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output2_path" | field 1)"
 
-  output3_path="$(temp_dir_path)/output3.txt"
+  output3_path="$TEMP_DIR"/output3.txt
   here_doc_107d344 "$var" >"$output3_path"
   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output3_path" | field 1)" 
 )
@@ -99,9 +99,9 @@ EOF
 # test_echo_n() (
 #   set -o errexit
 # 
-#   output1_path="$(temp_dir_path)/output1.txt"
+#   output1_path="$TEMP_DIR"/output1.txt
 #   echo -n "foo" >"$output1_path"
-#   output2_path="$(temp_dir_path)/output2.txt"
+#   output2_path="$TEMP_DIR"/output2.txt
 #   printf "%s" "foo" >"$output2_path"
 #   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output2_path" | field 1)"
 # )

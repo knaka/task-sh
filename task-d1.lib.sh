@@ -105,7 +105,7 @@ subcmd_d1__remote__dump() { # Dump the remote database.
 # --------------------------------------------------------------------------
 
 subcmd_d1__schema() { # Export the schema of the D1 database.
-  local schema_file_path="$(temp_dir_path)/"schema.sql
+  local schema_file_path="$TEMP_DIR"/schema.sql 
   subcmd_wrangler d1 export --no-data "$@" "$(subcmd_d1__name)" --output="$schema_file_path" 1>&2
   cat "$schema_file_path"
 }
@@ -187,7 +187,7 @@ subcmd_d1__remote__delete() { # Delete the remote database.
 
 subcmd_d1__diff() { # Generate the schema difference between the development database and the schema file.
   local mode="$1"
-  local db_file_path="$(temp_dir_path)/13c81f9"
+  local db_file_path="$TEMP_DIR"/13c81f9
 
   subcmd_d1__schema "$mode" | subcmd_sqlite3 "$db_file_path"
   # `--dry-run` prints the SQL commands that would be executed to idempotently apply the schema changes.
