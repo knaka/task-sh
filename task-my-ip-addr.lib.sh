@@ -6,7 +6,7 @@ test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 
 task_my_ip_addr() { # Shows my IP address for testing.
   local cache_file_path
-  cache_file_path="$(temp_dir_path)"/9fa603e
+  cache_file_path="$TEMP_DIR"/9fa603e
   if subcmd_curl --fail --output "$cache_file_path" http://api.myip.com/
   then
     # shellcheck disable=SC2119

@@ -20,7 +20,7 @@ task_astro__dev() { # Launch the Astro development server.
     export ASTRO_DYNAMIC_PORT
   fi
   local log_path
-  log_path="$(temp_dir_path)"/astro-dev.log
+  log_path="$TEMP_DIR"/astro-dev.log
   subcmd_astro --invocation-mode=background dev "$@" >"$log_path"
   invoke --invocation-mode=background tail -F "$log_path"
   while true

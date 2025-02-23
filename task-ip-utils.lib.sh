@@ -46,7 +46,7 @@ ports_used_in_session_path=
 init_ports_used_in_session_path() {
   if test -z "$ports_used_in_session_path"
   then
-    ports_used_in_session_path="$(temp_dir_path)"/0545610
+    ports_used_in_session_path="$TEMP_DIR"/0545610
     touch "$ports_used_in_session_path"
   fi
 }
@@ -58,9 +58,9 @@ ip_free_ports() {
   readonly priv_begin priv_end
   local port="${1:-$priv_begin}"
   local end="${2:-$priv_end}"
-  local priv_ports_path="$(temp_dir_path)"/f5c41b5
+  local priv_ports_path="$TEMP_DIR"/f5c41b5
   seq "$port" "$end" >"$priv_ports_path"
-  local used_ports_path="$(temp_dir_path)"/6157e29
+  local used_ports_path="$TEMP_DIR"/6157e29
   (ip_ports_in_use | cat "$ports_used_in_session_path") | sort | uniq >"$used_ports_path"
   comm -23 "$priv_ports_path" "$used_ports_path"
 }

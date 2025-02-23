@@ -86,7 +86,7 @@ subcmd_d1__remote__exec() { # Execute SQL command in the remote D1 database.
 # --------------------------------------------------------------------------
 
 subcmd_d1__dump() { # Dump the database.
-  local output_file_path="$(temp_dir_path)"/dump.sql
+  local output_file_path="$TEMP_DIR"/dump.sql
   subcmd_wrangler d1 export "$(subcmd_d1__name)" --output="$output_file_path"
   cat "$output_file_path"
 } 
@@ -208,7 +208,7 @@ subcmd_d1__remote__diff() {
 
 subcmd_d1__migrate() { # Apply the schema changes to the development database.
   local mode="$1"
-  local diff_sql_path="$(temp_dir_path)"/5e31f47
+  local diff_sql_path="$TEMP_DIR"/5e31f47
 
   subcmd_d1__diff "$mode" >"$diff_sql_path"
   if grep -q 'Nothing is modified' "$diff_sql_path"

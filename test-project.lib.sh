@@ -303,9 +303,9 @@ test_shell() {
 test_newer() {
   local older current future
 
-  older="$(temp_dir_path)"/older.txt
-  current="$(temp_dir_path)"/current.txt
-  future="$(temp_dir_path)"/future.txt
+  older="$TEMP_DIR"/older.txt
+  current="$TEMP_DIR"/current.txt
+  future="$TEMP_DIR"/future.txt
 
   touch -t 202101010000 "$older"  
   touch -t 202101020000 "$current"
@@ -360,7 +360,7 @@ test_args_restore() {
 }
 
 test_is_dir_empty() {
-  local dir_path="$(temp_dir_path)"/17f146e
+  local dir_path="$TEMP_DIR"/17f146e
 
   assert_false is_dir_empty "$dir_path"
 
@@ -373,7 +373,7 @@ test_is_dir_empty() {
 
 test_fetch() {
   local url="https://www.example.com/"
-  local output_path="$(temp_dir_path)"/output.html
+  local output_path="$TEMP_DIR"/output.html
   subcmd_fetch "$url" >"$output_path"
   grep -q "Example Domain" "$output_path"
 }
@@ -384,7 +384,7 @@ test_fifo() {
     :
   elif is_linux || is_macos
   then
-    local fifo_path="$(temp_dir_path)"/fifo
+    local fifo_path="$TEMP_DIR"/fifo
     mkfifo "$fifo_path"
     (
       for i in 1 2 3
@@ -393,7 +393,7 @@ test_fifo() {
         printf "hello%d" "$i"
       done
     ) >"$fifo_path" 2>&1 &
-    local output_path="$(temp_dir_path)"/output
+    local output_path="$TEMP_DIR"/output
     cat "$fifo_path" >"$output_path"
     assert_eq "$(cat "$output_path")" "hello1hello2hello3"
   else

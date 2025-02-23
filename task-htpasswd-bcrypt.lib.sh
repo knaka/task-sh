@@ -22,7 +22,7 @@ subcmd_htpasswd__bcrypt__hash() {
 subcmd_htpasswd__bcrypt__verify() {
   # -v: Verify the password.
   local user=fa9a540
-  local htpasswd_path="$(temp_dir_path)"/045af3c
+  local htpasswd_path="$TEMP_DIR"/045af3c
   local password=
   local hash=
   OPTIND=1; while getopts _-: OPT
