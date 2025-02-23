@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh :
 # shellcheck shell=sh
-"${sourced_897a0c7-false}" && return 0 || sourced_897a0c7=true
+"${sourced_897a0c7-false}" && return 0; sourced_897a0c7=true
 
 # --------------------------------------------------------------------------
 # Constants.

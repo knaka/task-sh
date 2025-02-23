@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-"${sourced_71b8827-false}" && return 0 || sourced_71b8827=true
+"${sourced_71b8827-false}" && return 0; sourced_71b8827=true
 set -o nounset -o errexit
 
 set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
