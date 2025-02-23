@@ -43,7 +43,7 @@ fi <<EOF
 #!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-test "\${sourced_${unique_id}-}" = true && return 0; sourced_${unique_id}=true
+"\${sourced_${unique_id}-false}" && return 0 || sourced_${unique_id}=true
 set -o nounset -o errexit
 
 set -- "\$PWD" "\${0%/*}" "\$@"; test "\$2" != "\$0" && cd "\$2"

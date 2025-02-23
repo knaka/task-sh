@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh :
 # shellcheck shell=sh
-test "${sourced_897a0c7-}" = true && return 0; sourced_897a0c7=true
+"${sourced_897a0c7-false}" && return 0 || sourced_897a0c7=true
 
 # --------------------------------------------------------------------------
 # Constants.
@@ -58,6 +58,7 @@ finalize() {
   local stmts_file="$stmts_file_base"-EXIT
   # shellcheck disable=SC1090
   test -f "$stmts_file" && . "$stmts_file"
+  rm -fr "$TEMP_DIR"
 }
 
 # Obsolete.

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-test "${sourced_ed2e701-}" = true && return 0; sourced_ed2e701=true
+"${sourced_569237b-false}" && return 0 || sourced_569237b=true
 
 # Launch editor
 
@@ -49,14 +49,18 @@ ed() {
     fi
   done
 
+  # VSCode
   if command -v code >/dev/null 2>&1
   then
     if $should_block
     then
       set -- --wait "$@"
     fi
-    exec code "$@"
+    set -- code "$@"
   fi
+
+  finalize
+  exec "$@"
 }
 
 if test "${0##*/}" = "ed.sh"
