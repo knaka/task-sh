@@ -985,14 +985,13 @@ sort_random() {
 }
 
 # Get the space-separated n-th (1-based) field.
-field() (
-  unset IFS
+field() {
   # shellcheck disable=SC2046
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
-)
+}
 
 # Mac does not have tac(1).
-if ! type tac > /dev/null 2>&1
+if ! command -v tac >/dev/null 2>&1
 then
   tac() {
     tail -r
