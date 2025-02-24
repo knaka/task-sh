@@ -418,3 +418,23 @@ test_fifo() {
     return 1
   fi
 }
+
+time_wasting_task() {
+  echo foo "$@"
+}
+
+test_memoize() {
+  # Just test those works, not the result.
+  local result
+  result="$(memoize time_wasting_task hoge fuga)"
+  assert_eq "foo hoge fuga" "$result"
+  result="$(memoize time_wasting_task hoge fuga)"
+  assert_eq "foo hoge fuga" "$result"
+
+  if begin_memoize 3383e2e
+  then
+    echo "hello"
+    echo "world"
+    end_memoize
+  fi
+}
