@@ -320,15 +320,15 @@ test_dir_stack() {
   
   push_dir ./py
   assert_eq "$PROJECT_DIR/py" "$PWD"
-  assert_eq "$dirs_4c15d80" "$PROJECT_DIR|"
+  assert_eq "$psv_dirs_4c15d80" "$PROJECT_DIR|"
   pop_dir
   assert_eq "$PROJECT_DIR" "$PWD"
-  assert_eq "$dirs_4c15d80" ""
+  assert_eq "$psv_dirs_4c15d80" ""
 
   push_dir ./go
-  assert_eq "$dirs_4c15d80" "$PROJECT_DIR|"
+  assert_eq "$psv_dirs_4c15d80" "$PROJECT_DIR|"
   push_dir ../sh
-  assert_eq "$dirs_4c15d80" "$PROJECT_DIR/go|$PROJECT_DIR|"
+  assert_eq "$psv_dirs_4c15d80" "$PROJECT_DIR/go|$PROJECT_DIR|"
   assert_eq "$PROJECT_DIR/sh" "$PWD"
   pop_dir
   pop_dir
