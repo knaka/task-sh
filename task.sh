@@ -189,6 +189,35 @@ pop_dir() {
 }
 
 # --------------------------------------------------------------------------
+# Platform detection.
+# --------------------------------------------------------------------------
+
+is_linux() {
+  test -d /proc -o -d /sys
+}
+
+is_macos() {
+  test -r /System/Library/CoreServices/SystemVersion.plist
+}
+
+is_windows() {
+  test -d "c:/" -a ! -d /proc
+}
+
+is_debian() {
+  test -f /etc/debian_version
+}
+
+is_bsd() {
+  # stat -f "%z" . >/dev/null 2>&1
+  is_macos || test -r /etc/rc.subr
+}
+
+is_alpine() {
+  test -f /etc/alpine-release
+}
+
+# --------------------------------------------------------------------------
 # Utility functions.
 # --------------------------------------------------------------------------s
 
@@ -218,31 +247,6 @@ restore_shell_flags() {
   fi
   eval "$shell_flags_c225b8f"
   shell_flags_c225b8f=
-}
-
-is_linux() {
-  test -d /proc -o -d /sys
-}
-
-is_macos() {
-  test -r /System/Library/CoreServices/SystemVersion.plist
-}
-
-is_windows() {
-  test -d "c:/" -a ! -d /proc
-}
-
-is_bsd() {
-  # stat -f "%z" . >/dev/null 2>&1
-  is_macos || test -r /etc/rc.subr
-}
-
-is_debian() {
-  test -f /etc/debian_version
-}
-
-is_alpine() {
-  test -f /etc/alpine-release
 }
 
 # Executable file extension.

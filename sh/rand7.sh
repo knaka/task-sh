@@ -5,7 +5,7 @@
 set -o nounset -o errexit
 
 set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
-. ./os.lib.sh
+. ./platform.lib.sh
 cd "$1"; shift 2
 
 rand7() (
