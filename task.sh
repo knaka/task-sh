@@ -352,8 +352,7 @@ exe_ext() {
 
 # Memoize the (mainly external) command output.
 memoize() {
-  local cache_file_path="$TEMP_DIR"/cache-"$(oct_encode "$@")"
-  shift
+  local cache_file_path="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
   if ! test -r "$cache_file_path"
   then
     "$@" >"$cache_file_path"
@@ -374,10 +373,11 @@ memoize() {
 #     end_memoize
 #   }
 
+# Current cache file path for memoization.
 cache_file_path_cb3727b=
 
 begin_memoize() {
-  cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(oct_encode "$@")"
+  cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
   if test -r "$cache_file_path_cb3727b"
   then
     cat "$cache_file_path_cb3727b"
@@ -390,16 +390,10 @@ begin_memoize() {
 end_memoize() {
   exec 1>&9
   exec 9>&-
-  if test $# -gt 0
-  then
-    cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(oct_encode "$@")"
-  fi
-  if test -r "$cache_file_path_cb3727b"
-  then
-    cat "$cache_file_path_cb3727b"
-  fi
+  cat "$cache_file_path_cb3727b"
 }
 
+# The path to the shell executable which is running the script.
 shell_path() {
   begin_memoize d57754a "$@" || return 0
 
@@ -423,6 +417,7 @@ shell_path() {
   end_memoize
 }
 
+# The implementation name of the shell which is running the script. Not "sh" but "bash", "ash", "dash", etc.
 shell_name() {
   begin_memoize 09e4c0d "$@" || return 0
 
@@ -524,10 +519,10 @@ newer() {
     echo "No destination file" >&2
     return 0
   fi
-  test -n "$(find "$@" -newer "$dest" 2> /dev/null)"
+  test -n "$(find "$@" -newer "$dest" 2>/dev/null)"
 }
 
-# Kill child processes.
+# Kill child processes for each shell/platform.
 kill_child_processes() {
   if is_windows
   then
@@ -569,7 +564,7 @@ kill_child_processes() {
   fi
 }
 
-# Invoke command with the specified invocation mode.
+# Invoke command with proper executable extension, with the specified invocation mode.
 #
 #   --invocation-mode=exec: Replace the process with the command.
 #   --invocation-mode=exec-sub: Replace the process with the command, without calling clearups.
@@ -811,7 +806,7 @@ subcmd_apt_download() {
   /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
 }
 
-subcmd_fetch() { # Fetch a URL.
+subcmd_fetch() { # Fetch data from the URL to the standard output.
   if test $# -eq 0
   then
     echo "No URL specified." >&2
@@ -834,6 +829,7 @@ subcmd_fetch() { # Fetch a URL.
   then
     # Release v8.11.0 · moparisthebest/static-curl https://github.com/moparisthebest/static-curl/releases/tag/v8.11.0
     local curl_version=v8.11.0
+    # Copied from `sha256sum.txt`
     local curl_sha256sums='
 d18aa1f4e03b50b649491ca2c401cd8c5e89e72be91ff758952ad2ab5a83135d  ./curl-amd64
 1a4747fd88b31b93bf48bcace9d1e3ebf348afbbf8c0a6f4e1751795ea6ff39b  ./curl-i386
@@ -895,13 +891,13 @@ load_env_file() {
       continue
     fi
     value="$(eval "echo \"\${$key:=}\"")"
-    # No to overwrite.
+    # Not to overwrite the existing, previously set value.
     if test -n "$value"
     then
       continue
     fi
     eval "$line"
-  done < "$1"
+  done <"$1"
 }
 
 # Load environment variables.
@@ -909,12 +905,12 @@ load_env() {
   # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
   then
-    load_env_file "$PROJECT_DIR"/.env."$APP_ENV".dynamic
+    load_env_file "$PROJECT_DIR"/.env."$APP_ENV".session
     load_env_file "$PROJECT_DIR"/.env."$APP_ENV".local
   fi
   if test "${APP_ENV+set}" != set || test "${APP_ENV}" != "test"
   then
-    load_env_file "$PROJECT_DIR"/.env.dynamic
+    load_env_file "$PROJECT_DIR"/.env.session
     load_env_file "$PROJECT_DIR"/.env.local
   fi
   if test "${APP_ENV+set}" = set
@@ -929,13 +925,15 @@ load_env() {
 get_key() {
   if is_linux || is_macos
   then
+    local saved_stty
+    saved_stty="$(stty -g)"
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
-    stty icanon echo
+    stty "$saved_stty"
     return
   fi
   local key
-  # Bash POSIX and BusyBox ash provides `-s` (silent mode) option.
+  # Bash POSIX Shell and BusyBox Ash provides `-s` (silent mode) option.
   if test is_ash || is_bash
   then
     # shellcheck disable=SC3045

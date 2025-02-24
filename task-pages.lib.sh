@@ -90,7 +90,7 @@ subcmd_pages__secret__put() { # [key] Put the secret to the Cloudflare Pages.
 }
 
 subcmd_pages__name() {
-  subcmd_yq --exit-status eval ".name" "$wrangler_toml_path"
+  memoize subcmd_yq --exit-status eval ".name" "$wrangler_toml_path"
 }
 
 subcmd_pages__log__tail() { # Tail the log of the deployment.
