@@ -3,12 +3,6 @@
 # shellcheck shell=sh
 "${sourced_569237b-false}" && return 0; sourced_569237b=true
 
-# Launch editor
-
-set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
-. ./task.sh
-cd "$1"; shift 2
-
 ed() {
   local should_block=false
   OPTIND=1; while getopts b-: OPT
@@ -59,7 +53,6 @@ ed() {
     set -- code "$@"
   fi
 
-  finalize
   exec "$@"
 }
 

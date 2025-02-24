@@ -5,7 +5,6 @@
 set -o nounset -o errexit
 
 set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
-. ./task.sh
 . ./rand7.sh
 . ./datetime-rfc.sh
 cd "$1"; shift 2

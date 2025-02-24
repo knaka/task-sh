@@ -61,11 +61,6 @@ finalize() {
   rm -fr "$TEMP_DIR"
 }
 
-# Obsolete.
-temp_dir_path() {
-  echo "$TEMP_DIR"
-}
-
 # Directory in which the script has been invoked.
 : "${WORKING_DIR:=}"
 
@@ -233,21 +228,13 @@ is_macos() {
   test -r /System/Library/CoreServices/SystemVersion.plist
 }
 
-is_bsd() {
-  # stat -f "%z" . >/dev/null 2>&1
-  is_macos || test -r /etc/rc.subr
-}
-
 is_windows() {
   test -d "c:/" -a ! -d /proc
 }
 
-# Executable file extension.
-exe_ext() {
-  if is_windows
-  then
-    echo ".exe"
-  fi
+is_bsd() {
+  # stat -f "%z" . >/dev/null 2>&1
+  is_macos || test -r /etc/rc.subr
 }
 
 is_debian() {
@@ -256,6 +243,14 @@ is_debian() {
 
 is_alpine() {
   test -f /etc/alpine-release
+}
+
+# Executable file extension.
+exe_ext() {
+  if is_windows
+  then
+    echo ".exe"
+  fi
 }
 
 # Memoize the command output.
