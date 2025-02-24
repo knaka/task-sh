@@ -34,6 +34,21 @@ then
 fi
 
 unique_id="$(rand7)"
+func_name=
+base_name=
+if test "$1" = "-"
+then
+  base_name="x${unique_id}.sh"
+else
+  base_name="${1##*/}"
+fi
+base_name_wo_sh="${base_name%.sh}"
+func_name="$(echo "$base_name_wo_sh" | tr '-' '_')"
+pattern="$base_name"
+if test "$base_name" != "$base_name_wo_sh"
+then
+  pattern="$pattern|$base_name_wo_sh"
+fi
 if test "$1" = "-"
 then
   cat
@@ -49,14 +64,14 @@ set -o nounset -o errexit
 set -- "\$PWD" "\${0%/*}" "\$@"; test "\$2" != "\$0" && cd "\$2"
 cd "\$1"; shift 2
 
-x${unique_id}() {
+${func_name}() {
   :
 }
 
 case "\${0##*/}" in
-  (x${unique_id}|x${unique_id}.sh)
+  (${pattern})
     set -o nounset -o errexit
-    x${unique_id} "\$@"
+    ${func_name} "\$@"
     ;;
 esac
 EOF

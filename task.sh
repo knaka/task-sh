@@ -143,11 +143,39 @@ is_alpine() {
 # --------------------------------------------------------------------------
 
 oct_dump() {
-  od -A n -t o1 -v | xargs printf "%s "
+  if test $# -eq 0
+  then
+    cat
+  else
+    printf "%s" "$*"
+  fi | od -A n -t o1 -v | xargs printf "%s "
 }
 
 oct_restore() {
-  xargs printf '\\\\0%s\n' | xargs printf '%b'
+  if test $# -eq 0
+  then
+    cat
+  else
+    printf "%s" "$*"
+  fi | xargs printf '\\\\0%s\n' | xargs printf '%b'
+}
+
+oct_encode() {
+  if test $# -eq 0
+  then
+    cat
+  else
+    printf "%s" "$*"
+  fi | od -A n -t o1 -v | xargs printf "%s"
+}
+
+oct_decode() {
+  if test $# -eq 0
+  then
+    cat
+  else
+    printf "%s" "$*"
+  fi | sed 's/.../& /g' | xargs printf '\\\\0%s\n' | xargs printf '%b'
 }
 
 hex_dump() {
@@ -322,9 +350,9 @@ exe_ext() {
   fi
 }
 
-# Memoize the command output.
+# Memoize the (mainly external) command output.
 memoize() {
-  local cache_file_path="$TEMP_DIR"/"$1"
+  local cache_file_path="$TEMP_DIR"/cache-"$(oct_encode "$@")"
   shift
   if ! test -r "$cache_file_path"
   then
@@ -333,75 +361,118 @@ memoize() {
   cat "$cache_file_path"
 }
 
-shell_path_6eac6eb() {
-  if test "${BASH+set}" = set
+# Memoize the output of a series of commands. If you would like to nest, use subprocess function or `memoize` function instead.
+#
+# Usage:
+#   foo() {
+#     begin_memoize 8701441 "$@" || return 0
+#
+#     echo hello
+#     sleep 3 # Takes long time.
+#     echo world
+#
+#     end_memoize
+#   }
+
+cache_file_path_cb3727b=
+
+begin_memoize() {
+  cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(oct_encode "$@")"
+  if test -r "$cache_file_path_cb3727b"
   then
-    echo "$BASH"
-    return
+    cat "$cache_file_path_cb3727b"
+    return 1
   fi
-  if is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  exec 9>&1
+  exec >"$cache_file_path_cb3727b"
+}
+
+end_memoize() {
+  exec 1>&9
+  exec 9>&-
+  if test $# -gt 0
   then
-    echo "$SHELL"
-    return
+    cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(oct_encode "$@")"
   fi
-  local path=
-  if test -e /proc/$$/exe
+  if test -r "$cache_file_path_cb3727b"
   then
-    path="$(realpath /proc/$$/exe)" || return 1
-  else
-    path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+    cat "$cache_file_path_cb3727b"
   fi
-  echo "$path"
 }
 
 shell_path() {
-  memoize 5e862b5 shell_path_6eac6eb
+  begin_memoize d57754a "$@" || return 0
+
+  if test "${BASH+set}" = set
+  then
+    echo "$BASH"
+  elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    echo "$SHELL"
+  else
+    local path=
+    if test -e /proc/$$/exe
+    then
+      path="$(realpath /proc/$$/exe)" || return 1
+    else
+      path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+    fi
+    echo "$path"
+  fi
+
+  end_memoize
 }
 
-shell_base() {
-  local shell_path="$(shell_path)"
-  echo "${shell_path##*/}"
-}
+shell_name() {
+  begin_memoize 09e4c0d "$@" || return 0
 
-shell_name_f0ebcb7() {
   if test "${BASH+set}" = set
   then
     echo "bash"
-    return
-  # Busybox Ash shell on Windows sets $SHELL to provide the virtual executable path `/bin/sh`.
   elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
   then
     echo "ash"
-    return
-  fi
-  local sh=
-  if test -e /proc/$$/exe
-  then
-    sh="$(basename "$(readlink -f /proc/$$/exe)")" || return 1
   else
-    sh="$(basename "$(ps -p $$ -o comm=)")" || return 1
+    local path=
+    if test -e /proc/$$/exe
+    then
+      path="$(realpath /proc/$$/exe)" || return 1
+    else
+      path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+    fi
+    case "${path##*/}" in
+      (bash) echo "bash";;
+      (ash) echo "ash";;
+      (dash) echo "dash";;
+      (sh|busybox)
+        if "$path" --help 2>&1 | grep -q "BusyBox"
+        then
+          echo "ash"
+        else
+          echo "Cannot detect the shell: $path" >&2
+          return 1
+        fi
+        ;;
+      (*)
+        echo "Unknown shell: $path" >&2
+        return 1
+        ;;
+    esac
   fi
-  case "$sh" in
-    (sh|busybox)
-      if "$sh" --help 2>&1 | grep -q "BusyBox"
-      then
-        sh="ash"
-      fi
-      ;;
-  esac
-  echo "$sh"
+
+  end_memoize
 }
 
 is_dash() {
-  test "$(shell_base)" = "dash"
+  test "$(shell_name)" = "dash"
 }
 
 is_ash() {
-  test "$(shell_base)" = "ash"
+  test "$(shell_name)" = "ash"
 }
 
 is_bash() {
-  test "$(shell_base)" = "bash"
+  test "$(shell_name)" = "bash"
 }
 
 # Check if the file(s)/directory(s) is/are newer than the destination.
@@ -1009,9 +1080,9 @@ menu_item() {
     IFS="$is1" read -r pre char_to_emph post
     if test -n "$char_to_emph"
     then
-      printf "%s%s%s" "$pre" "$(emph "$char_to_emph")" "$post"
+      printf -- "%s%s%s" "$pre" "$(emph "$char_to_emph")" "$post"
     else
-      printf "%s" "$pre"
+      printf -- "%s" "$pre"
     fi
   ) | sed -E -e 's/@ampersand_ff37f3a@/\&/g'
   echo
@@ -1019,10 +1090,10 @@ menu_item() {
 
 # Print a menu
 menu() {
-  echo
   local arg
   for arg in "$@"
   do
+    printf -- "- "
     menu_item "$arg"
   done
 }

@@ -269,7 +269,24 @@ test_dumper() (
   assert_eq "hello" "$result"
   result="$(echo hello2 | oct_dump | oct_restore)"
   assert_eq "hello2" "$result"
+
+  result="$(oct_restore "$(oct_dump "hello3")")"
+  assert_eq "hello3" "$result"
 )
+
+test_encoder() {
+  local result encoded decoded
+  result="$(echo hello | oct_encode | oct_decode)"
+  assert_eq "hello" "$result"
+
+  encoded="$(oct_encode "foo")"
+  decoded="$(oct_decode "$encoded")"
+  assert_eq "foo" "$decoded"
+
+  encoded="$(oct_encode "foo" "bar")"
+  decoded="$(oct_decode "$encoded")"
+  assert_eq "foo bar" "$decoded"
+}
 
 is_ci() {
   test "${CI+set}" = set
