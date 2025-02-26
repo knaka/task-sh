@@ -2,21 +2,24 @@
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
 "${sourced_7326780-false}" && return 0; sourced_7326780=true
-set -o nounset -o errexit
 
 set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
 . ./platform.lib.sh
 cd "$1"; shift 2
 
+# Generates a random 7-digit hexadecimal number
 rand7() (
   local seed
   if test -r /dev/urandom
   then
+    # Generate seed from /dev/urandom if available
     seed=$(od -An -N4 -tu4 </dev/urandom | tr -d ' ')
   elif is_macos
   then
+    # Generate seed from current timestamp on macOS in second precision
     seed=$(date +%s)
   else
+    # Generate seed from nanoseconds since epoch on other platforms
     seed=$(date +%N)
   fi
   # 0.0 <= rand() < 1.0
