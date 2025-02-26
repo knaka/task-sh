@@ -3,7 +3,7 @@
 # shellcheck shell=sh
 "${sourced_7326780-false}" && return 0; sourced_7326780=true
 
-set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
+set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
 . ./platform.lib.sh
 cd "$1"; shift 2
 

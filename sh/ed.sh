@@ -3,7 +3,7 @@
 # shellcheck shell=sh
 "${sourced_569237b-false}" && return 0; sourced_569237b=true
 
-set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
+set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
 . ./task.sh
 cd "$1"; shift 2
 

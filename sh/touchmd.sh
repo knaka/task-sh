@@ -4,7 +4,7 @@
 "${sourced_71b8827-false}" && return 0; sourced_71b8827=true
 set -o nounset -o errexit
 
-set -- "$PWD" "${0%/*}" "$@"; test "$2" != "$0" && cd "$2"
+set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
 . ./rand7.sh
 . ./datetime-rfc.sh
 cd "$1"; shift 2
