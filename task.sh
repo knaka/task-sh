@@ -350,6 +350,11 @@ exe_ext() {
   fi
 }
 
+if is_macos
+then
+  alias sha1sum='shasum -a 1'
+fi
+
 # Memoize the (mainly external) command output.
 memoize() {
   local cache_file_path="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
