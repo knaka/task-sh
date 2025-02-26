@@ -49,20 +49,40 @@ if test "$base_name" != "$base_name_wo_sh"
 then
   pattern="$pattern|$base_name_wo_sh"
 fi
+
+# echo 75ca5dc: "${base_name%.lib.sh}" >&2
+# $(test "${base_name%.lib.sh}" = "${base_name}" && printf '#!/usr/bin/env sh\n')
+
 if test "$1" = "-"
 then
-  cat
+  exec 3>&1
 else
-  cat >"$1"
-fi <<EOF
-#!/usr/bin/env sh
+  exec 3>"$1"
+fi
+
+is_lib_sh=false
+if test "${base_name%.lib.sh}" != "${base_name}"
+then
+  is_lib_sh=true
+fi
+
+if ! "$is_lib_sh"
+then
+  echo '#!/usr/bin/env sh' >&3
+fi
+
+cat >&3 <<EOF
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
 "\${sourced_${unique_id}-false}" && return 0; sourced_${unique_id}=true
-set -o nounset -o errexit
 
 set -- "\$PWD" "\${0%/*}" "\$@"; test "\$2" != "\$0" && cd "\$2"
 cd "\$1"; shift 2
+EOF
+
+if ! "$is_lib_sh"
+then
+  cat >&3 <<EOF
 
 ${func_name}() {
   :
@@ -75,7 +95,9 @@ case "\${0##*/}" in
     ;;
 esac
 EOF
+fi
 
-# set -o monitor # For job control
-# set -o xtrace # For debugging
-# set -o pipefail # For error handling in pipelines in Bash
+# Other options:
+#   set -o monitor # For job control
+#   set -o xtrace # For debugging
+#   set -o pipefail # For error handling in pipelines in Bash
