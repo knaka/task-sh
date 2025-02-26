@@ -57,6 +57,7 @@ ed() {
     set -- code "$@"
   fi
 
+  finalize
   exec "$@"
 }
 
