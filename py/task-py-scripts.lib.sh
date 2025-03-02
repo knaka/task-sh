@@ -40,7 +40,7 @@ EOF
 )
 
 subcmd_run() ( # Run a script.
-  cd "$SCRIPT_DIR"
+  cd "$PROJECT_DIR"
   no_indent_script="$(cat <<'EOF'
 import sys
 original_wokrking_dir_path = sys.argv[1]
@@ -54,16 +54,16 @@ sys.exit(process.returncode)
 EOF
 )"
   no_indent_script="$(echo "$no_indent_script" | tr '\n' ';')"
-  subcmd_uv run python -c "$no_indent_script" "$ORIGINAL_DIR" "$@"
+  subcmd_uv run python -c "$no_indent_script" "$WORKING_DIR" "$@"
 )
 
 subcmd_sync() { # Updates the UV virtualenv.
-  cd "$SCRIPT_DIR"
+  cd "$PROJECT_DIR"
   subcmd_uv sync "$@"
 }
 
 subcmd_foo() {
-  cd "$SCRIPT_DIR"
+  cd "$PROJECT_DIR"
   no_indent_script="$(cat <<'EOF'
 print('Hello, World!')
 print('This is a Python script.')
