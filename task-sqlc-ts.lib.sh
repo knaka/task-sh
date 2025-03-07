@@ -13,6 +13,7 @@ rewrite_sqlcgen_ts() {
     sed -E \
       -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
       -e "s/^(.*\.${lwb}bind\()([^.][^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
+      -e 's#from "@cloudflare/workers-types/(.*)"#from "@cloudflare/workers-types/\1/index.js"#' \
       -e "s/^(.*)$/nop${us}\1${us}/" <"$file_path" \
     | while IFS= read -r line
     do

@@ -1,23 +1,24 @@
-import { createServer } from 'http';
-import { promises as fs } from 'node:fs';
-import { extname, join } from 'path';
+import { createServer } from 'node:http';
+import { stat as statAsync } from 'node:fs/promises';
+import { extname, join } from 'node:path';
 import { createReadStream } from 'node:fs';
-import { lookup } from 'mime-types';
+import { lookup as mimeLookup } from 'mime-types';
 
-const host = process.argv[2] || '127.0.0.1';
-const port = process.argv[3] || 80;
-const working_dir = process.argv[4] || process.cwd();
+const working_dir = process.argv[2] || process.cwd();
+const host = process.argv[3] || '127.0.0.1';
+const port = parseInt(process.argv[4], 10) || 80;
 
 async function tryStatAsync(path) {
   try {
-    return await fs.stat(path);
+    return await statAsync(path);
   } catch {
     return null;
   }
 }
 
 const server = createServer(async (reqIn, respOut) => {
-  let filePath = join(working_dir, reqIn.url === '/' ? 'index.html' : reqIn.url);
+  const url = reqIn.url ?? '/';
+  let filePath = join(working_dir, (url === '/')? 'index.html': url);
   if ((await tryStatAsync(filePath))?.isFile()) {
     // do nothing
   } else if ((await tryStatAsync(filePath + '.html'))?.isFile()) {
@@ -31,7 +32,7 @@ const server = createServer(async (reqIn, respOut) => {
     return;
   }
   const ext = extname(filePath);
-  const mimeType = lookup(ext) || 'application/octet-stream';
+  const mimeType = mimeLookup(ext) || 'application/octet-stream';
   respOut.writeHead(200, { 'Content-Type': mimeType });
   createReadStream(filePath).pipe(respOut);
 });

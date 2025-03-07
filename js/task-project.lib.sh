@@ -50,20 +50,31 @@ subcmd_run() { # Run JS script in the original working directory.
 
 . ./task-ip-utils.lib.sh
 
+subcmd_vite_node() { # Run Vite-node
+  run_node_modules_bin vite-node vite-node.mjs "$@"
+}
+
 subcmd_httpd() { # Run a simple HTTP server.
   push_dir "$PROJECT_DIR"
+  local path="$WORKING_DIR"
+  if test "${1+set}" = set
+  then
+    path="$(cd "$WORKING_DIR"; realpath "$1")"
+  fi
   local host=127.0.0.1
-  local port
-  port="$(ip_random_free_port)"
-  subcmd_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.mjs "$host" "$port" "$WORKING_DIR"
+  local port="$(ip_random_free_port)"
+  # subcmd_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.mjs "$host" "$port" "$WORKING_DIR"
+  subcmd_vite_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.ts "$path" "$host" "$port"
   pop_dir
   while true
   do
     menu \
+      "&Browse" \
       "&List" \
       "E&xit" \
       # nop
     case "$(get_key)" in
+      (b) browse "http://$host:$port" ;;
       (l) ls -la ;;
       (x) break ;;
     esac
