@@ -64,35 +64,53 @@ pages_build_output_dir() {
 }
 
 task_pages__routes_json__put() { # Put the routes JSON file.
-  if test -r "$pages_routes_json_path_6c18f24"
+  if test -r "$pages_routes_json_path_6c18f24" && ! cmp -s "$pages_routes_json_path_6c18f24" "$(pages_build_output_dir)"/_routes.json >/dev/null 2>&1
   then
     cp -f "$pages_routes_json_path_6c18f24" "$(pages_build_output_dir)"/_routes.json
   fi
 }
 
-subcmd_pages__deploy() { # Deploy the project.
+pages_deploy() {
   task_pages__routes_json__put
   subcmd_wrangler pages deploy "$@"
+}
+
+task_pages__prod__deploy() { # Deploy the project to the production environment.
+  pages_deploy
+}
+
+task_pages__prev__deploy() { # Deploy the project to the preview environment.
+  pages_deploy --branch preview
 }
 
 get_pages_build_output_dir() {
   memoize subcmd_yq --exit-status eval '.pages_build_output_dir' "$wrangler_toml_path"
 }
 
-subcmd_pages__secret__put() { # [key] Put the secret to the Cloudflare Pages.
-  local key
-  key="${1:-}"
-  if test -z "$key"
-  then
-    key="$(prompt "Enter the secret name")"
-  fi
-  subcmd_wrangler pages secret put "$key"
+pages_secret_put() {
+  subcmd_wrangler pages secret put "$@"
 }
 
-subcmd_pages__name() {
+subcmd_pages__prod__secret__put() { # [key] Put the secret to the Cloudflare Pages.
+  pages_secret_put --env production "$@"
+}
+
+subcmd_pages__prev__secret__put() { # [key] Put the secret to the Cloudflare Pages preview environment.
+  pages_secret_put --env preview "$@"
+}
+
+subcmd_pages__project_name() {
   memoize subcmd_yq --exit-status eval ".name" "$wrangler_toml_path"
 }
 
-subcmd_pages__log__tail() { # Tail the log of the deployment.
-  subcmd_wrangler pages deployment tail --project-name "$(subcmd_pages__name)"
+pages_tail() { # Tail the log of the deployment.
+  subcmd_wrangler pages deployment tail --project-name "$(subcmd_pages__project_name)"
+}
+
+subcmd_pages__prod__tail() { # Tail the log of the production deployment.
+  pages_tail --environment production
+}
+
+subcmd_pages__prev__tail() { # Tail the log of the preview deployment.
+  pages_tail --environment preview
 }
