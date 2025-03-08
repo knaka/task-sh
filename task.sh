@@ -569,6 +569,12 @@ kill_child_processes() {
   fi
 }
 
+cleanup() {
+  local rc=$?
+  kill_child_processes
+  exit $rc
+}
+
 # Invoke command with proper executable extension, with the specified invocation mode.
 #
 #   --invocation-mode=exec: Replace the process with the command.
@@ -1265,6 +1271,7 @@ main() {
   set -o nounset -o errexit
 
   chaintrap kill_child_processes EXIT
+  chaintrap cleanup INT TERM
 
   # If launched by `task`, $SH is set. Otherwise, determine the shell.
   if test -z "$SH"

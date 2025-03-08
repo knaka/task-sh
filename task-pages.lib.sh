@@ -70,9 +70,9 @@ task_pages__routes_json__put() { # Put the routes JSON file.
   fi
 }
 
-task_pages__deploy() { # Deploy the project.
+subcmd_pages__deploy() { # Deploy the project.
   task_pages__routes_json__put
-  subcmd_wrangler pages deploy
+  subcmd_wrangler pages deploy "$@"
 }
 
 get_pages_build_output_dir() {

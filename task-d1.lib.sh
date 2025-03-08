@@ -23,45 +23,52 @@ set_db_seed_path() {
 mkdir -p ./build/
 
 # --------------------------------------------------------------------------
-# Parse the Wrangler configuration file
+# Get values from Wrangler configuration file
 # --------------------------------------------------------------------------
 
-subcmd_d1__binding() { # [index = 0] Show the binding name of the D1 database configured in the configuration file.
+subcmd_d1__prod__binding() { # [index = 0] Show the binding name of the production D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".d1_databases.$index.binding" "$wrangler_toml_path"
+  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
 }
 
-subcmd_d1__name() { # [index = 0] Show the name of the D1 database configured in the configuration file.
+subcmd_d1__prev__binding() { # [index = 0] Show the binding name of the preview D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".d1_databases.$index.database_name" "$wrangler_toml_path"
+  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
 }
 
-subcmd_d1__id() { # [index = 0] Show the ID of the D1 database configured in the configuration file.
+subcmd_d1__prod__name() { # [index = 0] Show the production name of the D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".d1_databases.$index.database_id" "$wrangler_toml_path"
+  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
+}
+
+subcmd_d1__prev__name() { # [index = 0] Show the preview name of the D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
+}
+
+subcmd_d1__prod__id() { # [index = 0] Show the ID of the production D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
+}
+
+subcmd_d1__prev__id() { # [index = 0] Show the ID of the preview D1 database configured in the configuration file.
+  local index="${1:-0}"
+  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
 }
 
 # --------------------------------------------------------------------------
-# Only for remote
+# Tasks for Cloudflare's global D1 services
 # --------------------------------------------------------------------------
 
-subcmd_d1__remote__list() { # List the remote D1 databases.
+subcmd_d1__list() { # List the D1 databases.
   subcmd_wrangler d1 list
 }
 
-subcmd_d1__remote__info() { # Show the information of the remote D1 database.
-  subcmd_wrangler d1 info --json "$(subcmd_d1__name)"
+subcmd_d1__info() { # Show the information of the production D1 database.
+  subcmd_wrangler d1 info --json "$(subcmd_d1__prod__name)"
 }
 
-# --------------------------------------------------------------------------
-# Create the D1 database
-# --------------------------------------------------------------------------
-
-subcmd_d1__local__create() { # Create the local D1 database.
-  subcmd_d1__local__exec --command "SELECT null"
-}
-
-subcmd_d1__remote__create() { # Create the remote D1 database. This must be executed only once through the project lifecycle.
+subcmd_d1__create() { # Create a new D1 database. This must be executed only once through the project lifecycle.
   subcmd_wrangler d1 create "$@"
 }
 
@@ -69,16 +76,16 @@ subcmd_d1__remote__create() { # Create the remote D1 database. This must be exec
 # Execute SQL commands
 # --------------------------------------------------------------------------
 
-subcmd_d1__exec() { # Execute SQL command in the D1 database.
-  subcmd_wrangler d1 execute "$(subcmd_d1__name)" "$@"
-}
-
 subcmd_d1__local__exec() { # Execute SQL command in the local D1 database.
-  subcmd_d1__exec --local "$@"
+  subcmd_wrangler d1 --env production execute --local "$(subcmd_d1__prod__name)" "$@"
 }
 
-subcmd_d1__remote__exec() { # Execute SQL command in the remote D1 database.
-  subcmd_d1__exec --remote "$@"
+subcmd_d1__prod__exec() { # Execute SQL command in the production D1 database.
+  subcmd_wrangler d1 --env production execute --remote "$(subcmd_d1__prod__name)" "$@"
+}
+
+subcmd_d1__prev__exec() { # Execute SQL command in the preview D1 database.
+  subcmd_wrangler d1 --env preview execute --remote "$(subcmd_d1__prev__name)" "$@"
 }
 
 # --------------------------------------------------------------------------
@@ -87,17 +94,20 @@ subcmd_d1__remote__exec() { # Execute SQL command in the remote D1 database.
 
 subcmd_d1__dump() { # Dump the database.
   local output_file_path="$TEMP_DIR"/dump.sql
-  subcmd_wrangler d1 export "$(subcmd_d1__name)" --output="$output_file_path"
+  subcmd_wrangler d1 export --output="$output_file_path" "$@"
   cat "$output_file_path"
 } 
 
-
 subcmd_d1__local__dump() { # Dump the local database.
-  subcmd_d1__dump --local
+  subcmd_d1__dump --env production --local "$(subcmd_d1__prod__name)"
 }
 
-subcmd_d1__remote__dump() { # Dump the remote database.
-  subcmd_d1__dump --remote
+subcmd_d1__prod__dump() { # Dump the production database.
+  subcmd_d1__dump --env production --remote "$(subcmd_d1__prod__name)"
+}
+
+subcmd_d1__prev__dump() { # Dump the preview database.
+  subcmd_d1__dump --env preview --remote "$(subcmd_d1__prev__name)"
 }
 
 # --------------------------------------------------------------------------
@@ -106,16 +116,20 @@ subcmd_d1__remote__dump() { # Dump the remote database.
 
 subcmd_d1__schema() { # Export the schema of the D1 database.
   local schema_file_path="$TEMP_DIR"/schema.sql 
-  subcmd_wrangler d1 export --no-data "$@" "$(subcmd_d1__name)" --output="$schema_file_path" 1>&2
+  subcmd_wrangler d1 export --no-data "$@" --output="$schema_file_path" 1>&2
   cat "$schema_file_path"
 }
 
 subcmd_d1__local__schema() { # Export the schema of the local D1 database.
-  subcmd_d1__schema --local
+  subcmd_d1__schema --env production --local "$(subcmd_d1__prod__name)"
 }
 
-subcmd_d1__remote__schema() { # Export the schema of the remote D1 database.
-  subcmd_d1__schema --remote
+subcmd_d1__prod__schema() { # Export the schema of the production D1 database.
+  subcmd_d1__schema --env production --remote "$(subcmd_d1__prod__name)"
+}
+
+subcmd_d1__prev__schema() { # Export the schema of the preview D1 database.
+  subcmd_d1__schema --env preview --remote "$(subcmd_d1__prev__name)"
 }
 
 # --------------------------------------------------------------------------
@@ -126,8 +140,12 @@ subcmd_d1__local__seed() { # Seed the local database.
   subcmd_d1__local__exec --file "$db_seed_path_540ec19"
 }
 
-subcmd_d1__remote_seed() { # Seed the remote database.
-  subcmd_d1__remote__exec --file "$db_seed_path_540ec19"
+subcmd_d1__prod_seed() { # Seed the production database.
+  subcmd_d1__prod__exec --file "$db_seed_path_540ec19"
+}
+
+subcmd_d1__prev__seed() { # Seed the preview database.
+  subcmd_d1__prev__exec --file "$db_seed_path_540ec19"
 }
 
 # --------------------------------------------------------------------------
@@ -137,7 +155,7 @@ subcmd_d1__remote_seed() { # Seed the remote database.
 subcmd_d1__local__object__id() { # Calculate the object ID of the Miniflare D1 local database.
   local unique_key name
   unique_key="miniflare-D1DatabaseObject"
-  local name="$(subcmd_d1__id)"
+  local name="$(subcmd_d1__prod__id)"
   # Release v3.20230918.0 · cloudflare/miniflare https://github.com/cloudflare/miniflare/releases/tag/v3.20230918.0
   cat <<EOF | subcmd_node --input-type=module
 import crypto from "node:crypto";
@@ -172,12 +190,21 @@ subcmd_d1__local__delete() { # Delete the local database.
   fi
 }
 
-subcmd_d1__remote__delete() { # Delete the remote database.
-  if prompt_confirm "Do you really want to remove the remote database?" "no"
+subcmd_d1__prod__delete() { # Delete the production database.
+  if prompt_confirm "Do you really want to remove the production database?" "no"
   then
-    subcmd_wrangler d1 delete "$(subcmd_d1__name)"
+    subcmd_wrangler d1 delete "$(subcmd_d1__prod__name)"
   else
-    echo "The remote database is not deleted." >&2
+    echo "The production database is not deleted." >&2
+  fi
+}
+
+subcmd_d1__prev__delete() { # Delete the preview database.
+  if prompt_confirm "Do you really want to remove the preview database?" "no"
+  then
+    subcmd_wrangler d1 delete "$(subcmd_d1__prev__name)"
+  else
+    echo "The preview database is not deleted." >&2
   fi
 }
 
@@ -185,32 +212,46 @@ subcmd_d1__remote__delete() { # Delete the remote database.
 # Show the difference between the database and the schema file
 # --------------------------------------------------------------------------
 
-subcmd_d1__diff() { # Generate the schema difference between the development database and the schema file.
+# Generate the schema difference between the development database and the schema file.
+d1_diff() {
   local mode="$1"
   local db_file_path="$TEMP_DIR"/13c81f9
 
-  subcmd_d1__schema "$mode" | subcmd_sqlite3 "$db_file_path"
+  case "$mode" in
+    (--local) subcmd_d1__local__schema ;;
+    (--prod) subcmd_d1__prod__schema ;;
+    (--prev) subcmd_d1__prev__schema ;;
+  esac | subcmd_sqlite3 "$db_file_path"
   # `--dry-run` prints the SQL commands that would be executed to idempotently apply the schema changes.
   subcmd_sqlite3def --file="$db_schema_path_d4253e5" "$db_file_path" --dry-run
+  rm -f "$db_file_path"
 }
 
 subcmd_d1__local__diff() {
-  subcmd_d1__diff --local
+  d1_diff --local
 }
 
-subcmd_d1__remote__diff() {
-  subcmd_d1__diff --remote
+subcmd_d1__prod__diff() {
+  d1_diff --prod
+}
+
+subcmd_d1__prev__diff() {
+  d1_diff --prev
 }
 
 # --------------------------------------------------------------------------
 # Migrate the database
 # --------------------------------------------------------------------------
 
-subcmd_d1__migrate() { # Apply the schema changes to the development database.
+d1_migrate() { # Apply the schema changes to the development database.
   local mode="$1"
   local diff_sql_path="$TEMP_DIR"/5e31f47
 
-  subcmd_d1__diff "$mode" >"$diff_sql_path"
+  case "$mode" in
+    (--local) subcmd_d1__local__diff ;;
+    (--prod) subcmd_d1__prod__diff ;;
+    (--prev) subcmd_d1__prev__diff ;;
+  esac >"$diff_sql_path"
   if grep -q 'Nothing is modified' "$diff_sql_path"
   then
     echo "No schema changes." >&2
@@ -218,13 +259,21 @@ subcmd_d1__migrate() { # Apply the schema changes to the development database.
   fi
   echo "Applying the schema changes:" >&2
   cat "$diff_sql_path" >&2
-  subcmd_d1__exec "$mode" --file="$diff_sql_path"
+  case "$mode" in
+    (--local) subcmd_d1__local__exec --file="$diff_sql_path" ;;
+    (--prod) subcmd_d1__prod__exec --file="$diff_sql_path" ;;
+    (--prev) subcmd_d1__prev__exec --file="$diff_sql_path" ;;
+  esac
 }
 
-subcmd_d1__local__migrate() {
-  subcmd_d1__migrate --local
+subcmd_d1__local__migrate() { # Apply the schema changes to the local D1 database.
+  d1_migrate --local
 }
 
-subcmd_d1__remote__migrate() {
-  subcmd_d1__migrate --remote
+subcmd_d1__prod__migrate() { # Apply the schema changes to the production D1 database.
+  d1_migrate --prod
+}
+
+subcmd_d1__prev__migrate() { # Apply the schema changes to the preview D1 database.
+  d1_migrate --prev
 }
