@@ -47,11 +47,8 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
   local p="$TASKS_DIR"/node_modules/"$pkg"/"$bin_path"
   if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
   then
-    if ! subcmd_node "$p" "$@"
-    then
-      return $?
-    fi
-    return 0
+    subcmd_node "$p" "$@"
+    return $?
   fi
   if is_windows
   then

@@ -27,12 +27,12 @@ readonly stmts_file_base="$TEMP_DIR"/b6a5748
 # shellcheck disable=SC2064
 chaintrap() {
   local stmts="$1"
-  shift
+  shift 
   local stmts_bak_file="$TEMP_DIR"/347803f
   local sigspec
   for sigspec in "$@"
   do
-    # sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
+    sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
     local stmts_file="$stmts_file_base"-"$sigspec"
     if test -f "$stmts_file"
     then
@@ -42,14 +42,8 @@ chaintrap() {
     fi
     echo "{ $stmts; };" >"$stmts_file"
     cat "$stmts_bak_file" >>"$stmts_file"
-    if test "$sigspec" = "EXIT"
-    then
-      command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$sigspec"
-    else
-      command trap ". '$stmts_file'" "$sigspec"
-    fi
-    # cat -n "$stmts_file" >&2
-    # echo >&2
+    # shellcheck disable=SC2154
+    trap "rc=\$?; . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
   done
 }
 
@@ -569,12 +563,6 @@ kill_child_processes() {
   fi
 }
 
-cleanup() {
-  local rc=$?
-  kill_child_processes
-  exit $rc
-}
-
 # Invoke command with proper executable extension, with the specified invocation mode.
 #
 #   --invocation-mode=exec: Replace the process with the command.
@@ -648,7 +636,9 @@ invoke() {
       ;;
     (exec-sub) exec "$@";;
     (background) "$@" &;;
-    (standard) "$@";;
+    (standard)
+      "$@"
+      ;;
     (*)
       echo "Unknown invocation mode: $invocation_mode" >&2
       exit 1
@@ -1270,8 +1260,7 @@ run_post_task() {
 main() {
   set -o nounset -o errexit
 
-  chaintrap kill_child_processes EXIT
-  chaintrap cleanup INT TERM
+  chaintrap kill_child_processes EXIT TERM INT
 
   # If launched by `task`, $SH is set. Otherwise, determine the shell.
   if test -z "$SH"

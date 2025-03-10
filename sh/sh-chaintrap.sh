@@ -29,14 +29,8 @@ chaintrap() {
     fi
     echo "{ $stmts; };" >"$stmts_file"
     cat "$stmts_bak_file" >>"$stmts_file"
-    if test "$sigspec" = "EXIT"
-    then
-      command trap ". '$stmts_file'; rm -fr '$TEMP_DIR'" "$sigspec"
-    else 
-      command trap ". '$stmts_file'" "$sigspec"
-    fi
-    # cat -n "$stmts_file" >&2
-    # echo >&2
+    # shellcheck disable=SC2154
+    trap "rc=\$?; . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
   done
 }
 
@@ -53,5 +47,8 @@ chaintrap 'echo Baz' EXIT
 chaintrap 'echo Hoge' INT
 chaintrap 'echo Fuga' INT
 
-on_exit
-exec /bin/echo hello
+false
+
+# # Before `exec`, call `on_exit` to run the trap.
+# on_exit
+# exec /bin/echo hello

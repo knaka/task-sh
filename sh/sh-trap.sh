@@ -1,7 +1,21 @@
 #!/bin/sh
-set -o nounset -o errexit
+# set -o nounset -o errexit
 
-test "${guard_7982db1+set}" = set && return 0; guard_7982db1=x
+onInt() {
+  echo "Caught SIGINT" >&2
+}
 
-trap 'echo "Foo"' EXIT
-trap
+onExit() {
+  echo "Exiting" >&2
+}
+
+trap onExit EXIT
+trap onInt INT
+
+echo Entering sleep >&2
+
+sleep 10000
+
+echo Raised from sleep >&2
+
+sleep 10000
