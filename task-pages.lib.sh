@@ -5,9 +5,28 @@ test "${sourced_6b40fea-}" = true && return 0; sourced_6b40fea=true
 . ./task.sh
 . ./task-node.lib.sh
 
-subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
-  run_node_modules_bin esbuild bin/esbuild "$@"
-}
+# subcmd_esbuild() { # Run the esbuild, the JavaScript bundler command.ss
+#   run_node_modules_bin esbuild bin/esbuild "$@"
+# }
+
+# subcmd_esbuild() {
+#     cat <<EOF | subcmd_node --input-type=module
+# import esbuild from "esbuild";
+# import { wasmLoader } from 'esbuild-plugin-wasm'
+
+# esbuild.build({
+#   entryPoints: ["./src-pages/functions/api/add.ts"],
+#   bundle: true,
+#   outfile: "./functions/api/add.js",
+#   platform: "neutral",
+#   format: "esm",
+#   plugins: [
+#     wasmLoader(),
+#   ],
+#   external: ["wasi_snapshot_preview1"],
+# }).catch(() => process.exit(1));
+# EOF
+# }
 
 subcmd_wrangler() { # Run the Cloudflare Wrangler command.
   run_node_modules_bin wrangler bin/wrangler.js "$@"
@@ -15,37 +34,37 @@ subcmd_wrangler() { # Run the Cloudflare Wrangler command.
 
 : "${wrangler_toml_path:=$PROJECT_DIR/wrangler.toml}"
 
-# --------------------------------------------------------------------------
-# Cloudflare Pages Functions.
-# --------------------------------------------------------------------------
+# # --------------------------------------------------------------------------
+# # Cloudflare Pages Functions.
+# # --------------------------------------------------------------------------
 
-: "${pages_functions_src_pattern:="$PROJECT_DIR/src/functions/**/*.ts"}"
+# : "${pages_functions_src_pattern:="$PROJECT_DIR/src/functions/**/*.ts"}"
 
-set_pages_functions_src_pattern() {
-  pages_functions_src_pattern="$1"
-}
+# set_pages_functions_src_pattern() {
+#   pages_functions_src_pattern="$1"
+# }
 
-: "${pages_functions_dir_path:="$PROJECT_DIR"/functions}"
+# : "${pages_functions_dir_path:="$PROJECT_DIR"/functions}"
 
-set_pages_functions_dir_path() {
-  pages_functions_dir_path="$1"
-}
+# set_pages_functions_dir_path() {
+#   pages_functions_dir_path="$1"
+# }
 
-# shellcheck disable=SC2120
-task_pages__functions__build() { # Build the Functions files into a JS file.
-  rm -fr "$pages_functions_dir_path"
-  if test -n "$pages_functions_src_pattern"
-  then
-    set -- "$@" "$pages_functions_src_pattern"
-  fi
-  # `--platform=node` is required to use the Node.js built-in modules even for `require()`.
-  subcmd_esbuild --platform=node --bundle --format=esm --outdir="$pages_functions_dir_path" "$@"
-}
+# # shellcheck disable=SC2120
+# task_pages__functions__build() { # Build the Functions files into a JS file.
+#   rm -fr "$pages_functions_dir_path"
+#   if test -n "$pages_functions_src_pattern"
+#   then
+#     set -- "$@" "$pages_functions_src_pattern"
+#   fi
+#   # `--platform=node` is required to use the Node.js built-in modules even for `require()`.
+#   subcmd_esbuild --platform=node --bundle --format=esm --outdir="$pages_functions_dir_path" "$@"
+# }
 
-task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
-  # Specify "--watch=forever" to keep the process running even after the stdin is closed.
-  task_pages__functions__build --watch=forever "$@"
-}
+# task_pages__functions__watchbuild() { # Watch the functions files and build them into JS files.
+#   # Specify "--watch=forever" to keep the process running even after the stdin is closed.
+#   task_pages__functions__build --watch=forever "$@"
+# }
 
 # --------------------------------------------------------------------------
 # Deployment

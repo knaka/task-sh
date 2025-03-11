@@ -7,6 +7,10 @@ test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
 # All releases - The Go Programming Language https://go.dev/dl/
 go_required_min_ver=go1.23.1
 
+set_go_required_min_ver() {
+  go_required_min_ver="$1"
+}
+
 echo_go_paths() (
   # $GOROOT
   if test "${GOROOT+set}" = set
