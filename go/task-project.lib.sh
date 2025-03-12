@@ -1,6 +1,6 @@
-#!/bin/sh
-test "${guard_ea129a3+set}" = set && return 0; guard_ea129a3=x
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_c572edd-false}" && return 0; sourced_c572edd=true
 
 . ./task.sh
 . ./task-go.lib.sh
@@ -27,43 +27,55 @@ task_gen() { # Generate files.
 
 subcmd_build() ( # Build Go source files incrementally.
   cd "$PROJECT_DIR"
-  go_bin_dir_path=./build
+  local go_bin_dir_path=./build
   mkdir -p "$go_bin_dir_path"
   if test "${1+set}" != "set"
   then
     set -- *.go
   fi
-  for go_file in "$@"
+  local arg
+  for arg in "$@"
   do
-    if ! test -r "$go_file"
+    # Remove ".go" suffix
+    arg="${arg%.go}"
+    if test -r "$arg.go"
     then
-      continue
-    fi
-    name=$(basename "$go_file" .go)
-    target_bin_path="$go_bin_dir_path"/"$name$(exe_ext)"
-    if ! test -x "$target_bin_path" || newer "$go_file" --than "$target_bin_path"
+      local target_bin_path="$go_bin_dir_path"/"$arg""$(exe_ext)"
+      if ! test -x "$target_bin_path" || newer "$go_file" --than "$target_bin_path"
+      then
+        "$VERBOSE" && echo "Building $arg.go" >&2
+        subcmd_go build -o "$target_bin_path" "$arg.go"
+      fi
+    elif test -d ./cmd/"$arg"
     then
-      # echo Building >&2
-      subcmd_go build -o "$target_bin_path" "$name.go"
+      local target_bin_path="$go_bin_dir_path"/"$arg""$(exe_ext)"
+      if ! test -x "$target_bin_path" || newer ./cmd/"$arg" --than "$target_bin_path"
+      then
+        "$VERBOSE" && echo "Building ./cmd/$arg" >&2
+        subcmd_go build -o "$target_bin_path" ./cmd/"$arg"
+      fi
+    else
+      echo "No $arg.go or ./cmd/$arg" >&2
+      exit 1
     fi
   done
 )
 
 task_install() { # Install Go tools.
   cd "$PROJECT_DIR"
-  go_sim_dir_path="$HOME"/go-bin
+  local go_sim_dir_path="$HOME"/go-bin
   mkdir -p "$go_sim_dir_path"
   rm -f "$go_sim_dir_path"/*
-  for go_file in *.go
+  for go_app_path in *.go cmd/*
   do
-    if ! test -r "$go_file"
+    if ! test -r "$go_app_path" && ! test -d "$go_app_path"
     then
       continue
     fi
-    case "$go_file" in
+    case "$go_app_path" in
       task.go|task-*.go) continue ;;
     esac
-    name=$(basename "$go_file" .go)
+    name=$(basename "$go_app_path" .go)
     target_sim_path="$go_sim_dir_path"/"$name"
     if is_windows
     then
