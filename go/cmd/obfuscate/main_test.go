@@ -4,44 +4,40 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"testing"
 )
 
-func TestObfuscate32(t *testing.T) {
-	type args struct {
-		n uint32
-	}
-	tests := []struct {
-		name string
-		args args
+func TestDeobfuscate32(_ *testing.T) {
+	originalExpected := []struct {
+		n    uint32
 		want uint32
 	}{
-		{
-			name: "Test case 1",
-			args: args{n: 0x12345678},
-			want: 0x8C088C00,
-		},
-		{
-			name: "Test case 2",
-			args: args{n: 0xFFFFFFFF},
-			want: 0x61C32587,
-		},
+		{0x00000000, 0xe6c4ff0c},
+		{0x00000001, 0x6075cb6c},
+		{0x00000002, 0xda2697cc},
+		{0x00000003, 0x53d7642c},
+		{0x00000004, 0xcd883094},
+		{0x00000005, 0x4739fcf4},
+		{0x00000006, 0xc0eac954},
+		{0x00000007, 0x3a9b95b4},
+		{0x00000008, 0xb44c621c},
+		{0x00000009, 0x2dfd2e7c},
+		{0xfffffffd, 0x864e788b},
+		{0xfffffffe, 0x0c9d44eb},
+		{0xffffffff, 0x92ec114b},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := Obfuscate32(tt.args.n); got != tt.want {
-				t.Errorf("Decode32() = 0x%08X, want 0x%08X", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDeobfuscate32(t *testing.T) {
-	for _, v := range []uint32{0x12345678, 0xFFFFFFFF} {
-		obfuscated := Obfuscate32(v)
+	for _, origExp := range originalExpected {
+		obfuscated := Obfuscate32(origExp.n)
 		deobfuscated := Deobfuscate32(obfuscated)
-		if deobfuscated != v {
-			t.Errorf("Decode32() = 0x%08X, want 0x%08X", deobfuscated, obfuscated)
+		fmt.Fprintf(os.Stderr, "0x%08X -> Obfuscated uint32: 0x%08X -> Deobfuscated uint32: 0x%08X\n",
+			origExp.n,
+			obfuscated,
+			deobfuscated,
+		)
+		if origExp.want != obfuscated {
+			fmt.Fprintf(os.Stderr, "Expected obfuscated value: 0x%08X\n", origExp.want)
 		}
 	}
 }

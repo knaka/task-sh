@@ -42,7 +42,7 @@ const hashhingConst32 uint32 = 2654435761
 func Obfuscate32(n uint32) uint32 {
 	left, right := n>>16&0xFFFF, n&0xFFFF
 	for i := range rounds {
-		left, right = right, left^((right+uint32(i)+hashhingConst32)*hashhingConst32)&0xFFFF
+		left, right = right, left^((right+uint32(i+1)<<2)*hashhingConst32)&0xFFFF
 	}
 	return left<<16 | right
 }
@@ -51,16 +51,44 @@ func Obfuscate32(n uint32) uint32 {
 func Deobfuscate32(n uint32) uint32 {
 	left, right := n>>16&0xFFFF, n&0xFFFF
 	for i := rounds - 1; i >= 0; i-- {
-		left, right = right^((left+uint32(i)+hashhingConst32)*hashhingConst32)&0xFFFF, left
+		left, right = right^((left+uint32(i+1)<<2)*hashhingConst32)&0xFFFF, left
 	}
 	return left<<16 | right
 }
 
 func main() {
-	for _, v := range []uint32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFFFFFFFD, 0xFFFFFFFE, 0xFFFFFFFF} {
-		fmt.Fprintf(os.Stderr, "0x%08X -> Obfuscated uint32: 0x%08X\n",
-			v,
-			Obfuscate32(uint32(v)),
-		)
+	originalExpected := []struct {
+		n    uint32
+		want uint32
+	}{
+		{0, 0xE6C4FF0C},
+		{1, 0x6075CB6C},
+		{2, 0xDA2697CC},
+		{3, 0x53D7642C},
+		{4, 0xCD883094},
+		{5, 0x4739FCF4},
+		{6, 0xC0EAC954},
+		{7, 0x3A9B95B4},
+		{8, 0xB44C621C},
+		{9, 0x2DFD2E7C},
+		{0xFFFFFFFD, 0x864E788B},
+		{0xFFFFFFFE, 0x0C9D44EB},
+		{0xFFFFFFFF, 0x92EC114B},
 	}
+	for _, origExp := range originalExpected {
+		obfuscated := Obfuscate32(origExp.n)
+		deobfuscated := Deobfuscate32(obfuscated)
+		fmt.Fprintf(os.Stderr, "0x%08X -> Obfuscated uint32: 0x%08X -> Deobfuscated uint32: 0x%08X\n",
+			origExp.n,
+			obfuscated,
+			deobfuscated,
+		)
+		if origExp.want != obfuscated {
+			fmt.Fprintf(os.Stderr, "Expected obfuscated value: 0x%08X\n", origExp.want)
+		}
+	}
+	var x uint32 = 0xFFFFFFFF
+	var y uint32 = 0xFFFFFFFF
+	var z = x * y
+	fmt.Fprintf(os.Stderr, "0x%08X * 0x%08X = 0x%08X (%d)\n", x, y, z, z)
 }
