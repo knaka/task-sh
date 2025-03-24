@@ -20,20 +20,21 @@ subcmd_node() { # Run Node.js.
   invoke node "$@"
 }
 
+last_check_path="$PROJECT_DIR"/node_modules/.npm_last_check
+
 subcmd_npm__install() { # Install the npm packages if the package.json is modified.
-  first_call ac87fe4 || return 0
-  ! test -f "$TASKS_DIR"/package.json && return 1
-  local last_check_path="$TASKS_DIR"/node_modules/.npm_last_check
+  ! test -f "$PROJECT_DIR"/package.json && return 1
   while true
   do
-    ! test -d "$TASKS_DIR"/node_modules/ && break
-    ! test -f "$TASKS_DIR"/package-lock.json && break
+    test "$#" -gt 0 && break
+    first_call ac87fe4 || return 0
+    ! test -d "$PROJECT_DIR"/node_modules/ && break
+    ! test -f "$PROJECT_DIR"/package-lock.json && break
     ! test -f "$last_check_path" && break
-    newer "$TASKS_DIR"/package.json --than "$last_check_path" && break
-    newer "$TASKS_DIR"/package-lock.json --than "$last_check_path" && break
+    newer "$PROJECT_DIR"/package.json --than "$last_check_path" && break
+    newer "$PROJECT_DIR"/package-lock.json --than "$last_check_path" && break
     return 0
   done
-  echo "Installing npm packages." >&2
   subcmd_npm install "$@"
   touch "$last_check_path"
 }
@@ -65,7 +66,8 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
 }
 
 subcmd_npm__dev__install() { # Install the npm packages for development.
-  subcmd_npm install --save --include-dev "$@"
+  subcmd_npm install --save-dev "$@"
+  touch "$last_check_path"
 }
 
 subcmd_npm__ensure() { # Ensure the npm packages are installed.
@@ -74,7 +76,8 @@ subcmd_npm__ensure() { # Ensure the npm packages are installed.
   do
     if ! subcmd_node -e "require.resolve('${package}')" >/dev/null 2>&1
     then
-      subcmd_npm install --save --include-dev "${package}"
+      subcmd_npm install --save-dev "${package}"
     fi
   done
+  touch "$last_check_path"
 }

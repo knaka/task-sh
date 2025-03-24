@@ -36,12 +36,10 @@ task_astro__dev() { # Launch the Astro development server.
     menu \
       "Open a &browser" \
       "&Clear console" \
-      "Bui&ld" \
       "E&xit"
     case "$(get_key)" in
       (b) browse "http://$host:$port" ;;
       (c) clear ;;
-      (l) task_astro__build ;;
       (x) break ;;
       (*) ;;
     esac

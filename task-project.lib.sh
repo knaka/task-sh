@@ -269,7 +269,7 @@ subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two
   local rem_pattern='\[\-.*\-\]'
   local mod_pattern="$rem_pattern$add_pattern"
 
-  local rc=0
+  local files="$TEMP_DIR"/b3f3106
   local dir1_path="$1"
   if ! test -d "$dir1_path"
   then
@@ -311,10 +311,17 @@ subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two
         "$(test "$num_mod" -gt 0 && echo " Modified: $num_mod," || :)" \
       | sed -e 's/,$//'
       diff -u "$file1_path" "$file2_path" | sed -e 's/^/  /'
-      rc=1
+      echo "$file2_path" >>"$files"
     fi
   done
-  return "$rc"
+  if test -e "$files"
+  then
+    echo >&2
+    echo "Modified files:" >&2
+    cat "$files" >&2
+    return 1
+  fi
+  return 0
 }
 
 task_dupcheck() {
