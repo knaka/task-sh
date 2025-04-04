@@ -77,11 +77,11 @@ subcmd_d1__create() { # Create a new D1 database. This must be executed only onc
 # --------------------------------------------------------------------------
 
 subcmd_d1__local__exec() { # Execute SQL command in the local D1 database.
-  subcmd_wrangler d1 --env production execute --local "$(subcmd_d1__prod__name)" "$@"
+  subcmd_wrangler d1 execute --local "$(subcmd_d1__prod__name)" "$@"
 }
 
 subcmd_d1__prod__exec() { # Execute SQL command in the production D1 database.
-  subcmd_wrangler d1 --env production execute --remote "$(subcmd_d1__prod__name)" "$@"
+  subcmd_wrangler d1 execute --remote "$(subcmd_d1__prod__name)" "$@"
 }
 
 subcmd_d1__prev__exec() { # Execute SQL command in the preview D1 database.
@@ -99,11 +99,11 @@ subcmd_d1__dump() { # Dump the database.
 } 
 
 subcmd_d1__local__dump() { # Dump the local database.
-  subcmd_d1__dump --env production --local "$(subcmd_d1__prod__name)"
+  subcmd_d1__dump --local "$(subcmd_d1__prod__name)"
 }
 
 subcmd_d1__prod__dump() { # Dump the production database.
-  subcmd_d1__dump --env production --remote "$(subcmd_d1__prod__name)"
+  subcmd_d1__dump --remote "$(subcmd_d1__prod__name)"
 }
 
 subcmd_d1__prev__dump() { # Dump the preview database.
@@ -121,11 +121,11 @@ subcmd_d1__schema() { # Export the schema of the D1 database.
 }
 
 subcmd_d1__local__schema() { # Export the schema of the local D1 database.
-  subcmd_d1__schema --env production --local "$(subcmd_d1__prod__name)"
+  subcmd_d1__schema --local "$(subcmd_d1__prod__name)"
 }
 
 subcmd_d1__prod__schema() { # Export the schema of the production D1 database.
-  subcmd_d1__schema --env production --remote "$(subcmd_d1__prod__name)"
+  subcmd_d1__schema --remote "$(subcmd_d1__prod__name)"
 }
 
 subcmd_d1__prev__schema() { # Export the schema of the preview D1 database.

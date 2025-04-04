@@ -1,6 +1,6 @@
-# vim: set filetype=sh :
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-test "${guard_ca67a57+set}" = set && return 0; guard_ca67a57=true
+"${sourced_e6646fd-false}" && return 0; sourced_e6646fd=true
 
 . ./task.sh
 . ./task-volta.lib.sh
