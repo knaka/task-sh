@@ -28,32 +28,32 @@ mkdir -p ./build/
 
 subcmd_d1__prod__binding() { # [index = 0] Show the binding name of the production D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
+  yq --exit-status eval ".env.production.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
 }
 
 subcmd_d1__prev__binding() { # [index = 0] Show the binding name of the preview D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
+  yq --exit-status eval ".env.preview.d1_databases.$index.binding // .d1_databases.$index.binding" "$wrangler_toml_path"
 }
 
 subcmd_d1__prod__name() { # [index = 0] Show the production name of the D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
+  yq --exit-status eval ".env.production.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
 }
 
 subcmd_d1__prev__name() { # [index = 0] Show the preview name of the D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
+  yq --exit-status eval ".env.preview.d1_databases.$index.database_name // .d1_databases.$index.database_name" "$wrangler_toml_path"
 }
 
 subcmd_d1__prod__id() { # [index = 0] Show the ID of the production D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.production.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
+  yq --exit-status eval ".env.production.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
 }
 
 subcmd_d1__prev__id() { # [index = 0] Show the ID of the preview D1 database configured in the configuration file.
   local index="${1:-0}"
-  subcmd_yq --exit-status eval ".env.preview.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
+  yq --exit-status eval ".env.preview.d1_databases.$index.database_id // .d1_databases.$index.database_id" "$wrangler_toml_path"
 }
 
 # --------------------------------------------------------------------------

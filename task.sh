@@ -99,8 +99,8 @@ cache_dir_path() {
   # then
   #   global_cache_dir_path="$HOME/Library/Caches"
   # fi
-  mkdir -p "$global_cache_dir_path"/task_sh
-  echo "$global_cache_dir_path"/task_sh
+  mkdir -p "$global_cache_dir_path"/task-sh
+  echo "$global_cache_dir_path"/task-sh
 }
 
 # --------------------------------------------------------------------------
@@ -635,9 +635,9 @@ invoke() {
       exec "$@"
       ;;
     (exec-sub) exec "$@";;
-    (background) "$@" &;;
+    (background) command "$@" &;;
     (standard)
-      "$@"
+      command "$@"
       ;;
     (*)
       echo "Unknown invocation mode: $invocation_mode" >&2
@@ -661,6 +661,71 @@ browse() {
     echo "Unsupported OS: $(uname -s)" >&2
     exit 1
   fi
+}
+
+register_cmd() {
+  local cmd_name="$1"
+  shift
+  local brew_id=
+  OPTIND=1; while getopts _-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (brew-id) eval cmd_"$cmd_name"_brew_id=\""$OPTARG"\";;
+      (fallback) eval cmd_"$cmd_name"_fallback=\""$OPTARG"\";;
+    esac
+  done
+  shift $((OPTIND-1))
+}
+
+: "${TASK_AUTO_INSTALL:=false}"
+
+run_cmd() {
+  local cmd_name="$1"
+  shift
+  local cmd_path
+  while :
+  do
+    if which "$cmd_name" >/dev/null 2>&1
+    then
+      cmd_path="$cmd_name"
+      break
+    fi
+    printf "Command '%s' not found. " "$cmd_name" >&2
+    if is_macos
+    then
+      brew_id="$(eval echo "\${cmd_${cmd_name}_brew_id-}")"
+      if test -n "$brew_id"
+      then
+        if ! "$TASK_AUTO_INSTALL"
+        then
+          printf "Run the folowing command to install:\n\n  brew install %s\n" "$brew_id" >&2
+          exit 1
+        fi
+        brew install "$brew_id" 1>&2
+        if which "$cmd_name" >/dev/null 2>&1
+        then
+          cmd_path="$cmd_name"
+          break
+        fi
+      fi
+    fi
+    fallback="$(eval echo "\${cmd_${cmd_name}_fallback-}")"
+    if test -n "$fallback"
+    then
+      echo "$fallback" >&2
+      exit 1
+    fi
+    echo
+    exit 1
+  done
+  invoke "$cmd_path" "$@"
 }
 
 # Ensure the command is installed.
@@ -805,6 +870,31 @@ subcmd_apt_download() {
     'Acquire::https::Verify-Host "false";' \
     >"$apt_conf_path"
   /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
+}
+
+go_os() {
+  case "$(uname -s)" in
+    Linux) echo "linux" ;;
+    Darwin) echo "darwin" ;;
+    Windows) echo "windows" ;;    
+    *)
+      echo "Unknown OS: $(uname -s)"
+      return 1
+      ;;
+  esac
+}
+
+go_arch() {
+  case "$(uname -m)" in
+    x86_64) echo "amd64" ;;
+    aarch64) echo "arm64" ;;
+    armv7l) echo "arm" ;;
+    i386) echo "386" ;;
+    *)
+      echo "Unknown architecture: $(uname -m)"
+      return 1
+      ;;
+  esac
 }
 
 subcmd_fetch() { # Fetch data from the URL to the standard output.

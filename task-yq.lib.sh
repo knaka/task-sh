@@ -1,13 +1,28 @@
-#!/bin/sh
-test "${guard_be3b5ef+set}" = set && return 0; guard_be3b5ef=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_0fe9d5f-false}" && return 0; sourced_0fe9d5f=true
 
 . ./task.sh
 
-subcmd_yq() { # Run jq(1).
-  run_pkg_cmd \
-    --cmd=yq \
-    --brew-id=yq \
-    --winget-id=mikefarah.yq \
-    --win-cmd-path="$HOME"/AppData/Local/Microsoft/WinGet/Links/yq.exe \
-    -- "$@"
+# Releases · mikefarah/yq https://github.com/mikefarah/yq/releases
+yq_version_c887ee2="v4.45.1"
+
+set_yq_version() {
+  yq_version_c887ee2="$1"
+}
+
+yq() {
+  local app_dir_path="$(cache_dir_path)"/yq
+  mkdir -p "$app_dir_path"
+  local cmd_path="$app_dir_path"/yq@"$yq_version_c887ee2"
+  if ! command -v "$cmd_path" >/dev/null 2>&1
+  then
+    subcmd_fetch "https://github.com/mikefarah/yq/releases/download/${yq_version_c887ee2}/yq_$(go_os)_$(go_arch)" >"$cmd_path"
+    chmod +x "$cmd_path"
+  fi
+  invoke "$cmd_path" "$@"
+}
+
+subcmd_yq() { # Run yq(1).
+  yq "$@"
 }
