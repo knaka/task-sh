@@ -344,6 +344,13 @@ exe_ext() {
   fi
 }
 
+exe_ext=
+if is_windows
+then
+  # shellcheck disable=SC2034
+  exe_ext=".exe"
+fi
+
 if is_macos
 then
   alias sha1sum='shasum -a 1'
@@ -854,14 +861,6 @@ run_pkg_cmd() {
   invoke "$cmd_path" "$@"
 }
 
-subcmd_curl() { # Run curl(1). This will be deprecated. Use `fetch` instead.
-  run_pkg_cmd \
-    --cmd=curl \
-    --deb-id=curl \
-    --apk-id=curl \
-    -- "$@"
-}
-
 subcmd_apt_download() {
   ! is_debian && return 1
   local apt_conf_path="$TEMP_DIR"/apt.conf
@@ -870,6 +869,66 @@ subcmd_apt_download() {
     'Acquire::https::Verify-Host "false";' \
     >"$apt_conf_path"
   /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
+}
+
+curl() {
+  local cmd_path=
+  if which curl >/dev/null 2>&1
+  then
+    cmd_path="$(which curl)"
+  elif test -x "$(cache_dir_path)"/curl
+  then
+    cmd_path="$(cache_dir_path)"/curl
+  elif is_linux && test -x /usr/lib/apt/apt-helper
+  then
+    # Release v8.11.0 · moparisthebest/static-curl https://github.com/moparisthebest/static-curl/releases/tag/v8.11.0
+    local curl_version=v8.11.0
+    # Copied from `sha256sum.txt`
+    local curl_sha256sums='
+d18aa1f4e03b50b649491ca2c401cd8c5e89e72be91ff758952ad2ab5a83135d  ./curl-amd64
+1a4747fd88b31b93bf48bcace9d1e3ebf348afbbf8c0a6f4e1751795ea6ff39b  ./curl-i386
+1b050abd1669f9a2ac29b34eb022cdeafb271dce5a4fb57d8ef8fadff6d7be1f  ./curl-aarch64
+779a1bd9f486fd5ff1da25d5e5bb99c58bc79ded22344f2b7ff366cf645a6630  ./curl-armv7
+b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
+50be538158f06fa71a4751d9f3f06932dc90337d43768b4963af51e84ebb65ac  ./curl-ppc64le
+'
+    cmd_path="$(cache_dir_path)"/curl
+    local arch=
+    case "$(uname -m)" in
+      (x86_64) arch=amd64;;
+      (aarch64) arch=aarch64;;
+      (*) echo "Unsupported architecture: $(uname -m)" >&2; return 1;;
+    esac
+    local url="https://github.com/moparisthebest/static-curl/releases/download/$curl_version/curl-$arch"
+    subcmd_apt_download "$url" "$cmd_path"
+    if ! echo "$(echo "$curl_sha256sums" | grep "$(basename "$url")" | cut -d' ' -f1)" "$cmd_path" | sha256sum --check --status
+    then
+      echo "curl checksum mismatch." >&2
+      return 1
+    fi
+    chmod +x "$cmd_path"
+  else
+    echo "No way to download curl." >&2
+    return 1
+  fi
+  if ! test -d /etc/ssl
+  then
+    # curl - Extract CA Certs from Mozilla https://curl.se/docs/caextract.html
+    local cacert_url="https://curl.se/ca/cacert-2024-12-31.pem"
+    local cacert_sha256sum="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5"
+    "$cmd_path" --insecure --fail --location --output "$(cache_dir_path)"/cacert.pem "$cacert_url"
+    if ! echo "$cacert_sha256sum" "$(cache_dir_path)"/cacert.pem | sha256sum --check --status 1>&2
+    then
+      echo "cacert.pem checksum mismatch." >&2
+      return 1
+    fi
+    set -- --cacert "$(cache_dir_path)"/cacert.pem "$@"
+  fi
+  "$cmd_path" "$@"
+}
+
+subcmd_curl() { # Run curl(1). This will be deprecated. Use `fetch` instead.
+  curl "$@"
 }
 
 go_os() {
@@ -962,7 +1021,7 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
     fi
     set -- --cacert "$(cache_dir_path)"/cacert.pem "$@"
   fi
-  invoke "$curl_path" --location --output - "$@"
+  invoke "$curl_path" --fail --location --output - "$@"
 }
 
 # Load environment variables from the specified file.

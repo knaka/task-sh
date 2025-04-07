@@ -6,13 +6,12 @@
 
 register_cmd oci \
   --brew-id=oci-cli \
-  --fallback="Refer to the following page for installation instructions. // Quickstart https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm" \
-  # NOP
+  --fallback="Refer to the following page for installation instructions. // Quickstart https://docs.oracle.com/iaas/Content/API/SDKDocs/cliinstall.htm"
 
 oci() {
   run_cmd oci "$@"
 }
 
-subcmd_oci() {
+subcmd_oci() { # Run OCI CLI command.
   oci "$@"
 }
