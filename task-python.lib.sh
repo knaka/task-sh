@@ -77,19 +77,23 @@ uv() {
   invoke uv "$@"
 }
 
-subcmd_uv() {
+subcmd_uv() { # Run uv(1)
   uv "$@"
 }
 
-subcmd_uvx() {
+uvx() {
   set_uv_env
   invoke uvx "$@"
+}
+
+subcmd_uvx() { # Run uvx(1)
+  uvx "$@"
 }
 
 python3() {
   uv run python3 "$@"
 }
 
-subcmd_python3() {
+subcmd_python3() { # Run python3 in a UV environment
   python3 "$@"
 }

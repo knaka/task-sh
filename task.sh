@@ -861,7 +861,7 @@ run_pkg_cmd() {
   invoke "$cmd_path" "$@"
 }
 
-subcmd_apt_download() {
+apt_download() {
   ! is_debian && return 1
   local apt_conf_path="$TEMP_DIR"/apt.conf
   printf "%s\n" \
@@ -900,7 +900,7 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
       (*) echo "Unsupported architecture: $(uname -m)" >&2; return 1;;
     esac
     local url="https://github.com/moparisthebest/static-curl/releases/download/$curl_version/curl-$arch"
-    subcmd_apt_download "$url" "$cmd_path"
+    apt_download "$url" "$cmd_path"
     if ! echo "$(echo "$curl_sha256sums" | grep "$(basename "$url")" | cut -d' ' -f1)" "$cmd_path" | sha256sum --check --status
     then
       echo "curl checksum mismatch." >&2
@@ -931,7 +931,7 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
   "$cmd_path" "$@"
 }
 
-subcmd_curl() { # Run curl(1). This will be deprecated. Use `fetch` instead.
+subcmd_curl() { # Run curl(1).
   curl "$@"
 }
 
@@ -1001,7 +1001,7 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
     esac
     mkdir -p "$(dirname "$curl_path")"
     local curl_url="https://github.com/moparisthebest/static-curl/releases/download/$curl_version/curl-$arch"
-    subcmd_apt_download "$curl_url" "$curl_path"
+    apt_download "$curl_url" "$curl_path"
     if ! echo "$(echo "$curl_sha256sums" | grep "$(basename "$curl_url")" | cut -d' ' -f1)" "$curl_path" | sha256sum --check --status
     then
       echo "curl checksum mismatch." >&2
@@ -1386,7 +1386,7 @@ $(task_tasks | while IFS= read -r line; do echo "  $line"; done)
 EOF
 )
 
-subcmd_exec() { # Execute a command in task.sh context.
+subcmd_task__exec() { # Execute a command in task.sh context.
   backup_shell_flags
   set +o errexit
   "$@"
