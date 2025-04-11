@@ -1,14 +1,18 @@
+// dm CLI command to dump a file in hex format
 package main
 
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/term"
 	"io"
 	"os"
 	"strings"
 
+	"golang.org/x/term"
+
+	//revive:disable:dot-imports
 	. "github.com/knaka/go-utils"
+	//revive:enable:dot-imports
 )
 
 func printable(ch byte) bool {
@@ -26,6 +30,7 @@ const (
 
 const stdinFilename = "-"
 
+// Dump dumps a file in hex format. If the filename is "-", it reads from stdin. If the writer is a terminal, it uses colors.
 func dumpFile(filePath string, writer io.Writer) {
 	colored := false
 	if file, ok := writer.(*os.File); ok {

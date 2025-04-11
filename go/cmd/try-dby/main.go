@@ -4,7 +4,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/ulfox/dby/db"
 
+	//revive:disable:dot-imports
 	. "github.com/knaka/go-utils"
+	//revive:enable:dot-imports
 )
 
 func main() {

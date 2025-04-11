@@ -3,12 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
-	. "github.com/knaka/go-utils"
-	"github.com/spf13/pflag"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/spf13/pflag"
+
+	//revive:disable:dot-imports
+	. "github.com/knaka/go-utils"
+	//revive:enable:dot-imports
 )
 
 var weekDays = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
