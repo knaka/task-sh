@@ -1,9 +1,7 @@
-/**
- * Obfuscate a string
- */
 package main
 
 import (
+	"app/obfuscate"
 	"fmt"
 	"os"
 )
@@ -11,50 +9,11 @@ import (
 // hashingConst8 = 2**8 * (-1 + sqrt(5)) / 2
 const hashingConst8 = 158
 
-// Obfuscate obfuscates a byte array
-func Obfuscate(array []byte) []byte {
-	for i := range array {
-		left := array[i] >> 4 & 0x0F
-		right := array[i] & 0x0F
-		for j := range rounds {
-			left, right = right, left^(right*hashingConst8+uint8(j))&0x0F
-		}
-		array[i] = left<<4 | right
-	}
-	return array
-}
-
-// Deobfuscate deobfuscates a byte array
-func Deobfuscate(array []byte) []byte {
-	for i := range array {
-		array[i] ^= uint8(hashingConst8 * (i + 1) % 256)
-	}
-	return array
-}
-
 // rounds is the number of rounds to obfuscate
 const rounds = 2
 
 // hashingConst8 = 2**32 * (-1 + sqrt(5)) / 2
 const hashhingConst32 uint32 = 2654435761
-
-// Obfuscate32 obfuscates a 32-bit unsigned integer
-func Obfuscate32(n uint32) uint32 {
-	left, right := n>>16&0xFFFF, n&0xFFFF
-	for i := range rounds {
-		left, right = right, left^((right+uint32(i+1)<<2)*hashhingConst32)&0xFFFF
-	}
-	return left<<16 | right
-}
-
-// Deobfuscate32 deobfuscates a 32-bit unsigned integer
-func Deobfuscate32(n uint32) uint32 {
-	left, right := n>>16&0xFFFF, n&0xFFFF
-	for i := rounds - 1; i >= 0; i-- {
-		left, right = right^((left+uint32(i+1)<<2)*hashhingConst32)&0xFFFF, left
-	}
-	return left<<16 | right
-}
 
 func main() {
 	originalExpected := []struct {
@@ -76,8 +35,8 @@ func main() {
 		{0xFFFFFFFF, 0x92EC114B},
 	}
 	for _, origExp := range originalExpected {
-		obfuscated := Obfuscate32(origExp.n)
-		deobfuscated := Deobfuscate32(obfuscated)
+		obfuscated := obfuscate.Obfuscate32(origExp.n)
+		deobfuscated := obfuscate.Deobfuscate32(obfuscated)
 		fmt.Fprintf(os.Stderr, "0x%08X -> Obfuscated uint32: 0x%08X -> Deobfuscated uint32: 0x%08X\n",
 			origExp.n,
 			obfuscated,

@@ -1,7 +1,4 @@
-/**
- * Obfuscate a string
- */
-package main
+package obfuscate
 
 import (
 	"fmt"
