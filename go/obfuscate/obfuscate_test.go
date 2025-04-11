@@ -24,6 +24,7 @@ func TestDeobfuscate32(_ *testing.T) {
 		{0xfffffffd, 0x864e788b},
 		{0xfffffffe, 0x0c9d44eb},
 		{0xffffffff, 0x92ec114b},
+		{0xdeadbeaf, 0xaa6e1f39},
 	}
 	for _, origExp := range originalExpected {
 		obfuscated := Obfuscate32(origExp.n)
