@@ -2,6 +2,8 @@
 # shellcheck shell=sh
 "${sourced_71191d2-false}" && return 0; sourced_71191d2=true
 
+# Terraform by HashiCorp https://www.terraform.io/
+
 . ./task.sh
 
   # Terraform Versions | HashiCorp Releases https://releases.hashicorp.com/terraform/
@@ -9,6 +11,12 @@ terraform_version_0db0d51="1.9.8"
 
 set_terraform_version() {
   terraform_version_0db0d51="$1"
+}
+
+terraform_path_ca65267=.
+
+set_terraform_path() {
+  terraform_path_ca65267="$1"
 }
 
 terraform() {
@@ -39,7 +47,9 @@ terraform() {
     pop_dir
     chmod +x "$cmd_path"
   fi
+  push_dir "$terraform_path_ca65267"
   "$cmd_path" "$@"
+  pop_dir
 }
 
 subcmd_terraform() { # Run terraform command

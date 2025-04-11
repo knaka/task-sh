@@ -72,12 +72,24 @@ set_uv_env() {
   PATH="$(uv_dir_path):$PATH"
 }
 
-subcmd_uv() {
+uv() {
   set_uv_env
   invoke uv "$@"
+}
+
+subcmd_uv() {
+  uv "$@"
 }
 
 subcmd_uvx() {
   set_uv_env
   invoke uvx "$@"
+}
+
+python3() {
+  uv run python3 "$@"
+}
+
+subcmd_python3() {
+  python3 "$@"
 }

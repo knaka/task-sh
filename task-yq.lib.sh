@@ -22,16 +22,16 @@ yq() {
     local os_arch="$(uname -s -m)"
     local os
     case "${os_arch% *}" in
-      (Linux) os="linux" ;;
-      (Darwin) os="darwin" ;;
-      (Windows) os="windows" ;;
-      (*) return 1 ;;
+      (Linux) os="linux";;
+      (Darwin) os="darwin";;
+      (Windows) os="windows";;
+      (*) return 1;;
     esac
     local arch
     case "${os_arch#* }" in
-      (x86_64) arch="amd64" ;;
-      (aarch64) arch="arm64" ;;
-      (*) return 1 ;;
+      (x86_64) arch="amd64";;
+      (aarch64) arch="arm64";;
+      (*) return 1;;
     esac
     local url="https://github.com/mikefarah/yq/releases/download/${yq_version_c887ee2}/yq_${os}_${arch}${exe_ext}"
     echo "Downloading yq from $url" >&2

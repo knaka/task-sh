@@ -913,16 +913,20 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
   fi
   if ! test -d /etc/ssl
   then
-    # curl - Extract CA Certs from Mozilla https://curl.se/docs/caextract.html
-    local cacert_url="https://curl.se/ca/cacert-2024-12-31.pem"
-    local cacert_sha256sum="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5"
-    "$cmd_path" --insecure --fail --location --output "$(cache_dir_path)"/cacert.pem "$cacert_url"
-    if ! echo "$cacert_sha256sum" "$(cache_dir_path)"/cacert.pem | sha256sum --check --status 1>&2
+    local ca_cert_path="$(cache_dir_path)"/cacert.pem
+    if ! test -r "$ca_cert_path"
     then
-      echo "cacert.pem checksum mismatch." >&2
-      return 1
+      # curl - Extract CA Certs from Mozilla https://curl.se/docs/caextract.html
+      local cacert_url="https://curl.se/ca/cacert-2024-12-31.pem"
+      local cacert_sha256sum="a3f328c21e39ddd1f2be1cea43ac0dec819eaa20a90425d7da901a11531b3aa5"
+      "$cmd_path" --insecure --fail --location --output "$(cache_dir_path)"/cacert.pem "$cacert_url"
+      if ! echo "$cacert_sha256sum" "$(cache_dir_path)"/cacert.pem | sha256sum --check --status 1>&2
+      then
+        echo "cacert.pem checksum mismatch." >&2
+        return 1
+      fi
     fi
-    set -- --cacert "$(cache_dir_path)"/cacert.pem "$@"
+    set -- --cacert "$ca_cert_path" "$@"
   fi
   "$cmd_path" "$@"
 }
