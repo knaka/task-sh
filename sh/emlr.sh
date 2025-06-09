@@ -64,7 +64,7 @@ emlr() {
       (*.cmt.csv|*.cmt.tsv)
         file_ext="${file_path##*.}"
         script_file_path="$TEMP_DIR"/script.mlr
-        sed -n -e 's/^# MLR: \(.*\)/\1/p' -e 's/^# MILLER: \(.*\)/\1/p' "$file_path" >"$script_file_path"
+        sed -n -E -e 's/^# \+MLR: *(.*)/\1/p' -e 's/^# \+MILLER: *(.*)/\1/p' "$file_path" >"$script_file_path"
         if ! test -s "$script_file_path"
         then
           echo "No MLR script found in $file_path." >&2
