@@ -26,25 +26,45 @@ ed() {
   done
   shift $((OPTIND-1))
 
+  # Prompt for confirmation
+  # Resolve all symlinks, as the links amongh Markdown files not to be broken
   local arg
   for arg in "$@"
   do
-    if ! test -e "$arg"
+    if test -e "$arg"
     then
-      printf "%s does not exist. " "$arg" >&2
-      if ! prompt_confirm "Create?" "n" >&2
+      arg="$(realpath "$arg")"
+      if test -d "$arg"
       then
-        exit 0
+        printf "%s is a directory. " "$arg" >&2
+        if ! prompt_confirm "Open?" "n" >&2
+        then
+          exit 0
+        fi
+      elif test -f "$arg"
+      then
+        arg="$(realpath "$arg")"
+      else
+        exit 1
       fi
-      touch "$arg"
-    elif test -d "$arg"
-    then
-      printf "%s is a directory. " "$arg" >&2
-      if ! prompt_confirm "Open?" "n" >&2
+    else
+      # Resolve only directory symlinks, as the file does not exist
+      local arg_dir="$(realpath "$(dirname "$arg")")"
+      local arg_base="$(basename "$arg")"
+      arg="$arg_dir/$arg_base"
+      if ! test -e "$arg"
       then
-        exit 0
+        printf "File %s does not exist. " "$arg" >&2
+        if ! prompt_confirm "Create?" "n" >&2
+        then
+          exit 0
+        fi
+        mkdir -p "$arg_dir"
+        touch "$arg"
       fi
     fi
+    shift
+    set -- "$@" "$arg"
   done
 
   # VSCode
@@ -56,7 +76,6 @@ ed() {
     fi
     set -- code "$@"
   fi
-
   finalize
   exec "$@"
 }

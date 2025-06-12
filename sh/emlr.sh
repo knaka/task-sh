@@ -92,7 +92,6 @@ emlr() {
     then
       set -- "$@" -I
     fi
-    cat "$script_file_path" >&2
     # Subcommand and its arguments
     set -- "$@" put -f "$script_file_path" "$file_path"
     mlr "$@"
