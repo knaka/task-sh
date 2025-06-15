@@ -11,7 +11,8 @@ import (
 
 	"github.com/spf13/pflag"
 
-	. "github.com/knaka/go-utils" //revive:disable-line dot-import
+	//revive:disable-next-line dot-import
+	. "github.com/knaka/go-utils"
 )
 
 var weekDays = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
