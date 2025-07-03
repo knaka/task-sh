@@ -670,10 +670,402 @@ browse() {
   fi
 }
 
-register_cmd() {
-  local cmd_name="$1"
+# --------------------------------------------------------------------------
+# US-separated value functions.
+# --------------------------------------------------------------------------
+
+# Head of vector.
+vec_head() {
+  push_ifs
+  IFS="$us"
+  test $# -eq 0 && return 1
+  # shellcheck disable=SC2086
+  set -- $1
+  printf "%s" "$1"
+  pop_ifs
+}
+
+# Tail of vector.
+vec_tail() {
+  push_ifs
+  IFS="$us"
+  test $# -eq 0 && return 1
+  # shellcheck disable=SC2086
+  set -- $1
   shift
+  local item
+  for item in "$@"
+  do
+    printf "%s%s" "$item" "$us"
+  done
+  pop_ifs
+}
+
+vec_length() {
+  push_ifs
+  IFS="$us"
+  # shellcheck disable=SC2086
+  set -- $1
+  echo "$#"
+  pop_ifs
+}
+
+vec_empty() {
+  test -z "$1"
+}
+
+# Join US-separated values with a delimiter.
+vec_join() {
+  push_ifs
+  IFS="$us"
+  local out_delim="$2"
+  # shellcheck disable=SC2086
+  set -- $1
+  local delim=
+  local arg=
+  for arg in "$@"
+  do
+    printf "%s%s" "$delim" "$arg"
+    delim="$out_delim"
+  done
+  pop_ifs
+}
+
+# Get an item at a specified index.
+vec_at() {
+  push_ifs
+  IFS="$us"
+  local i=0
+  local item
+  for item in $1
+  do
+    if test "$i" = "$2"
+    then
+      if test "${3+set}" = set
+      then
+        printf "%s%s" "$3" "$us"
+      else
+        printf "%s" "$item"
+        pop_ifs
+        return
+      fi
+    else
+      if test "${3+set}" = set
+      then
+        printf "%s%s" "$item" "$us"
+      fi
+    fi
+    i=$((i + 1))
+  done
+  pop_ifs
+}
+
+# Map US-separated values with a command. If the command contains "_", then it is replaced with the item.
+vec_map() {
+  push_ifs
+  IFS="$us"
+  local arr="$1"
+  shift
+  local should_replace=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_" || test "$arg" = "it"
+    then
+      should_replace=true
+    fi
+  done
+  local i=0
+  local item
+  for item in $arr
+  do
+    if $should_replace
+    then
+      (
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            arg="$item"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        printf "%s%s" "$("$@")" "$us"
+      )
+    else
+      printf "%s%s" "$("$@" "$item")" "$us"
+    fi
+    i=$((i + 1))
+  done
+  pop_ifs
+}
+
+# Filter US-separated values with a command. If the command contains "_", then it is replaced with the item.
+vec_filter() {
+  push_ifs
+  IFS="$us"
+  local arr="$1"
+  shift
+  local should_replace=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      should_replace=true
+    fi
+  done
+  local item
+  for item in $arr
+  do
+    if $should_replace
+    then
+      if ! (
+        for arg in "$@"
+        do
+          if test "$arg" = "_"
+          then
+            arg="$item"
+          fi
+          set -- "$@" "$arg"
+          shift
+        done
+        "$@"
+      )
+      then
+        continue
+      fi
+    elif ! "$@" "$item"
+    then
+      continue
+    fi
+    printf "%s%s" "$item" "$us"
+  done
+  pop_ifs
+}
+
+# Reduce US-separated values with a function. If the function contains "_", then it is replaced with the accumulator and the item.
+vec_reduce() {
+  push_ifs
+  IFS="$us"
+  local arr="$1"
+  shift
+  local acc="$1"
+  shift
+  local has_place_holder=false
+  local arg
+  for arg in "$@"
+  do
+    if test "$arg" = "_"
+    then
+      has_place_holder=true
+    fi
+  done
+  local item
+  for item in $arr
+  do
+    if $has_place_holder
+    then
+      acc="$(
+        first_place_holder=true
+        for arg2 in "$@"
+        do
+          if test "$arg2" = "_"
+          then
+            if $first_place_holder
+            then
+              arg2="$acc"
+              first_place_holder=false
+            else
+              arg2="$item"
+            fi
+          fi
+          set -- "$@" "$arg2"
+          shift
+        done
+        "$@"
+      )"
+    else
+      acc="$("$@" "$acc" "$item")"
+    fi
+  done
+  printf "%s" "$acc"
+  pop_ifs
+}
+
+# Check if a US-separated value contains a specified item.
+vec_contains() {
+  push_ifs
+  IFS="$us"
+  local arr="$1"
+  local target="$2"
+  local item
+  for item in $arr
+  do
+    if test "$item" = "$target"
+    then
+      pop_ifs
+      return
+    fi
+  done
+  pop_ifs
+  return 1
+}
+
+# Sort US-separated values.
+vec_sort() {
+  push_ifs
+  IFS="$us"
+  local arr="$1"
+  if test -z "$arr"
+  then
+    pop_ifs
+    return
+  fi
+  shift
+  local vers
+  # shellcheck disable=SC2086
+  vers="$(
+    printf "%s\n" $arr \
+    | if test "$#" -eq 0
+    then
+      sort
+    else
+      "$@"
+    fi
+  )"
+  push_ifs
+  set_ifs_newline
+  # shellcheck disable=SC2086
+  set -- $vers
+  pop_ifs
+  local item
+  for item in "$@"
+  do
+    printf "%s%s" "$item" "$us"
+  done
+  pop_ifs
+}
+
+# --------------------------------------------------------------------------
+# Associative array functions. It is represented as propty list.
+# --------------------------------------------------------------------------
+
+# Get a value from an associative array implemented as a property list.
+vec_get() {
+  push_ifs
+  IFS="$us"
+  local plist="$1"
+  local target_key="$2"
+  local key=
+  local i=0
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      key="$item"
+    else
+      if test "$key" = "$target_key"
+      then
+        printf "%s" "$item"
+        pop_ifs
+        return
+      fi
+    fi
+    i=$((i + 1))
+  done
+  pop_ifs
+  return 1
+}
+
+# Keys of an associative array implemented as a property list.
+vec_keys() {
+  push_ifs
+  IFS="$us"
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      printf "%s%s" "$item" "$us"
+    fi
+    i=$((i + 1))
+  done
+  pop_ifs
+}
+
+# Values of an associative array implemented as a property list.
+vec_values() {
+  push_ifs
+  IFS="$us"
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 1
+    then
+      printf "%s%s" "$item" "$us"
+    fi
+    i=$((i + 1))
+  done
+  pop_ifs
+}
+
+# Put a value in an associative array implemented as a property list.
+vec_put() {
+  push_ifs
+  IFS="$us"
+  local plist="$1"
+  local target_key="$2"
+  local value="$3"
+  local found=false
+  local key=
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      key="$item"
+    else
+      if test "$key" = "$target_key"
+      then
+        found=true
+        printf "%s%s%s%s" "$target_key" "$us" "$value" "$us"
+      else
+        printf "%s%s%s%s" "$key" "$us" "$item" "$us"
+      fi
+    fi
+    i=$((i + 1))
+  done
+  if ! "$found"
+  then
+    printf "%s%s%s%s" "$target_key" "$us" "$value" "$us"
+  fi
+  pop_ifs
+}
+
+# --------------------------------------------------------------------------
+# Command registration
+# --------------------------------------------------------------------------
+
+# Map: command name -> Homebrew package ID
+brew_ids=
+
+# Map: command name -> WinGet package ID
+winget_ids=
+
+# Map: command name -> pipe-separated list of commands
+psv_cmd_list=
+
+register_cmd() {
   local brew_id=
+  local deb_id=
+  local winget_id=
   OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
@@ -684,11 +1076,77 @@ register_cmd() {
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      (brew-id) eval cmd_"$cmd_name"_brew_id=\""$OPTARG"\";;
-      (fallback) eval cmd_"$cmd_name"_fallback=\""$OPTARG"\";;
+      (brew-id) brew_id=$OPTARG;;
+      (deb-id) deb_id=$OPTARG;;
+      (winget-id) winget_id=$OPTARG;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
+
+  local cmd
+  local cmd_name=
+  local psv_cmd=
+  for cmd in "$@"
+  do
+    if test -z "$cmd_name"
+    then
+      cmd_name="$cmd"
+    fi
+    psv_cmd="$psv_cmd|$cmd"
+  done
+
+  if test -n "$brew_id"
+  then
+    brew_ids="$brew_ids$us$cmd_name$us$brew_id"
+  fi
+  if test -n "$winget_id"
+  then
+    winget_ids="$(vec_put "$winget_ids" "$cmd_name" "$winget_id")"
+  fi
+  if test -n "$deb_id"
+  then
+    deb_ids="$(vec_put "$deb_ids" "$cmd_name" "$deb_id")"
+  fi
+  psv_cmd_list="$(vec_put "$psv_cmd_list" "$cmd_name" "$psv_cmd")"
+}
+
+# For Windows
+: "${LOCALAPPDATA:=e06a91c}"
+
+run_registered_cmd() {
+  local cmd_name="$1"
+  shift
+  local psv_cmd="$(vec_get "$psv_cmd_list" "$cmd_name")"
+  push_ifs "|"
+  local cmd
+  for cmd in $psv_cmd
+  do
+    if which "$cmd" >/dev/null
+    then
+      pop_ifs
+      run_cmd "$cmd" "$@"
+      return $?
+    fi
+  done
+  pop_ifs
+  echo "Command not found: $cmd_name." >&2
+  echo >&2
+  if is_macos
+  then
+    echo "Run folowing command to install necessary packages for this deveopment environment:" >&2
+    echo >&2
+    printf "  brew install" >&2
+    local brew_ids="$(vec_values "$brew_ids")"
+    push_ifs "$us"
+    # shellcheck disable=SC2086
+    printf " %s" $brew_ids >&2
+    pop_ifs
+  fi
+  echo >&2
+  echo >&2
+  return 1
 }
 
 : "${TASK_AUTO_INSTALL:=false}"
