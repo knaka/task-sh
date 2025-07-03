@@ -49,31 +49,31 @@ test_plist() (
 
   IFS=,
   csvpl=
-  csvpl="$(ifsv_put "$csvpl" "key1" "val1")"
-  csvpl="$(ifsv_put "$csvpl" "key2" "val2")"
+  csvpl="$(ifsm_put "$csvpl" "key1" "val1")"
+  csvpl="$(ifsm_put "$csvpl" "key2" "val2")"
 
-  assert_eq "key1,key2," "$(ifsv_keys "$csvpl")"
-  assert_eq "" "$(ifsv_keys "")"
+  assert_eq "key1,key2," "$(ifsm_keys "$csvpl")"
+  assert_eq "" "$(ifsm_keys "")"
 
-  assert_eq "val1,val2," "$(ifsv_values "$csvpl")"
-  assert_eq "" "$(ifsv_values "")"
+  assert_eq "val1,val2," "$(ifsm_values "$csvpl")"
+  assert_eq "" "$(ifsm_values "")"
 
   assert_eq "val2" "$(ifsm_get "$csvpl" "key2")"
-  assert_false ifsv_get "$csvpl" "key3"
+  assert_false ifsm_get "$csvpl" "key3"
 
-  assert_eq "key1,mod1,key2,val2," "$(ifsv_put "$csvpl" "key1" "mod1")"
-  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsv_put "$csvpl" "key3" "val3")"
+  assert_eq "key1,mod1,key2,val2," "$(ifsm_put "$csvpl" "key1" "mod1")"
+  assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsm_put "$csvpl" "key3" "val3")"
 
-  assert_eq "key1,val1,key2,," "$(ifsv_put "$csvpl" "key2" "")"
+  assert_eq "key1,val1,key2,," "$(ifsm_put "$csvpl" "key2" "")"
   assert_eq "" "$(ifsm_get "key1,val1,key2," "key2")"
 
-  assert_eq "key1,val1,key2,val2,,empty," "$(ifsv_put "$csvpl" "" "empty")"
+  assert_eq "key1,val1,key2,val2,,empty," "$(ifsm_put "$csvpl" "" "empty")"
   assert_eq "empty" "$(ifsm_get "key1,val1,key2,val2,,empty" "")"
 
   IFS="$us"
   usvpl=
-  usvpl=$(ifsv_put "$usvpl" "foo bar" "FOO BAR")
-  usvpl=$(ifsv_put "$usvpl" "baz qux" "BAZ QUX")
+  usvpl=$(ifsm_put "$usvpl" "foo bar" "FOO BAR")
+  usvpl=$(ifsm_put "$usvpl" "baz qux" "BAZ QUX")
   assert_eq "foo bar${us}FOO BAR${us}baz qux${us}BAZ QUX${us}" "$usvpl"
   assert_eq "BAZ QUX" "$(ifsm_get "$usvpl" "baz qux")"
 )

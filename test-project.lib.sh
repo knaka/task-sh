@@ -388,13 +388,6 @@ test_is_dir_empty() {
   assert_false is_dir_empty "$dir_path"  
 }
 
-test_fetch() {
-  local url="https://www.example.com/"
-  local output_path="$TEMP_DIR"/output.html
-  subcmd_fetch "$url" >"$output_path"
-  grep -q "Example Domain" "$output_path"
-}
-
 test_fifo() {
   if is_windows
   then
