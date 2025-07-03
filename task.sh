@@ -426,7 +426,7 @@ usm_psv_cmd=
 
 # Register a command with optional package IDs for various package managers.
 # This function maps a command name to package IDs for installation via different package managers.
-# The first argument is treated as the command name, and subsequent arguments are alternative command paths.
+# The first argument is treated as the main command name, and subsequent arguments are alternative command name or command paths.
 # Options:
 #   --brew-id=<id>    Package ID for Homebrew (macOS)
 #   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
