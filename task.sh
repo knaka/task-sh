@@ -949,76 +949,11 @@ vec_sort() {
 }
 
 # --------------------------------------------------------------------------
-# Associative array functions. It is represented as propty list.
+# Map (associative array) functions
 # --------------------------------------------------------------------------
 
-# Get a value from an associative array implemented as a property list.
-vec_get() {
-  push_ifs
-  IFS="$us"
-  local plist="$1"
-  local target_key="$2"
-  local key=
-  local i=0
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        printf "%s" "$item"
-        pop_ifs
-        return
-      fi
-    fi
-    i=$((i + 1))
-  done
-  pop_ifs
-  return 1
-}
-
-# Keys of an associative array implemented as a property list.
-vec_keys() {
-  push_ifs
-  IFS="$us"
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 0
-    then
-      printf "%s%s" "$item" "$us"
-    fi
-    i=$((i + 1))
-  done
-  pop_ifs
-}
-
-# Values of an associative array implemented as a property list.
-vec_values() {
-  push_ifs
-  IFS="$us"
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
-  do
-    if test $((i % 2)) -eq 1
-    then
-      printf "%s%s" "$item" "$us"
-    fi
-    i=$((i + 1))
-  done
-  pop_ifs
-}
-
 # Put a value in an associative array implemented as a property list.
-vec_put() {
-  push_ifs
-  IFS="$us"
+ifsm_put() {
   local plist="$1"
   local target_key="$2"
   local value="$3"
@@ -1035,130 +970,70 @@ vec_put() {
       if test "$key" = "$target_key"
       then
         found=true
-        printf "%s%s%s%s" "$target_key" "$us" "$value" "$us"
+        printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
       else
-        printf "%s%s%s%s" "$key" "$us" "$item" "$us"
+        printf "%s%s%s%s" "$key" "$IFS" "$item" "$IFS"
       fi
     fi
     i=$((i + 1))
   done
   if ! "$found"
   then
-    printf "%s%s%s%s" "$target_key" "$us" "$value" "$us"
+    printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
   fi
-  pop_ifs
 }
 
-# --------------------------------------------------------------------------
-# Command registration
-# --------------------------------------------------------------------------
-
-# Map: command name -> Homebrew package ID
-brew_ids=
-
-# Map: command name -> WinGet package ID
-winget_ids=
-
-# Map: command name -> pipe-separated list of commands
-psv_cmd_list=
-
-register_cmd() {
-  local brew_id=
-  local deb_id=
-  local winget_id=
-  OPTIND=1; while getopts _-: OPT
+# Get a value from an associative array implemented as a property list.
+ifsm_get() {
+  local plist="$1"
+  local target_key="$2"
+  local key=
+  local i=0
+  for item in $plist
   do
-    if test "$OPT" = "-"
+    if test $((i % 2)) -eq 0
     then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
+      key="$item"
+    else
+      if test "$key" = "$target_key"
+      then
+        printf "%s" "$item"
+        return
+      fi
     fi
-    case "$OPT" in
-      (brew-id) brew_id=$OPTARG;;
-      (deb-id) deb_id=$OPTARG;;
-      (winget-id) winget_id=$OPTARG;;
-      (\?) exit 1;;
-      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
-    esac
+    i=$((i + 1))
   done
-  shift $((OPTIND-1))
-
-  local cmd
-  local cmd_name=
-  local psv_cmd=
-  for cmd in "$@"
-  do
-    if test -z "$cmd_name"
-    then
-      cmd_name="$cmd"
-    fi
-    psv_cmd="$psv_cmd|$cmd"
-  done
-
-  if test -n "$brew_id"
-  then
-    brew_ids="$brew_ids$us$cmd_name$us$brew_id"
-  fi
-  if test -n "$winget_id"
-  then
-    winget_ids="$(vec_put "$winget_ids" "$cmd_name" "$winget_id")"
-  fi
-  if test -n "$deb_id"
-  then
-    deb_ids="$(vec_put "$deb_ids" "$cmd_name" "$deb_id")"
-  fi
-  psv_cmd_list="$(vec_put "$psv_cmd_list" "$cmd_name" "$psv_cmd")"
-}
-
-# For Windows
-: "${LOCALAPPDATA:=e06a91c}"
-
-run_registered_cmd() {
-  local cmd_name="$1"
-  shift
-  local psv_cmd="$(vec_get "$psv_cmd_list" "$cmd_name")"
-  push_ifs "|"
-  local cmd
-  for cmd in $psv_cmd
-  do
-    if which "$cmd" >/dev/null
-    then
-      pop_ifs
-      run_cmd "$cmd" "$@"
-      return $?
-    fi
-  done
-  pop_ifs
-  echo "Command not found: $cmd_name." >&2
-  echo >&2
-  if is_macos
-  then
-    echo "Run folowing command to install necessary packages for this deveopment environment:" >&2
-    echo >&2
-    printf "  brew install" >&2
-    local brew_ids="$(vec_values "$brew_ids")"
-    push_ifs "$us"
-    # shellcheck disable=SC2086
-    printf " %s" $brew_ids >&2
-    pop_ifs
-  fi
-  echo >&2
-  echo >&2
   return 1
 }
 
-task_devinstall() { # Install necessary packages for this development environment.
-  if is_macos
-  then
-    set - brew install
-    push_ifs "$us"
-    # shellcheck disable=SC2046
-    set -- "$@" $(vec_values "$brew_ids")
-    pop_ifs
-    run_cmd "$@"
-  fi
+# Keys of an associative array implemented as a property list.
+ifsm_keys() {
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 0
+    then
+      printf "%s%s" "$item" "$IFS"
+    fi
+    i=$((i + 1))
+  done
+}
+
+# Values of an associative array implemented as a property list.
+ifsm_values() {
+  local plist="$1"
+  local i=0
+  local item
+  for item in $plist
+  do
+    if test $((i % 2)) -eq 1
+    then
+      printf "%s%s" "$item" "$IFS"
+    fi
+    i=$((i + 1))
+  done
 }
 
 : "${TASK_AUTO_INSTALL:=false}"
@@ -1339,6 +1214,111 @@ apt_download() {
     'Acquire::https::Verify-Host "false";' \
     >"$apt_conf_path"
   /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
+}
+
+# --------------------------------------------------------------------------
+# Command registration
+# --------------------------------------------------------------------------
+
+# Map: command name -> Homebrew package ID
+usm_brew_id=
+
+# Map: command name -> WinGet package ID
+usm_winget_id=
+
+# Map: command name -> Debian package ID
+usm_deb_id=
+
+# Map: command name -> pipe-separated vector of commands
+usm_psv_cmd=
+
+register_cmd() {
+  local brew_id=
+  local deb_id=
+  local winget_id=
+  OPTIND=1; while getopts _-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (brew-id) brew_id=$OPTARG;;
+      (deb-id) deb_id=$OPTARG;;
+      (winget-id) winget_id=$OPTARG;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  # 1st argument is treated as the command name.
+  local cmd_name=
+  local psv_cmd=
+  local cmd
+  for cmd in "$@"
+  do
+    if test -z "$cmd_name"
+    then
+      cmd_name="$cmd"
+    fi
+    psv_cmd="$psv_cmd|$cmd"
+  done
+  test -n "$brew_id" && usm_brew_id="$usm_brew_id$cmd_name$us$brew_id$us"
+  test -n "$winget_id" && usm_winget_id="$usm_winget_id$cmd_name$us$winget_id$us"
+  test -n "$deb_id" && usm_deb_id="$usm_deb_id$cmd_name$us$deb_id$us"
+  usm_psv_cmd="$usm_psv_cmd$cmd_name$us$psv_cmd$us"
+}
+
+# For Windows
+: "${LOCALAPPDATA:=e06a91c}"
+
+run_registered_cmd() {
+  local cmd_name="$1"
+  shift
+  local saved_IFS="$IFS"; IFS="|"
+  local cmd
+  for cmd in $(IFS="$us" ifsm_get "$usm_psv_cmd" "$cmd_name")
+  do
+    if which "$cmd" >/dev/null
+    then
+      IFS="$saved_IFS"
+      run_cmd "$cmd" "$@"
+      return $?
+    fi
+  done
+  IFS="$saved_IFS"
+  echo "Command not found: $cmd_name." >&2
+  echo >&2
+  if is_macos
+  then
+    echo "Run \"devinstall\" task or folowing command to install necessary packages for this deveopment environment:" >&2
+    echo >&2
+    printf "  brew install" >&2
+    local saved_ifs="$IFS"; IFS="$us"
+    # shellcheck disable=SC2046
+    # shellcheck disable=SC2086
+    printf " %s" $(ifsm_values "$usm_brew_id") >&2
+    IFS="$saved_ifs"
+  fi
+  echo >&2
+  echo >&2
+  return 1
+}
+
+task_devinstall() { # Install necessary packages for this development environment.
+  if is_macos
+  then
+    set - brew install
+    push_ifs "$us"
+    # shellcheck disable=SC2046
+    set -- "$@" $(vec_values "$usm_brew_id")
+    pop_ifs
+    run_cmd "$@"
+  fi
 }
 
 curl() {
