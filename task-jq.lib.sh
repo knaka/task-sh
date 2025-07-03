@@ -6,15 +6,14 @@
 
 . ./task.sh
 
-register_cmd \
+require_cmd \
   --brew-id=jq \
   --winget-id=stedolan.jq \
   jq \
-  "$LOCALAPPDATA"/Microsoft/WinGet/Packages/jq.exe \
-  #nop
+  "$LOCALAPPDATA"/Microsoft/WinGet/Packages/jq.exe
 
 jq() {
-  run_registered_cmd jq "$@"
+  run_required_cmd jq "$@"
 }
 
 subcmd_jq() { # Run jq(1).

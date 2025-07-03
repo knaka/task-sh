@@ -7,9 +7,11 @@
 # Constants
 # --------------------------------------------------------------------------
 
+# Return code when a delegate task does not provide the task
 # shellcheck disable=SC2034
 rc_delegate_task_not_found=10
 
+# Return code when a test is skipped
 # shellcheck disable=SC2034
 rc_test_skipped=11
 
@@ -21,9 +23,10 @@ TEMP_DIR="$(mktemp -d)"
 # shellcheck disable=SC2064
 trap "rm -fr '$TEMP_DIR'" EXIT
 
+# Base name of the script file that contains the statements to be called when finalizing
 readonly stmts_file_base="$TEMP_DIR"/b6a5748
 
-# Chain traps to not overwrite the previous trap.
+# Chain traps to avoid overwriting the previous trap.
 # shellcheck disable=SC2064
 chaintrap() {
   local stmts="$1"
@@ -87,6 +90,7 @@ verbose() {
   "$VERBOSE"
 }
 
+# Cache directory path for the task runner
 cache_dir_path() {
   local global_cache_dir_path="$HOME/.cache"
   mkdir -p "$global_cache_dir_path"/task-sh
@@ -186,23 +190,23 @@ hex_restore() {
 # shellcheck disable=SC2034
 readonly unit_sep=""
 
-# Unit separator.
+# Unit separator (US), Information Separator One (0x1F)
 # shellcheck disable=SC2034
 readonly us=""
-
-# Information separator one.
 # shellcheck disable=SC2034
-readonly is1=""
+readonly is="$us"
+# shellcheck disable=SC2034
+readonly is1="$us"
 
-# Information separator two.
+# Information Separator Two (0x1E)
 # shellcheck disable=SC2034
 readonly is2=""
 
-# Information separator three.
+# Information Separator Three (0x1D)
 # shellcheck disable=SC2034
 readonly is3=""
 
-# Information separator four.
+# Information Separator Four (0x1C)
 # shellcheck disable=SC2034
 readonly is4=""
 
@@ -271,7 +275,7 @@ push_dir() {
   local pwd="$PWD"
   if ! cd "$1"
   then
-    echo "No such directory: $1" >&2
+    echo "Directory does not exist: $1" >&2
     return 1
   fi
   psv_dirs_4c15d80="$pwd|$psv_dirs_4c15d80"
@@ -281,7 +285,7 @@ push_dir() {
 pop_dir() {
   if test -z "$psv_dirs_4c15d80"
   then
-    echo "Directory stack is empty." >&2
+    echo "Directory stack is empty" >&2
     return 1
   fi
   local dir="${psv_dirs_4c15d80%%|*}"
@@ -420,7 +424,14 @@ usm_deb_id=
 # Map: command name -> pipe-separated vector of commands
 usm_psv_cmd=
 
-register_cmd() {
+# Register a command with optional package IDs for various package managers.
+# This function maps a command name to package IDs for installation via different package managers.
+# The first argument is treated as the command name, and subsequent arguments are alternative command paths.
+# Options:
+#   --brew-id=<id>    Package ID for Homebrew (macOS)
+#   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
+#   --winget-id=<id>  Package ID for Windows Package Manager
+require_cmd() {
   local brew_id=
   local deb_id=
   local winget_id=
@@ -464,14 +475,14 @@ register_cmd() {
 # For Windows
 : "${LOCALAPPDATA:=e06a91c}"
 
-run_registered_cmd() {
+run_required_cmd() {
   local cmd_name="$1"
   shift
   local saved_IFS="$IFS"; IFS="|"
   local cmd
   for cmd in $(IFS="$us" ifsm_get "$usm_psv_cmd" "$cmd_name")
   do
-    if which "$cmd" >/dev/null
+    if command -v "$cmd" >/dev/null
     then
       IFS="$saved_IFS"
       invoke "$cmd" "$@"
@@ -483,7 +494,7 @@ run_registered_cmd() {
   echo >&2
   if is_macos
   then
-    echo "Run \"devinstall\" task or folowing command to install necessary packages for this deveopment environment:" >&2
+    echo "Run \"devinstall\" task or the following command to install necessary packages for this development environment:" >&2
     echo >&2
     printf "  brew install" >&2
     local saved_ifs="$IFS"; IFS="$us"
@@ -513,12 +524,12 @@ task_devinstall() { # Install necessary packages for this development environmen
 # Fetching
 # --------------------------------------------------------------------------
 
-register_cmd \
+require_cmd \
   --deb-id=curl \
   curl
 
 curl() {
-  run_registered_cmd curl "$@"
+  run_required_cmd curl "$@"
 }
 
 subcmd_curl() { # Run curl(1).
@@ -551,7 +562,7 @@ go_arch() {
 }
 
 # --------------------------------------------------------------------------
-# Env
+# Environment variable management
 # --------------------------------------------------------------------------
 
 # Load environment variables from the specified file.
@@ -580,7 +591,7 @@ load_env_file() {
   done <"$1"
 }
 
-# Load environment variables.
+# Load environment variables from multiple files
 load_env() {
   # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
@@ -751,7 +762,7 @@ is_bash() {
   test "$(shell_name)" = "bash"
 }
 
-# Check if the file(s)/directory(s) is/are newer than the destination.
+# Check if the file(s)/directory(s) are newer than the destination.
 newer() {
   local found_than=false
   local dest=
@@ -771,12 +782,12 @@ newer() {
   done
   if test -z "$dest"
   then
-    echo "No --than option" >&2
+    echo "Missing --than option" >&2
     exit 1
   fi
   if test "$#" -eq 0
   then
-    echo "No source files" >&2
+    echo "No source files specified" >&2
     exit 1
   fi
   # If the destination does not exist, it is considered newer than the destination.
@@ -797,7 +808,7 @@ newer() {
   fi
   if test -z "$dest"
   then
-    echo "No destination file" >&2
+    echo "No destination file found" >&2
     return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2>/dev/null)"
@@ -1023,10 +1034,10 @@ ensure_file() {
   local file_path="$1"
   if test -f "$file_path"
   then
-    echo "File $file_path already exists. Skipping the creation." >&2
+    echo "File $file_path already exists. Skipping creation." >&2
     return 0
   fi
-  echo "Creating the $file_path file." >&2
+  echo "Creating file $file_path." >&2
   mkdir -p "$(dirname "$file_path")"
   cat >"$file_path"
 }
@@ -1120,7 +1131,7 @@ menu() {
   done
 }
 
-# Get the space-separated n-th (1-based) field.
+# Get the space-separated nth (1-based) field.
 field() {
   # shellcheck disable=SC2046
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
@@ -1134,7 +1145,7 @@ then
   }
 fi
 
-# Encode positional parameters into a string which can be passed to `eval` to restore the positional parameters.
+# Encode positional parameters into a string that can be passed to `eval` to restore the positional parameters.
 #
 # Example:
 #   local eval_args="$(make_eval_args "$@")"
@@ -1158,7 +1169,7 @@ make_eval_args() {
   done
 }
 
-# Check if the directory is empty.
+# Check if a directory is empty.
 is_dir_empty() {
   if ! test -d "$1"
   then
@@ -1351,7 +1362,7 @@ task_sh_main() {
         parent_dir="$(realpath "$dir"/..)"
         if test "$dir" = "$parent_dir"
         then
-          echo "Project directory not found." >&2
+          echo "Project directory not found" >&2
           exit 1
         fi
         dir="$parent_dir"
@@ -1388,7 +1399,7 @@ task_sh_main() {
     ARG0BASE="$(basename "$0")"
   fi
 
-  # Load all the task files in the tasks directory and the project directory. All the task files are sourced in the TASKS directory context.
+  # Load all task files in the tasks directory and the project directory. All task files are sourced in the TASKS directory context.
   psv_task_file_paths_4a5f3ab="$(realpath "$0")|"
   load_tasks_in_dir() {
     push_dir "$TASKS_DIR"
