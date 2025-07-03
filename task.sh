@@ -1291,7 +1291,7 @@ run_post_task() {
   fi
 }
 
-task_sh_main() {
+main() {
   set -o nounset -o errexit
 
   chaintrap kill_child_processes EXIT TERM INT
@@ -1544,6 +1544,6 @@ task_sh_main() {
 # Run the main function if this script is executed as task runner.
 case "${0##*/}" in
   (task|task.sh)
-    task_sh_main "$@"
+    main "$@"
     ;;
 esac
