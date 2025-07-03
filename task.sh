@@ -960,20 +960,20 @@ browse() {
 get_key() {
   if is_linux || is_macos
   then
-    local saved_stty
-    saved_stty="$(stty -g)"
+    local saved_stty="$(stty -g)"
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
     stty "$saved_stty"
     return
   fi
   local key
-  # Bash POSIX Shell and BusyBox Ash provides `-s` (silent mode) option.
+  # Bash and BusyBox Ash provides `-s` (silent mode) option.
   if test is_ash || is_bash
   then
     # shellcheck disable=SC3045
     read -rsn1 key
     return
+  # Otherwise, the input is echoed
   else
     read -r key
   fi
@@ -1042,7 +1042,7 @@ ensure_file() {
   cat >"$file_path"
 }
 
-# Guard against multiple calls.
+# Guard against multiple calls. $1 is a unique ID
 first_call() {
   if eval "test \"\${called_$1-}\" = true"
   then
