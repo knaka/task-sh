@@ -53,7 +53,7 @@ ifsv_join() {
   done
 }
 
-# Get an item at a specified index.
+# Get an item at a specified index. If the 3rd argument is provided, it is used as a replacement for the item and returns the new IFSV.
 ifsv_at() {
   local i=0
   local item

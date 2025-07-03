@@ -317,7 +317,7 @@ restore_shell_flags() {
 }
 
 # --------------------------------------------------------------------------
-# Map (associative array) functions
+# Map (associative array) functions. "IFS-Separated Map"
 # --------------------------------------------------------------------------
 
 # Put a value in an associative array implemented as a property list.
