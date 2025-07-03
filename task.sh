@@ -405,190 +405,6 @@ ifsm_values() {
 }
 
 # --------------------------------------------------------------------------
-# Command management
-# --------------------------------------------------------------------------
-
-: "${TASK_AUTO_INSTALL:=false}"
-
-run_cmd() {
-  local cmd_name="$1"
-  shift
-  local cmd_path
-  while :
-  do
-    if which "$cmd_name" >/dev/null 2>&1
-    then
-      cmd_path="$cmd_name"
-      break
-    fi
-    printf "Command '%s' not found. " "$cmd_name" >&2
-    if is_macos
-    then
-      brew_id="$(eval echo "\${cmd_${cmd_name}_brew_id-}")"
-      if test -n "$brew_id"
-      then
-        if ! "$TASK_AUTO_INSTALL"
-        then
-          printf "Run the folowing command to install:\n\n  brew install %s\n" "$brew_id" >&2
-          exit 1
-        fi
-        brew install "$brew_id" 1>&2
-        if which "$cmd_name" >/dev/null 2>&1
-        then
-          cmd_path="$cmd_name"
-          break
-        fi
-      fi
-    fi
-    fallback="$(eval echo "\${cmd_${cmd_name}_fallback-}")"
-    if test -n "$fallback"
-    then
-      echo "$fallback" >&2
-      exit 1
-    fi
-    echo
-    exit 1
-  done
-  invoke "$cmd_path" "$@"
-}
-
-# Ensure the command is installed.
-install_pkg_cmd() {
-  local apk_id=
-  local deb_id=
-  local cmd=
-  local winget_id=
-  local win_cmd_path=
-  local scoop_id=
-  local brew_id=
-  local mac_cmd_path=
-  OPTIND=1; while getopts _-: OPT
-  do
-    if test "$OPT" = "-"
-    then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
-    case "$OPT" in
-      (apk-id) apk_id=$OPTARG;;
-      (brew-id) brew_id=$OPTARG;;
-      (mac-cmd-path) mac_cmd_path=$OPTARG;;
-      (cmd) cmd=$OPTARG;;
-      (deb-id) deb_id=$OPTARG;;
-      (winget-id) winget_id=$OPTARG;;
-      (win-cmd-path) win_cmd_path=$OPTARG;;
-      (scoop-id) scoop_id=$OPTARG;;
-      (\?) exit 1;;
-      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
-    esac
-  done
-  shift $((OPTIND-1))
-
-  # If found, do not install.
-  if command -v "$cmd" >/dev/null 2>&1
-  then
-    :
-  # Otherwise, install.
-  elif is_windows
-  then
-    if test -n "$win_cmd_path"
-    then
-      cmd="$win_cmd_path"
-    fi
-    if command -v "$cmd" >/dev/null 2>&1
-    then
-      :
-    elif test -n "$scoop_id"
-    then
-      if ! command -v scoop > /dev/null 2>&1
-      then
-        powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser; Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression" 1>&2
-      fi
-      scoop install "$scoop_id" 1>&2
-    elif test -n "$winget_id"
-    then
-      winget install --accept-package-agreements --accept-source-agreements --exact --id "$winget_id" 2>&1
-    else
-      echo "No package ID for Windows specified." >&2
-      exit 1
-    fi
-  elif is_macos
-  then
-    if test -n "$mac_cmd_path"
-    then
-      cmd="$mac_cmd_path"
-    fi
-    if command -v "$cmd" >/dev/null 2>&1
-    then
-      :
-    elif test -n "$brew_id"
-    then
-      brew install "$brew_id" 1>&2
-    else
-      echo "No package ID for macOS specified." >&2
-      exit 1
-    fi
-  elif is_linux
-  then
-    local sudo=
-    if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null
-    then
-      sudo=sudo
-    fi
-    if command -v apt-get >/dev/null 2>&1
-    then
-      if ! test -d /var/lib/apt/lists || is_dir_empty /var/lib/apt/lists
-      then
-        $sudo apt-get update 1>&2
-      fi
-      $sudo apt-get install -y "$deb_id" 1>&2
-    elif command -v apk >/dev/null 2>&1
-    then
-      apk add "$apk_id" 1>&2
-    fi
-  else
-    echo "Unsupported OS: $(uname -s)" >&2
-    exit 1
-  fi
-
-  if command -v "$cmd" >/dev/null 2>&1
-  then
-    command -v "$cmd"
-  else
-    echo "Command not installed: $cmd" >&2
-    return 1
-  fi
-}
-
-# Run a command after ensuring it is installed.
-run_pkg_cmd() {
-  local cmd_path=
-  cmd_path="$(install_pkg_cmd "$@")"
-  while test $# -gt 0
-  do
-    if test "$1" = "--"
-    then
-      shift
-      break
-    fi
-    shift
-  done
-  invoke "$cmd_path" "$@"
-}
-
-apt_download() {
-  ! is_debian && return 1
-  local apt_conf_path="$TEMP_DIR"/apt.conf
-  printf "%s\n" \
-    'Acquire::https::Verify-Peer "false";' \
-    'Acquire::https::Verify-Host "false";' \
-    >"$apt_conf_path"
-  /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$1" "$2" 1>&2
-}
-
-# --------------------------------------------------------------------------
 # Package command registration
 # --------------------------------------------------------------------------
 
@@ -658,7 +474,7 @@ run_registered_cmd() {
     if which "$cmd" >/dev/null
     then
       IFS="$saved_IFS"
-      run_cmd "$cmd" "$@"
+      invoke "$cmd" "$@"
       return $?
     fi
   done
@@ -673,7 +489,7 @@ run_registered_cmd() {
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
     # shellcheck disable=SC2086
-    printf " %s" $(IFS="$us" ifsm_values "$usm_brew_id") >&2
+    printf " %s" $(ifsm_values "$usm_brew_id") >&2
     IFS="$saved_ifs"
   fi
   echo >&2
@@ -689,7 +505,7 @@ task_devinstall() { # Install necessary packages for this development environmen
     # shellcheck disable=SC2046
     set -- "$@" $(ifsm_values "$usm_brew_id")
     IFS="$saved_ifs"
-    run_cmd "$@"
+    invoke "$@"
   fi
 }
 
