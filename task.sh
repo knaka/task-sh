@@ -1149,6 +1149,18 @@ run_registered_cmd() {
   return 1
 }
 
+task_devinstall() { # Install necessary packages for this development environment.
+  if is_macos
+  then
+    set - brew install
+    push_ifs "$us"
+    # shellcheck disable=SC2046
+    set -- "$@" $(vec_values "$brew_ids")
+    pop_ifs
+    run_cmd "$@"
+  fi
+}
+
 : "${TASK_AUTO_INSTALL:=false}"
 
 run_cmd() {
