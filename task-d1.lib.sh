@@ -140,7 +140,7 @@ subcmd_d1__local__seed() { # Seed the local database.
   subcmd_d1__local__exec --file "$db_seed_path_540ec19"
 }
 
-subcmd_d1__prod_seed() { # Seed the production database.
+subcmd_d1__prod__seed() { # Seed the production database.
   subcmd_d1__prod__exec --file "$db_seed_path_540ec19"
 }
 
