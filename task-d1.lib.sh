@@ -227,15 +227,15 @@ d1_diff() {
   rm -f "$db_file_path"
 }
 
-subcmd_d1__local__diff() {
+subcmd_d1__local__diff() { # Show the difference between the local database and the schema file.
   d1_diff --local
 }
 
-subcmd_d1__prod__diff() {
+subcmd_d1__prod__diff() { # Show the difference between the production database and the schema file.
   d1_diff --prod
 }
 
-subcmd_d1__prev__diff() {
+subcmd_d1__prev__diff() { # Show the difference between the preview database and the schema file.
   d1_diff --prev
 }
 
