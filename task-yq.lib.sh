@@ -2,6 +2,8 @@
 # shellcheck shell=sh
 "${sourced_0fe9d5f-false}" && return 0; sourced_0fe9d5f=true
 
+# mikefarah/yq: yq is a portable command-line YAML, JSON, XML, CSV, TOML and properties processor https://github.com/mikefarah/yq
+
 . ./task.sh
 
 # Releases · mikefarah/yq https://github.com/mikefarah/yq/releases
@@ -17,13 +19,13 @@ yq() {
     --name="yq" \
     --ver="$yq_version_c887ee2" \
     --cmd="yq" \
-    --os-map="Linux linux Darwin darwin Windows windows " \
-    --arch-map="x86_64 amd64 aarch64 arm64 " \
+    --os-map="$goos_map" \
+    --arch-map="$goarch_map" \
     --url-template='https://github.com/mikefarah/yq/releases/download/${ver}/yq_${os}_${arch}${exe_ext}' \
     -- \
     "$@"
 }
 
-subcmd_yq() { # Run yq(1).
+subcmd_yq() { # Run yq(1).ß
   yq "$@"
 }

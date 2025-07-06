@@ -29,8 +29,8 @@ terraform() {
     --ver="$terraform_version_0db0d51" \
     --cmd="terraform" \
     --cmd-rel-path="." \
-    --os-map="Linux linux Darwin darwin Windows windows " \
-    --arch-map="x86_64 amd64 aarch64 arm64 " \
+    --os-map="$goos_map" \
+    --arch-map="$goarch_map" \
     --ext-map="Linux .zip Darwin .zip Windows .zip " \
     --url-template='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
     -- \

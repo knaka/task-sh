@@ -509,6 +509,7 @@ fetch_cmd_run() {
 }
 
 # Uname kernel name -> GOOS mapping
+# Installing Go from source - The Go Programming Language https://go.dev/doc/install/source#environment
 # shellcheck disable=SC2140
 # shellcheck disable=SC2034
 goos_map=\
@@ -530,7 +531,7 @@ goos_camel_map=\
 # shellcheck disable=SC2140
 # shellcheck disable=SC2034
 goarch_map=\
-"x86_64 x86_64 "\
+"x86_64 amd64 "\
 "aarch64 arm64 "\
 #nop
 

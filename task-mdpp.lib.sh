@@ -18,7 +18,7 @@ mdpp() {
     --cmd="mdpp" \
     --cmd-rel-path="." \
     --os-map="$goos_camel_map" \
-    --arch-map="$goarch_map" \
+    --arch-map="x86_64 x86_64 aarch64 arm64 " \
     --ext-map="$archive_ext_map" \
     --url-template='https://github.com/knaka/mdpp/releases/download/${ver}/mdpp_${os}_${arch}${ext}' \
     -- \
