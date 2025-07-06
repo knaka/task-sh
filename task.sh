@@ -91,10 +91,12 @@ verbose() {
 }
 
 # Cache directory path for the task runner
+CACHE_DIR="$HOME/.cache/task-sh"
+mkdir -p "$CACHE_DIR"
+
+# Cache directory path for the task runner
 cache_dir_path() {
-  local global_cache_dir_path="$HOME/.cache"
-  mkdir -p "$global_cache_dir_path"/task-sh
-  echo "$global_cache_dir_path"/task-sh
+  echo "$CACHE_DIR"
 }
 
 # --------------------------------------------------------------------------
@@ -464,7 +466,7 @@ fetch_cmd_run() {
   done
   shift $((OPTIND-1))
 
-  local app_dir_path="$(cache_dir_path)"/"$name"@"$ver"
+  local app_dir_path="$CACHE_DIR"/"$name"@"$ver"
   mkdir -p "$app_dir_path"
   local cmd_path="$app_dir_path"/"$cmd""$exe_ext"
   if ! command -v "$cmd_path" >/dev/null 2>&1
@@ -510,6 +512,15 @@ fetch_cmd_run() {
 # shellcheck disable=SC2140
 # shellcheck disable=SC2034
 goos_map=\
+"Linux linux "\
+"Darwin darwin "\
+"Windows windows "\
+#nop
+
+# Uname kernel name -> GOOS in CamelCase mapping
+# shellcheck disable=SC2140
+# shellcheck disable=SC2034
+goos_camel_map=\
 "Linux Linux "\
 "Darwin Darwin "\
 "Windows Windows "\
