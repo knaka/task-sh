@@ -409,6 +409,121 @@ ifsm_values() {
 }
 
 # --------------------------------------------------------------------------
+# Fetch and run a command from an archive
+# --------------------------------------------------------------------------
+
+map_os() {
+  ifsm_get "$1" "$(uname -s)"
+}
+
+map_arch() {
+  ifsm_get "$1" "$(uname -m)"
+}
+
+# Fetch and run a command from a remote archive
+# Usage: fetch_cmd_run [OPTIONS] -- [COMMAND_ARGS...]
+# Options:
+#   --name=NAME           Application name. Used as the directory name to store the command.
+#   --ver=VERSION         Application version
+#   --cmd=COMMAND         Command name to execute
+#   --cmd-rel-path=PATH   Relative path within archive to the directory containing the command (default: ".")
+#   --url-format=FORMAT   URL format string with ${ver}, ${os}, ${arch}, ${ext} variables
+#   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
+#   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
+#   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
+fetch_cmd_run() {
+  local name=
+  local ver=
+  local cmd=
+  local cmd_rel_path=.
+  local url_format=
+  local os_map=
+  local arch_map=
+  local ext_map=
+  OPTIND=1; while getopts _-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      OPT="${OPTARG%%=*}"
+      # shellcheck disable=SC2030
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (name) name=$OPTARG;;
+      (ver) ver=$OPTARG;;
+      (cmd) cmd=$OPTARG;;
+      (cmd-rel-path) cmd_rel_path=$OPTARG;;
+      (url-format) url_format=$OPTARG;;
+      (os-map) os_map=$OPTARG;;
+      (arch-map) arch_map=$OPTARG;;
+      (ext-map) ext_map=$OPTARG;;
+      (\?) exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  local app_dir_path="$(cache_dir_path)"/"$name"@"$ver"
+  mkdir -p "$app_dir_path"
+  local cmd_path="$app_dir_path"/"$cmd""$exe_ext"
+  if ! command -v "$cmd_path" >/dev/null 2>&1
+  then
+    local ver="$ver"
+    # shellcheck disable=SC2034
+    local os="$(map_os "$os_map")"
+    # shellcheck disable=SC2034
+    local arch="$(map_arch "$arch_map")"
+    local ext=
+    if test -n "$ext_map"
+    then
+      ext="$(map_os "$ext_map")"
+    fi
+    local url="$(eval echo "$url_format")"
+    local out_file_path="$TEMP_DIR"/"$name""$ext"
+    curl --fail --location "$url" --output "$out_file_path"
+    local work_dir_path="$TEMP_DIR"/"$name"
+    mkdir -p "$work_dir_path"
+    push_dir "$work_dir_path"
+    case "$ext" in
+      (.zip) unzip "$out_file_path" ;;
+      (.tar.gz) tar -xf "$out_file_path" ;;
+      (*) ;;
+    esac
+    pop_dir
+    mv "$work_dir_path"/"$cmd_rel_path"/* "$app_dir_path"
+    chmod +x "$cmd_path"
+  fi
+  "$cmd_path" "$@"
+}
+
+# Uname kernel name -> GOOS mapping
+# shellcheck disable=SC2140
+# shellcheck disable=SC2034
+goos_map=\
+"Linux Linux "\
+"Darwin Darwin "\
+"Windows Windows "\
+#nop
+
+# Uname architecture name -> GOARCH mapping
+# shellcheck disable=SC2140
+# shellcheck disable=SC2034
+goarch_map=\
+"x86_64 x86_64 "\
+"aarch64 arm64 "\
+#nop
+
+# Uname kernel name -> generally used archive file extension mapping
+# shellcheck disable=SC2140
+# shellcheck disable=SC2034
+archive_ext_map=\
+"Linux .tar.gz "\
+"Darwin .tar.gz "\
+"Windows .zip "\
+#nop
+
+# --------------------------------------------------------------------------
 # Package command registration
 # --------------------------------------------------------------------------
 
@@ -482,7 +597,7 @@ run_required_cmd() {
   local cmd
   for cmd in $(IFS="$us" ifsm_get "$usm_psv_cmd" "$cmd_name")
   do
-    if command -v "$cmd" >/dev/null
+    if which "$cmd" >/dev/null
     then
       IFS="$saved_IFS"
       invoke "$cmd" "$@"

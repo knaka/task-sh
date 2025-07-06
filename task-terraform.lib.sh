@@ -9,49 +9,35 @@
   # Terraform Versions | HashiCorp Releases https://releases.hashicorp.com/terraform/
 terraform_version_0db0d51="1.9.8"
 
+# Set the Terraform version
 set_terraform_version() {
   terraform_version_0db0d51="$1"
 }
 
 terraform_path_ca65267=.
 
+# Set the directory path which contains Terraform configuration files (default: ".")
 set_terraform_path() {
   terraform_path_ca65267="$1"
 }
 
 terraform() {
-  local app_dir_path="$(cache_dir_path)"/terraform
-  mkdir -p "$app_dir_path"
-  local cmd_path="$app_dir_path"/terraform@"$terraform_version_0db0d51""$exe_ext"
-  if ! command -v "$cmd_path" >/dev/null 2>&1
-  then
-    local os_arch="$(uname -s -m)"
-    local os
-    case "${os_arch% *}" in
-      (Linux) os="linux" ;;
-      (Darwin) os="darwin" ;;
-      (Windows) os="windows" ;;
-      (*) return 1 ;;
-    esac
-    local arch
-    case "${os_arch#* }" in
-      (x86_64) arch="amd64" ;;
-      (aarch64) arch="arm64" ;;
-      (*) return 1 ;;
-    esac
-    local url="https://releases.hashicorp.com/terraform/${terraform_version_0db0d51}/terraform_${terraform_version_0db0d51}_${os}_${arch}.zip"
-    curl --fail --location "$url" --output "$TEMP_DIR"/terraform.zip
-    push_dir "$app_dir_path"
-    unzip -o "$TEMP_DIR"/terraform.zip
-    mv terraform"$exe_ext" "$cmd_path"
-    pop_dir
-    chmod +x "$cmd_path"
-  fi
   push_dir "$terraform_path_ca65267"
-  "$cmd_path" "$@"
+  # shellcheck disable=SC2016
+  fetch_cmd_run \
+    --name="terraform" \
+    --ver="$terraform_version_0db0d51" \
+    --cmd="terraform" \
+    --cmd-rel-path="." \
+    --os-map="Linux linux Darwin darwin Windows windows " \
+    --arch-map="x86_64 amd64 aarch64 arm64 " \
+    --ext-map="Linux .zip Darwin .zip Windows .zip " \
+    --url-format='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
+    -- \
+    "$@"
   pop_dir
 }
 
-subcmd_terraform() { # Run terraform command
+subcmd_terraform() { # Run terraform(1) command
   terraform "$@"
 }

@@ -1,0 +1,30 @@
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_02dddda-false}" && return 0; sourced_02dddda=true
+
+. ./task.sh
+
+mdpp_version_91a5418=v0.9.4
+
+set_mdpp_version() {
+  mdpp_version_91a5418="$1"
+}
+
+mdpp() {
+  # shellcheck disable=SC2016
+  fetch_cmd_run \
+    --name="mdpp" \
+    --ver="$mdpp_version_91a5418" \
+    --cmd="mdpp" \
+    --cmd-rel-path="." \
+    --os-map="$goos_map" \
+    --arch-map="$goarch_map" \
+    --ext-map="$archive_ext_map" \
+    --url-format='https://github.com/knaka/mdpp/releases/download/${ver}/mdpp_${os}_${arch}${ext}' \
+    -- \
+    "$@"
+}
+
+subcmd_mdpp() {
+  mdpp "$@"
+}
