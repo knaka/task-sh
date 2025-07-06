@@ -427,7 +427,7 @@ map_arch() {
 #   --ver=VERSION         Application version
 #   --cmd=COMMAND         Command name to execute
 #   --cmd-rel-path=PATH   Relative path within archive to the directory containing the command (default: ".")
-#   --url-format=FORMAT   URL format string with ${ver}, ${os}, ${arch}, ${ext} variables
+#   --url-template=TEMPLATE URL template string with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
 #   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
 #   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
@@ -436,7 +436,7 @@ fetch_cmd_run() {
   local ver=
   local cmd=
   local cmd_rel_path=.
-  local url_format=
+  local url_template=
   local os_map=
   local arch_map=
   local ext_map=
@@ -454,7 +454,7 @@ fetch_cmd_run() {
       (ver) ver=$OPTARG;;
       (cmd) cmd=$OPTARG;;
       (cmd-rel-path) cmd_rel_path=$OPTARG;;
-      (url-format) url_format=$OPTARG;;
+      (url-template) url_template=$OPTARG;;
       (os-map) os_map=$OPTARG;;
       (arch-map) arch_map=$OPTARG;;
       (ext-map) ext_map=$OPTARG;;
@@ -479,10 +479,14 @@ fetch_cmd_run() {
     then
       ext="$(map_os "$ext_map")"
     fi
-    local url="$(eval echo "$url_format")"
+    local url="$(eval echo "$url_template")"
     local out_file_path="$TEMP_DIR"/"$name""$ext"
-    curl --fail --location "$url" --output "$out_file_path"
-    local work_dir_path="$TEMP_DIR"/"$name"
+    if ! curl --fail --location "$url" --output "$out_file_path"
+    then
+      echo Failed to download: "$url" >&2
+      return 1
+    fi
+    local work_dir_path="$TEMP_DIR"/"$name"ec85463
     mkdir -p "$work_dir_path"
     push_dir "$work_dir_path"
     case "$ext" in
@@ -491,7 +495,12 @@ fetch_cmd_run() {
       (*) ;;
     esac
     pop_dir
-    mv "$work_dir_path"/"$cmd_rel_path"/* "$app_dir_path"
+    if test -n "$ext_map"
+    then
+      mv "$work_dir_path"/"$cmd_rel_path"/* "$app_dir_path"
+    else
+      mv "$out_file_path" "$cmd_path"
+    fi
     chmod +x "$cmd_path"
   fi
   "$cmd_path" "$@"

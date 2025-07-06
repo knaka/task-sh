@@ -20,7 +20,7 @@ mdpp() {
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --ext-map="$archive_ext_map" \
-    --url-format='https://github.com/knaka/mdpp/releases/download/${ver}/mdpp_${os}_${arch}${ext}' \
+    --url-template='https://github.com/knaka/mdpp/releases/download/${ver}/mdpp_${os}_${arch}${ext}' \
     -- \
     "$@"
 }

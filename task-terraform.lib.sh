@@ -32,7 +32,7 @@ terraform() {
     --os-map="Linux linux Darwin darwin Windows windows " \
     --arch-map="x86_64 amd64 aarch64 arm64 " \
     --ext-map="Linux .zip Darwin .zip Windows .zip " \
-    --url-format='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
+    --url-template='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
     -- \
     "$@"
   pop_dir
