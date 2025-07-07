@@ -45,7 +45,7 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
   local bin_path="$1"
   shift
   subcmd_npm__install
-  local p="$TASKS_DIR"/node_modules/"$pkg"/"$bin_path"
+  local p="$PROJECT_DIR"/node_modules/"$pkg"/"$bin_path"
   if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
   then
     subcmd_node "$p" "$@"
