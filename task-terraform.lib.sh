@@ -27,12 +27,11 @@ terraform() {
   fetch_cmd_run \
     --name="terraform" \
     --ver="$terraform_version_0db0d51" \
-    --cmd="terraform" \
-    --cmd-rel-path="." \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --ext-map="Linux .zip Darwin .zip Windows .zip " \
     --url-template='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
+    --rel-dir-path="." \
     -- \
     "$@"
   pop_dir

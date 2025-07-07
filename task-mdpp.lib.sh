@@ -15,8 +15,6 @@ mdpp() {
   fetch_cmd_run \
     --name="mdpp" \
     --ver="$mdpp_version_91a5418" \
-    --cmd="mdpp" \
-    --cmd-rel-path="." \
     --os-map="$goos_camel_map" \
     --arch-map="x86_64 x86_64 aarch64 arm64 " \
     --ext-map="$archive_ext_map" \

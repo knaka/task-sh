@@ -427,21 +427,21 @@ map_arch() {
 # Options:
 #   --name=NAME           Application name. Used as the directory name to store the command.
 #   --ver=VERSION         Application version
-#   --cmd=COMMAND         Command name to execute
-#   --cmd-rel-path=PATH   Relative path within archive to the directory containing the command (default: ".")
-#   --url-template=TEMPLATE URL template string with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
+#   --cmd=COMMAND         Command name to execute. If not specified, the application name is used.
 #   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
 #   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
+#   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
+#   --rel-dir-path=PATH   Relative path within archive to the directory containing the command (default: ".")
 fetch_cmd_run() {
   local name=
   local ver=
   local cmd=
-  local cmd_rel_path=.
-  local url_template=
   local os_map=
   local arch_map=
   local ext_map=
+  local url_template=
+  local rel_dir_path=.
   OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
@@ -455,17 +455,21 @@ fetch_cmd_run() {
       (name) name=$OPTARG;;
       (ver) ver=$OPTARG;;
       (cmd) cmd=$OPTARG;;
-      (cmd-rel-path) cmd_rel_path=$OPTARG;;
-      (url-template) url_template=$OPTARG;;
       (os-map) os_map=$OPTARG;;
       (arch-map) arch_map=$OPTARG;;
       (ext-map) ext_map=$OPTARG;;
+      (url-template) url_template=$OPTARG;;
+      (rel-dir-path) rel_dir_path=$OPTARG;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
 
+  if test -z "$cmd"
+  then
+    cmd="$name"
+  fi
   local app_dir_path="$CACHE_DIR"/"$name"@"$ver"
   mkdir -p "$app_dir_path"
   local cmd_path="$app_dir_path"/"$cmd""$exe_ext"
@@ -499,7 +503,7 @@ fetch_cmd_run() {
     pop_dir
     if test -n "$ext_map"
     then
-      mv "$work_dir_path"/"$cmd_rel_path"/* "$app_dir_path"
+      mv "$work_dir_path"/"$rel_dir_path"/* "$app_dir_path"
     else
       mv "$out_file_path" "$cmd_path"
     fi

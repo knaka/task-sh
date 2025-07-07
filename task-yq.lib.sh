@@ -18,7 +18,6 @@ yq() {
   fetch_cmd_run \
     --name="yq" \
     --ver="$yq_version_c887ee2" \
-    --cmd="yq" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --url-template='https://github.com/mikefarah/yq/releases/download/${ver}/yq_${os}_${arch}${exe_ext}' \
