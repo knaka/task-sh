@@ -4,7 +4,7 @@
 
 . ./task.sh
 
-mdpp_version_91a5418=v0.9.4
+mdpp_version_91a5418=v0.9.5
 
 set_mdpp_version() {
   mdpp_version_91a5418="$1"
@@ -23,6 +23,6 @@ mdpp() {
     "$@"
 }
 
-subcmd_mdpp() {
+subcmd_mdpp() { # Run mdpp(1)
   mdpp "$@"
 }
