@@ -6,7 +6,7 @@
 # johnkerl/miller: Miller is like awk, sed, cut, join, and sort for name-indexed data such as CSV, TSV, and tabular JSON https://github.com/johnkerl/miller
 
 # Releases · johnkerl/miller · GitHub https://github.com/johnkerl/miller/releases
-mlr_version_4bb65e2="6.13.0"
+mlr_version_4bb65e2="6.14.0"
 
 set_mlr_version() {
   mlr_version_4bb65e2="$1"
