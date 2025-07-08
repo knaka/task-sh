@@ -25,7 +25,6 @@ urlrec() {
       (\?) exit 1;;
       (*)
         echo "Unexpected option: $OPT" >&2;
-        emlr_help
         exit 1
         ;;
     esac
@@ -56,11 +55,11 @@ urlrec() {
   echo "Running: $*" >&2
   local temp_file_path="$TEMP_DIR/urlrec.log"
   LANG=C "$@" 2>&1 | tee "$temp_file_path"
-  # Extract URL and retrieval status pairs from wget log
+  # Extract only retrieved URLs from wget(1) log
   # 1. Extract URLs from lines like "--2024-01-01 12:00:00-- https://example.com/page.html"
   #    - s/^.* //: remove everything up to the last space (leaving just the URL)
   #    - h: store the URL in hold space for later use
-  # 2. Find the status lines that contains "-- retrieving."
+  # 2. Find status lines that contain "-- retrieving."
   #    - g: get the URL from hold space back into pattern space
   #    - p: print the URL
   grep -e ' http' -e '-- retrieving' "$temp_file_path" \
