@@ -21,7 +21,7 @@ sqlc() {
     --arch-map="$goarch_map" \
     --ext-map="$archive_ext_map" \
     --url-template='https://github.com/sqlc-dev/sqlc/releases/download/v${ver}/sqlc_${ver}_${os}_${arch}${ext}' \
-    --rel-dir-path="." \
+    --rel-dir-template="." \
     -- \
     "$@"
 }

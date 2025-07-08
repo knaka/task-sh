@@ -432,7 +432,7 @@ map_arch() {
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
 #   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
 #   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
-#   --rel-dir-path=PATH   Relative path within archive to the directory containing the command (default: ".")
+#   --rel-dir-template=TEMPLATE   Relative path template within archive to the directory containing the command (default: ".")
 fetch_cmd_run() {
   local name=
   local ver=
@@ -441,7 +441,7 @@ fetch_cmd_run() {
   local arch_map=
   local ext_map=
   local url_template=
-  local rel_dir_path=.
+  local rel_dir_template=.
   OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
@@ -459,7 +459,7 @@ fetch_cmd_run() {
       (arch-map) arch_map=$OPTARG;;
       (ext-map) ext_map=$OPTARG;;
       (url-template) url_template=$OPTARG;;
-      (rel-dir-path) rel_dir_path=$OPTARG;;
+      (rel-dir-template) rel_dir_template=$OPTARG;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -503,6 +503,7 @@ fetch_cmd_run() {
     pop_dir
     if test -n "$ext_map"
     then
+      local rel_dir_path="$(eval echo "$rel_dir_template")"
       mv "$work_dir_path"/"$rel_dir_path"/* "$app_dir_path"
     else
       mv "$out_file_path" "$cmd_path"
