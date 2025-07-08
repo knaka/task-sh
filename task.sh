@@ -433,6 +433,7 @@ map_arch() {
 #   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
 #   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
 #   --rel-dir-template=TEMPLATE   Relative path template within archive to the directory containing the command (default: ".")
+#   --print-dir           Print the directory path where the command is installed instead of executing the command
 fetch_cmd_run() {
   local name=
   local ver=
@@ -442,6 +443,7 @@ fetch_cmd_run() {
   local ext_map=
   local url_template=
   local rel_dir_template=.
+  local print_dir=false
   OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
@@ -460,6 +462,7 @@ fetch_cmd_run() {
       (ext-map) ext_map=$OPTARG;;
       (url-template) url_template=$OPTARG;;
       (rel-dir-template) rel_dir_template=$OPTARG;;
+      (print-dir) print_dir=true;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -510,7 +513,12 @@ fetch_cmd_run() {
     fi
     chmod +x "$cmd_path"
   fi
-  "$cmd_path" "$@"
+  if "$print_dir"
+  then
+    echo "$app_dir_path"
+  else
+    "$cmd_path" "$@"
+  fi
 }
 
 # Uname kernel name -> GOOS mapping
