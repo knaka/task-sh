@@ -20,7 +20,7 @@
 
 * The shell scripts should be executable with Bash, Dash, and BusyBox Ash.
 * Therefore, the shell scripts should only use POSIX shell features.
-* However, `local` variable declarations are not part of POSIX shell features, but they can be used as they are available in many shell implementations.
+* However, `local` variable declarations are not part of POSIX shell features, but they can be used as they are available in the shells listed above.
 <!-- +END -->
 
 <!-- +INCLUDE: ./DEVELOPMENT.md -->
