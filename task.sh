@@ -414,8 +414,16 @@ ifsm_values() {
 # Fetch and run a command from an archive
 # --------------------------------------------------------------------------
 
+uname_s() {
+  local os_name="$(uname -s)"
+  case "$os_name" in
+    (MINGW*|CYGWIN*) os_name="Windows" ;;
+  esac
+  echo "$os_name"
+}
+
 map_os() {
-  ifsm_get "$1" "$(uname -s)"
+  ifsm_get "$1" "$(uname_s)"
 }
 
 map_arch() {
