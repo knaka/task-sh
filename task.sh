@@ -35,7 +35,7 @@ chaintrap() {
   local sigspec
   for sigspec in "$@"
   do
-    sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
+    # sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
     local stmts_file="$stmts_file_base"-"$sigspec"
     if test -f "$stmts_file"
     then
@@ -522,6 +522,8 @@ goos_camel_map=\
 goarch_map=\
 "x86_64 amd64 "\
 "aarch64 arm64 "\
+"armv7l arm "\
+"i386 386 "\
 #nop
 
 # Uname kernel name -> generally used archive file extension mapping
@@ -649,6 +651,7 @@ task_devinstall() { # Install necessary packages for this development environmen
 # Fetching
 # --------------------------------------------------------------------------
 
+# curl(1) is available on MacOS and Window as default.
 require_cmd \
   --deb-id=curl \
   curl
@@ -659,31 +662,6 @@ curl() {
 
 subcmd_curl() { # Run curl(1).
   curl "$@"
-}
-
-go_os() {
-  case "$(uname -s)" in
-    Linux) echo "linux" ;;
-    Darwin) echo "darwin" ;;
-    Windows) echo "windows" ;;    
-    *)
-      echo "Unknown OS: $(uname -s)"
-      return 1
-      ;;
-  esac
-}
-
-go_arch() {
-  case "$(uname -m)" in
-    x86_64) echo "amd64" ;;
-    aarch64) echo "arm64" ;;
-    armv7l) echo "arm" ;;
-    i386) echo "386" ;;
-    *)
-      echo "Unknown architecture: $(uname -m)"
-      return 1
-      ;;
-  esac
 }
 
 # --------------------------------------------------------------------------
