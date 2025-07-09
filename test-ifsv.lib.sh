@@ -45,6 +45,18 @@ strlen() {
 test_ifsv_map() (
   set -o errexit
 
+  # Procedural
+  local vec="foo,bar,baz,"
+  local new_vec=
+  local saved_ifs="$IFS"; IFS=","
+  for elem in $vec
+  do
+    new_vec="$new_vec$(toupper_4c7e44e "$elem"),"
+  done
+  IFS="$saved_ifs"
+  assert_eq "FOO,BAR,BAZ," "$new_vec"
+
+  # Functional
   assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e)"
   assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e _)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d)"
