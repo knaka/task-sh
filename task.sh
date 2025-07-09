@@ -23,7 +23,7 @@ TEMP_DIR="$(mktemp -d)"
 # shellcheck disable=SC2064
 trap "rm -fr '$TEMP_DIR'" EXIT
 
-# Base name of the script file that contains the statements to be called when finalizing
+# Base name of the script file containing the statements to be called during finalization
 readonly stmts_file_base="$TEMP_DIR"/b6a5748
 
 # Chain traps to avoid overwriting the previous trap.
@@ -406,8 +406,8 @@ map_arch() {
 #   --cmd=COMMAND         Command name to execute. If not specified, the application name is used.
 #   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
-#   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, "url-format" points to a command binary directly rather than an archive file
-#   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=`.exe` on Windows) variables
+#   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, the URL template points to a command binary directly rather than an archive file
+#   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=.exe on Windows) variables
 #   --rel-dir-template=TEMPLATE   Relative path template within archive to the directory containing the command (default: ".")
 #   --print-dir           Print the directory path where the command is installed instead of executing the command
 fetch_cmd_run() {
