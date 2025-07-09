@@ -487,10 +487,10 @@ subcmd_my_sleep_exec() {
 
 task_killng_test() {
   "$sleep_cmd" 1234 &
-  invoke --invocation-mode=background "$sleep_cmd" 2345
+  INVOCATION_MODE=background invoke "$sleep_cmd" 2345
   "$sleep_cmd" 3456 &
   "$SH" task.sh my_sleep_bg &
-  invoke --invocation-mode=background ./task my_sleep_exec
+  INVOCATION_MODE=background invoke ./task my_sleep_exec
   "$sleep_cmd" 1
   kill_child_processes
   "$sleep_cmd" 1

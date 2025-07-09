@@ -21,8 +21,8 @@ task_astro__dev() { # Launch the Astro development server.
   fi
   local log_path
   log_path="$TEMP_DIR"/astro-dev.log
-  subcmd_astro --invocation-mode=background dev "$@" >"$log_path"
-  invoke --invocation-mode=background tail -F "$log_path"
+  INVOCATION_MODE=background astro --root "$astro_project_dir_0135e32" dev "$@" >"$log_path"
+  INVOCATION_MODE=background invoke tail -F "$log_path"
   while true
   do
     sleep 1

@@ -328,85 +328,53 @@ restore_shell_flags() {
 
 # Put a value in an associative array implemented as a property list.
 ifsm_put() {
-  local plist="$1"
-  local target_key="$2"
+  local key="$2"
   local value="$3"
-  local found=false
-  local key=
-  local i=0
-  local item
-  for item in $plist
+  # shellcheck disable=SC2086
+  set -- $1
+  local delim="${IFS%"${IFS#?}"}"
+  while test $# -gt 0
   do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        found=true
-        printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
-      else
-        printf "%s%s%s%s" "$key" "$IFS" "$item" "$IFS"
-      fi
-    fi
-    i=$((i + 1))
+    test "$1" != "$key" && printf "%s%s%s%s" "$1" "$delim" "$2" "$delim"
+    shift 2
   done
-  if ! "$found"
-  then
-    printf "%s%s%s%s" "$target_key" "$IFS" "$value" "$IFS"
-  fi
+  printf "%s%s%s%s" "$key" "$delim" "$value" "$delim"
 }
 
 # Get a value from an associative array implemented as a property list.
 ifsm_get() {
-  local plist="$1"
-  local target_key="$2"
-  local key=
-  local i=0
-  for item in $plist
+  local key="$2"
+  # shellcheck disable=SC2086
+  set -- $1
+  while test $# -gt 0
   do
-    if test $((i % 2)) -eq 0
-    then
-      key="$item"
-    else
-      if test "$key" = "$target_key"
-      then
-        printf "%s" "$item"
-        return
-      fi
-    fi
-    i=$((i + 1))
+    test "$1" = "$key" && printf "%s" "$2" && return
+    shift 2
   done
   return 1
 }
 
 # Keys of an associative array implemented as a property list.
 ifsm_keys() {
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
+  # shellcheck disable=SC2086
+  set -- $1
+  local delim="${IFS%"${IFS#?}"}"
+  while test $# -gt 0
   do
-    if test $((i % 2)) -eq 0
-    then
-      printf "%s%s" "$item" "$IFS"
-    fi
-    i=$((i + 1))
+    printf "%s%s" "$1" "$delim"
+    shift 2
   done
 }
 
 # Values of an associative array implemented as a property list.
 ifsm_values() {
-  local plist="$1"
-  local i=0
-  local item
-  for item in $plist
+  # shellcheck disable=SC2086
+  set -- $1
+  local delim="${IFS%"${IFS#?}"}"
+  while test $# -gt 0
   do
-    if test $((i % 2)) -eq 1
-    then
-      printf "%s%s" "$item" "$IFS"
-    fi
-    i=$((i + 1))
+    printf "%s%s" "$2" "$delim"
+    shift 2
   done
 }
 
@@ -1015,21 +983,13 @@ kill_child_processes() {
 
 # Invoke command with proper executable extension, with the specified invocation mode.
 #
-#   --invocation-mode=exec: Replace the process with the command.
-#   --invocation-mode=exec-sub: Replace the process with the command, without calling cleanups.
-#   --invocation-mode=background: Run the command in the background.
-#   --invocation-mode=standard: Run the command in the current process.
+# Invocation mode can be specified via INVOCATION_MODE environment variable:
+#   INVOCATION_MODE=exec: Replace the process with the command.
+#   INVOCATION_MODE=exec-sub: Replace the process with the command, without calling cleanups.
+#   INVOCATION_MODE=background: Run the command in the background.
+#   INVOCATION_MODE=standard: Run the command in the current process.
 invoke() {
-  local invocation_mode=standard
-  local arg
-  for arg in "$@"
-  do
-    case "$arg" in
-      (--invocation-mode=*) invocation_mode=${arg#--invocation-mode=};;
-      (*) set -- "$@" "$arg";;
-    esac
-    shift
-  done
+  local invocation_mode="${INVOCATION_MODE:-standard}"
   if test $# -eq 0
   then
     echo "No command specified" >&2

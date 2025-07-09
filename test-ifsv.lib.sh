@@ -43,6 +43,13 @@ test_ifsv_reduce() (
 
 )
 
+test_default_ifs() (
+  set -o errexit
+  local map=
+  map="$(ifsm_put "$map" "foo" "FOO")"
+  assert_eq "FOO" "$(ifsm_get "$map" "foo")"
+)
+
 # Test plist functions.
 test_plist() (
   set -o errexit
@@ -61,11 +68,11 @@ test_plist() (
   assert_eq "val2" "$(ifsm_get "$csvpl" "key2")"
   assert_false ifsm_get "$csvpl" "key3"
 
-  assert_eq "key1,mod1,key2,val2," "$(ifsm_put "$csvpl" "key1" "mod1")"
+  assert_eq "key2,val2,key1,mod1," "$(ifsm_put "$csvpl" "key1" "mod1")"
   assert_eq "key1,val1,key2,val2,key3,val3," "$(ifsm_put "$csvpl" "key3" "val3")"
 
   assert_eq "key1,val1,key2,," "$(ifsm_put "$csvpl" "key2" "")"
-  assert_eq "" "$(ifsm_get "key1,val1,key2," "key2")"
+  assert_eq "" "$(ifsm_get "key1,val1,key2,," "key2")"
 
   assert_eq "key1,val1,key2,val2,,empty," "$(ifsm_put "$csvpl" "" "empty")"
   assert_eq "empty" "$(ifsm_get "key1,val1,key2,val2,,empty" "")"
