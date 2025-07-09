@@ -22,11 +22,8 @@ ifsv_tail() {
   # shellcheck disable=SC2086
   set -- $1
   shift
-  local item
-  for item in "$@"
-  do
-    printf "%s%s" "$item" "$IFS"
-  done
+  local delim="${IFS%"${IFS#?}"}"
+  printf "%s$delim" "$@"
 }
 
 ifsv_length() {
@@ -39,212 +36,139 @@ ifsv_empty() {
   test -z "$1"
 }
 
-# Join IFS-separated values with a delimiter.
+# Join IFS-separated values with the specified delimiter.
 ifsv_join() {
   local out_delim="$2"
   # shellcheck disable=SC2086
   set -- $1
-  local delim=
-  local arg=
-  for arg in "$@"
-  do
-    printf "%s%s" "$delim" "$arg"
-    delim="$out_delim"
-  done
+  printf "%s$out_delim" "$@"
 }
 
-# Get an item at a specified index. If the 3rd argument is provided, it is used as a replacement for the item and returns the new IFSV.
+# Get an item at a specified index in 0-based. If the 3rd argument is provided, it is used as a replacement for the item and returns the new IFSV.
 ifsv_at() {
-  local i=0
-  local item
-  for item in $1
+  local index="$2"
+  if test "${3+set}" = set
+  then
+    local new_val="$3"
+  fi
+  # shellcheck disable=SC2086
+  set -- $1
+  if ! test "${new_val+set}" = set
+  then
+    shift "$index"
+    printf "%s" "$1"
+    return
+  fi
+  local delim="${IFS%"${IFS#?}"}"
+  while test "$index" -gt 0
   do
-    if test "$i" = "$2"
-    then
-      if test "${3+set}" = set
-      then
-        printf "%s%s" "$3" "$IFS"
-      else
-        printf "%s" "$item"
-        return
-      fi
-    else
-      if test "${3+set}" = set
-      then
-        printf "%s%s" "$item" "$IFS"
-      fi
-    fi
-    i=$((i + 1))
+    printf "%s$delim" "$1"
+    index=$((index - 1))
+    shift
   done
+  shift
+  printf "%s$delim" "$new_val" "$@"
 }
 
-# Map IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
+apply_cmd_to_elem() {
+  while test "$1" != "--"
+  do
+    local substituted=false
+    local arg1="$1"
+    shift
+    local arg
+    for arg in "$@"
+    do
+      if ! "$substituted" && test "$arg" = "_"
+      then
+        arg="$arg1"
+        substituted=true
+      fi
+      set -- "$@" "$arg"
+      shift
+    done
+    if ! $substituted
+    then
+      set -- "$@" "$arg1"
+    fi
+  done
+  shift
+  "$@"
+}
+
+# Map IFS-separated values with a command. If the command contains argument "_", then it is replaced with the item.
 ifsv_map() {
-  local arr="$1"
+  local vec="$1"
   shift
-  local should_replace=false
-  local arg
-  for arg in "$@"
-  do
-    if test "$arg" = "_" || test "$arg" = "it"
-    then
-      should_replace=true
-    fi
-  done
-  local i=0
-  local item
-  for item in $arr
-  do
-    if $should_replace
-    then
-      (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            arg="$item"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        printf "%s%s" "$("$@")" "$IFS"
-      )
-    else
-      printf "%s%s" "$("$@" "$item")" "$IFS"
-    fi
-    i=$((i + 1))
+  local delim="${IFS%"${IFS#?}"}"
+  local elem
+  for elem in $vec
+  do   
+    printf "%s$delim" "$(apply_cmd_to_elem "$elem" -- "$@")"
   done
 }
 
-# Filter IFS-separated values with a command. If the command contains "_", then it is replaced with the item.
+# Filter IFS-separated values with a command. If the command contains argument "_", then it is replaced with the item.
 ifsv_filter() {
-  local arr="$1"
+  local vec="$1"
   shift
-  local should_replace=false
-  local arg
-  for arg in "$@"
+  local delim="${IFS%"${IFS#?}"}"
+  local elem
+  for elem in $vec
   do
-    if test "$arg" = "_"
+    if apply_cmd_to_elem "$elem" -- "$@" >/dev/null 2>&1
     then
-      should_replace=true
+      printf "%s%s" "$elem" "$delim"
     fi
-  done
-  local item
-  for item in $arr
-  do
-    if $should_replace
-    then
-      if ! (
-        for arg in "$@"
-        do
-          if test "$arg" = "_"
-          then
-            arg="$item"
-          fi
-          set -- "$@" "$arg"
-          shift
-        done
-        "$@"
-      )
-      then
-        continue
-      fi
-    elif ! "$@" "$item"
-    then
-      continue
-    fi
-    printf "%s%s" "$item" "$IFS"
   done
 }
 
-# Reduce IFS-separated values with a function. If the function contains "_", then it is replaced with the accumulator and the item.
+# Reduce IFS-separated values with a function. If the function contains two "_", then it is replaced with the accumulator and the item.
 ifsv_reduce() {
-  local arr="$1"
+  local vec="$1"
   shift
   local acc="$1"
   shift
-  local has_place_holder=false
-  local arg
-  for arg in "$@"
+  local elem
+  for elem in $vec
   do
-    if test "$arg" = "_"
-    then
-      has_place_holder=true
-    fi
+    acc="$(apply_cmd_to_elem "$acc" "$elem" -- "$@")"
   done
-  local item
-  for item in $arr
-  do
-    if $has_place_holder
-    then
-      acc="$(
-        first_place_holder=true
-        for arg2 in "$@"
-        do
-          if test "$arg2" = "_"
-          then
-            if $first_place_holder
-            then
-              arg2="$acc"
-              first_place_holder=false
-            else
-              arg2="$item"
-            fi
-          fi
-          set -- "$@" "$arg2"
-          shift
-        done
-        "$@"
-      )"
-    else
-      acc="$("$@" "$acc" "$item")"
-    fi
-  done
-  printf "%s" "$acc"
+  echo "$acc"
 }
 
 # Check if an IFS-separated value contains a specified item.
 ifsv_contains() {
-  local arr="$1"
   local target="$2"
-  local item
-  for item in $arr
+  # shellcheck disable=SC2086
+  set -- $1
+  while test $# -gt 0
   do
-    if test "$item" = "$target"
-    then
-      return
-    fi
+    test "$1" = "$target" && return 0
+    shift
   done
   return 1
 }
 
 # Sort IFS-separated values.
 ifsv_sort() {
-  local arr="$1"
-  if test -z "$arr"
-  then
-    return
-  fi
+  local vec="$1"
   shift
-  local vers
+  test -z "$vec" && return
   # shellcheck disable=SC2086
-  vers="$(
-    printf "%s\n" $arr \
-    | if test "$#" -eq 0
-    then
-      sort
-    else
-      "$@"
-    fi
+  local lines="$(
+    printf "%s\n" $vec \
+      | if test "$#" -eq 0
+      then
+        sort
+      else
+        "$@"
+      fi
   )"
-  push_ifs
-  set_ifs_newline
+  local saved_ifs="$IFS"; IFS="$newline"
   # shellcheck disable=SC2086
-  set -- $vers
-  pop_ifs
-  local item
-  for item in "$@"
-  do
-    printf "%s%s" "$item" "$IFS"
-  done
+  set -- $lines
+  IFS="$saved_ifs"
+  local delim="${IFS%"${IFS#?}"}"
+  printf "%s$delim" "$@"
 }

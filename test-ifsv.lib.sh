@@ -5,6 +5,28 @@ test "${sourced_78b9c2d-}" = true && return 0; sourced_78b9c2d=true
 . ./task.sh
 . ./ifsv.lib.sh
 
+test_ifsv_basic() (
+  set -o errexit
+
+  assert_eq "foo" "$(IFS=, ifsv_head "foo,bar,baz,")"
+  assert_eq "bar,baz," "$(IFS=, ifsv_tail "foo,bar,baz,")"
+  
+  assert_eq "3" "$(IFS=, ifsv_length "foo,bar,baz,")"
+
+  assert_eq "bar" "$(IFS=, ifsv_at "foo,bar,baz," 1)"
+  assert_eq "foo,qux,baz," "$(IFS=, ifsv_at "foo,bar,baz," 1 "qux")"
+)
+
+test_ifsv_join() (
+  set -o errexit
+
+  assert_eq "foo|bar|baz|" "$(IFS=, ifsv_join "foo,bar,baz," "|")"
+)
+
+strlen() {
+  echo "${#1}"
+}
+
 test_ifsv_map() (
   set -o errexit
 
@@ -12,6 +34,8 @@ test_ifsv_map() (
   assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e _)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d _)"
+
+  assert_eq "5,3,7," "$(IFS=, ifsv_map "Alice,Bob,Charlie" strlen)"
 )
 
 test_ifsv_filter() (
@@ -40,7 +64,6 @@ test_ifsv_reduce() (
   rpn() { echo $(($1 $3 $2)); }
   assert_eq 10 "$(IFS="|" ifsv_reduce "4|3|2|1" 0 rpn _ _ '+')"
   assert_eq 24 "$(IFS="|" ifsv_reduce "4|3|2|1" 1 rpn _ _ '*')"
-
 )
 
 test_default_ifs() (
