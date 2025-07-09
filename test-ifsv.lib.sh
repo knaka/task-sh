@@ -5,8 +5,23 @@ test "${sourced_78b9c2d-}" = true && return 0; sourced_78b9c2d=true
 . ./task.sh
 . ./ifsv.lib.sh
 
+sum_75e35a9() (
+  local sum=0
+  while test $# -gt 0
+  do
+    sum=$((sum + $1))
+    shift
+  done
+  echo "$sum"
+)
+
 test_ifsv_basic() (
   set -o errexit
+
+  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_4c7e44e)"
+  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_4c7e44e _)"
+  assert_eq 5 "$(apply_cmd_to_values 2 3 -- sum_75e35a9 _ _)"
+  assert_eq 10 "$(apply_cmd_to_values 1 2 3 4 -- sum_75e35a9)"
 
   assert_eq "foo" "$(IFS=, ifsv_head "foo,bar,baz,")"
   assert_eq "bar,baz," "$(IFS=, ifsv_tail "foo,bar,baz,")"

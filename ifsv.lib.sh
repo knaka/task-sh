@@ -70,7 +70,7 @@ ifsv_at() {
   printf "%s$delim" "$new_val" "$@"
 }
 
-apply_cmd_to_elem() {
+apply_cmd_to_values() {
   while test "$1" != "--"
   do
     local substituted=false
@@ -104,7 +104,7 @@ ifsv_map() {
   local elem
   for elem in $vec
   do   
-    printf "%s$delim" "$(apply_cmd_to_elem "$elem" -- "$@")"
+    printf "%s$delim" "$(apply_cmd_to_values "$elem" -- "$@")"
   done
 }
 
@@ -116,7 +116,7 @@ ifsv_filter() {
   local elem
   for elem in $vec
   do
-    if apply_cmd_to_elem "$elem" -- "$@" >/dev/null 2>&1
+    if apply_cmd_to_values "$elem" -- "$@" >/dev/null 2>&1
     then
       printf "%s%s" "$elem" "$delim"
     fi
@@ -132,7 +132,7 @@ ifsv_reduce() {
   local elem
   for elem in $vec
   do
-    acc="$(apply_cmd_to_elem "$acc" "$elem" -- "$@")"
+    acc="$(apply_cmd_to_values "$acc" "$elem" -- "$@")"
   done
   echo "$acc"
 }
