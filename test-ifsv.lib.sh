@@ -18,8 +18,8 @@ sum_75e35a9() (
 test_ifsv_basic() (
   set -o errexit
 
-  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_4c7e44e)"
-  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_4c7e44e _)"
+  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_6201a5f)"
+  assert_eq "FOO" "$(apply_cmd_to_values "foo" -- toupper_6201a5f _)"
   assert_eq 5 "$(apply_cmd_to_values 2 3 -- sum_75e35a9 _ _)"
   assert_eq 10 "$(apply_cmd_to_values 1 2 3 4 -- sum_75e35a9)"
 
@@ -38,8 +38,12 @@ test_ifsv_join() (
   assert_eq "foo|bar|baz|" "$(IFS=, ifsv_join "foo,bar,baz," "|")"
 )
 
-strlen() {
+strlen_e5775ea() {
   echo "${#1}"
+}
+
+toupper_6201a5f() {
+  printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
 
 test_ifsv_map() (
@@ -51,18 +55,18 @@ test_ifsv_map() (
   local saved_ifs="$IFS"; IFS=","
   for elem in $vec
   do
-    new_vec="$new_vec$(toupper_4c7e44e "$elem"),"
+    new_vec="$new_vec$(toupper_6201a5f "$elem"),"
   done
   IFS="$saved_ifs"
   assert_eq "FOO,BAR,BAZ," "$new_vec"
 
   # Functional
-  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e)"
-  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_4c7e44e _)"
+  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_6201a5f)"
+  assert_eq "FOO,BAR,BAZ," "$(IFS=, ifsv_map "foo,bar,baz," toupper_6201a5f _)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d)"
   assert_eq "foo,bar,baz," "$(IFS=, ifsv_map "FOO,BAR,BAZ," tolower_542075d _)"
 
-  assert_eq "5,3,7," "$(IFS=, ifsv_map "Alice,Bob,Charlie" strlen)"
+  assert_eq "5,3,7," "$(IFS=, ifsv_map "Alice,Bob,Charlie" strlen_e5775ea)"
 )
 
 test_ifsv_filter() (
