@@ -420,6 +420,7 @@ fetch_cmd_run() {
   local url_template=
   local rel_dir_template=.
   local print_dir=false
+  local macos_remove_signature=false
   OPTIND=1; while getopts _-: OPT
   do
     if test "$OPT" = "-"
@@ -439,6 +440,7 @@ fetch_cmd_run() {
       (url-template) url_template=$OPTARG;;
       (rel-dir-template) rel_dir_template=$OPTARG;;
       (print-dir) print_dir=true;;
+      (macos-remove-signature) macos_remove_signature=true;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -488,6 +490,10 @@ fetch_cmd_run() {
       mv "$out_file_path" "$cmd_path"
     fi
     chmod +x "$cmd_path"
+    if is_macos && "$macos_remove_signature"
+    then
+      codesign --remove-signature "$cmd_path"
+    fi
   fi
   if "$print_dir"
   then

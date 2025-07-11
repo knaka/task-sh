@@ -7,6 +7,12 @@
 . ./task.sh
 . ./task-node.lib.sh
 
+rr_project_dir_3376d5a="$PROJECT_DIR"
+
+set_rr_project_dir() {
+  rr_project_dir_3376d5a="$1"
+}
+
 subcmd_rr() { # Run `react-router`.
   run_node_modules_bin @react-router dev/bin.js "$@"
 }
@@ -16,11 +22,11 @@ alias react-router=subcmd_rr
 alias subcmd_react-router=subcmd_rr
 
 task_rr__build() { # Build
-  react-router build "$PROJECT_DIR"
+  react-router build "$rr_project_dir_3376d5a"
 }
 
 task_rr__routes() { # List routes
-  react-router routes "$PROJECT_DIR"
+  react-router routes "$rr_project_dir_3376d5a"
 }
 
 task_rr__dev() { # Start development server
@@ -29,5 +35,5 @@ task_rr__dev() { # Start development server
   local port="${RR_DEV_PORT:-3000}"
   set -- "$@" --host "$host"
   set -- "$@" --port "$port"
-  react-router dev "$@" "$PROJECT_DIR"
+  react-router dev "$rr_project_dir_3376d5a" "$@"
 }

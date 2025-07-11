@@ -96,12 +96,16 @@ set_go_env() {
   export PAT
 }
 
-subcmd_go() { # Run go command.
+go() {
   set_go_env
+  invoke go "$@"
+}
+
+subcmd_go() { # Run go command.
   go "$@"
 }
 
 subcmd_gofmt() { # Run gofmt command.
   set_go_env
-  gofmt "$@"
+  invoke gofmt "$@"
 }

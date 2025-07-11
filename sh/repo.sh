@@ -1,26 +1,46 @@
-#!/bin/sh
-set -o nounset -o errexit
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_b7ccc35-false}" && return 0; sourced_b7ccc35=true
+
+set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
+. ./peco.sh
+cd "$1"; shift 2
 
 GHQ_ROOT="$HOME"/repos
 export GHQ_ROOT
-cmd=ghq
 
-if test "${1+SET}" = "SET"
+ghq() {
+  # Releases · x-motemen/ghq https://github.com/x-motemen/ghq/releases
+  # shellcheck disable=SC2016
+  fetch_cmd_run \
+    --name="ghq" \
+    --ver="1.8.0" \
+    --os-map="$goos_map" \
+    --arch-map="$goarch_map" \
+    --ext-map="Linux .zip Darwin .zip Windows .zip" \
+    --url-template='https://github.com/x-motemen/ghq/releases/download/v${ver}/ghq_${os}_${arch}${ext}' \
+    --rel-dir-template='ghq_${os}_${arch}' \
+    -- \
+    "$@"
+}
+
+if test "${1+set}" = "set"
 then
   case "$1" in
-    st|stat)
-      exec "$cmd" root
+    (st|stat)
+      set -- ghq root
       ;;
-    *)
-      exec $cmd "$@"
+    (*)
+      ghq "$@"
       ;;
   esac
 fi
 
 # If not subcommand is specified, list repositories.
-repo=$("$cmd" list | peco)
+repo=$(ghq list | peco)
 if test -z "${repo}"
 then
   exit 1
 fi
-echo "$("$cmd" root)"/"${repo}"
+echo "$(ghq root)"/"${repo}"
