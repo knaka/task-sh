@@ -406,16 +406,19 @@ map_arch() {
 #   --cmd=COMMAND         Command name to execute. If not specified, the application name is used.
 #   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
-#   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). If not specified, the URL template points to a command binary directly rather than an archive file
+#   --ext=EXTENSION       Archive file extension (e.g., ".zip", ".tar.gz"). Takes precedence over --ext-map.
+#   --ext-map=MAP         Archive extension mapping (IFS-separated key-value pairs). Used when --ext is not specified. If neither option is provided, the URL template points directly to a command binary rather than an archive file
 #   --url-template=TEMPLATE URL template string to generate the download URL with ${ver}, ${os}, ${arch}, ${ext}, ${exe_ext} (=.exe on Windows) variables
 #   --rel-dir-template=TEMPLATE   Relative path template within archive to the directory containing the command (default: ".")
 #   --print-dir           Print the directory path where the command is installed instead of executing the command
+#   --macos-remove-signature      Remove code signature from the downloaded binary on macOS to bypass security checks
 fetch_cmd_run() {
   local name=
   local ver=
   local cmd=
   local os_map=
   local arch_map=
+  local ext=
   local ext_map=
   local url_template=
   local rel_dir_template=.
@@ -436,6 +439,7 @@ fetch_cmd_run() {
       (cmd) cmd=$OPTARG;;
       (os-map) os_map=$OPTARG;;
       (arch-map) arch_map=$OPTARG;;
+      (ext) ext=$OPTARG;;
       (ext-map) ext_map=$OPTARG;;
       (url-template) url_template=$OPTARG;;
       (rel-dir-template) rel_dir_template=$OPTARG;;
@@ -461,8 +465,7 @@ fetch_cmd_run() {
     local os="$(map_os "$os_map")"
     # shellcheck disable=SC2034
     local arch="$(map_arch "$arch_map")"
-    local ext=
-    if test -n "$ext_map"
+    if test -z "$ext" -a -n "$ext_map"
     then
       ext="$(map_os "$ext_map")"
     fi
@@ -482,7 +485,7 @@ fetch_cmd_run() {
       (*) ;;
     esac
     pop_dir
-    if test -n "$ext_map"
+    if test -n "$ext"
     then
       local rel_dir_path="$(eval echo "$rel_dir_template")"
       mv "$work_dir_path"/"$rel_dir_path"/* "$app_dir_path"

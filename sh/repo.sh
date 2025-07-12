@@ -18,7 +18,7 @@ ghq() {
     --ver="1.8.0" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
-    --ext-map="Linux .zip Darwin .zip Windows .zip" \
+    --ext=".zip" \
     --url-template='https://github.com/x-motemen/ghq/releases/download/v${ver}/ghq_${os}_${arch}${ext}' \
     --rel-dir-template='ghq_${os}_${arch}' \
     -- \
