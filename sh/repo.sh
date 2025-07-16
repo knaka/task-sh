@@ -3,7 +3,11 @@
 # shellcheck shell=sh
 "${sourced_b7ccc35-false}" && return 0; sourced_b7ccc35=true
 
+# Releases · x-motemen/ghq https://github.com/x-motemen/ghq/releases
+ghq_version="1.8.0"
+
 set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
+. ./task.sh
 . ./peco.sh
 cd "$1"; shift 2
 
@@ -11,11 +15,10 @@ GHQ_ROOT="$HOME"/repos
 export GHQ_ROOT
 
 ghq() {
-  # Releases · x-motemen/ghq https://github.com/x-motemen/ghq/releases
   # shellcheck disable=SC2016
   fetch_cmd_run \
     --name="ghq" \
-    --ver="1.8.0" \
+    --ver="$ghq_version" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --ext=".zip" \
