@@ -1067,7 +1067,6 @@ get_key() {
   then
     # shellcheck disable=SC3045
     read -rsn1 key
-    return
   # Otherwise, the input is echoed
   else
     read -r key
