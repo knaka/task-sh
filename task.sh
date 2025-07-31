@@ -562,7 +562,7 @@ usm_psv_cmd=
 
 # Register a command with optional package IDs for various package managers.
 # This function maps a command name to package IDs for installation via different package managers.
-# The first argument is treated as the main command name, and subsequent arguments are alternative command name or command paths.
+# The rest arguments are treated as the command paths to be tried in order. The last argument is treated as the command name.
 # Options:
 #   --brew-id=<id>    Package ID for Homebrew (macOS)
 #   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
@@ -590,16 +590,13 @@ require_pkg_cmd() {
   done
   shift $((OPTIND-1))
 
-  # 1st argument is treated as the command name.
+  # Last argument is treated as the command name.
   local cmd_name=
   local psv_cmd=
   local cmd
   for cmd in "$@"
   do
-    if test -z "$cmd_name"
-    then
-      cmd_name="$cmd"
-    fi
+    cmd_name="$cmd"
     psv_cmd="$psv_cmd|$cmd"
   done
   test -n "$brew_id" && usm_brew_id="$usm_brew_id$cmd_name$us$brew_id$us"

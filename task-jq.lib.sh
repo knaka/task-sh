@@ -19,8 +19,8 @@ set_jq_version() {
 require_pkg_cmd \
   --brew-id=jq \
   --winget-id=jqlang.jq \
-  jq \
-  "$LOCALAPPDATA"/Microsoft/WinGet/Links/jq.exe
+  "$LOCALAPPDATA"/Microsoft/WinGet/Links/jq.exe \
+  jq
 
 jq() {
   if "$jq_use_fetched"

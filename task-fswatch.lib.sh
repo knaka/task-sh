@@ -7,8 +7,8 @@
 require_pkg_cmd \
   --brew-id=fswatch \
   --winget-id=emcrisostomo.fswatch \
-  fswatch \
-  "$LOCALAPPDATA"/Microsoft/fswatch/Packages/fswatch.exe
+  "$LOCALAPPDATA"/Microsoft/WinGet/Links/fswatch.exe \
+  fswatch
 
 fswatch() {
   run_pkg_cmd fswatch "$@"
