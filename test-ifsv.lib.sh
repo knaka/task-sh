@@ -5,7 +5,7 @@ test "${sourced_78b9c2d-}" = true && return 0; sourced_78b9c2d=true
 . ./task.sh
 . ./ifsv.lib.sh
 
-sum_75e35a9() (
+sum_75e35a9() {
   local sum=0
   while test $# -gt 0
   do
@@ -13,7 +13,7 @@ sum_75e35a9() (
     shift
   done
   echo "$sum"
-)
+}
 
 test_ifsv_basic() (
   set -o errexit
@@ -99,7 +99,7 @@ test_ifsv_reduce() (
 
 test_default_ifs() (
   set -o errexit
-  local map=
+  map=
   map="$(ifsm_put "$map" "foo" "FOO")"
   assert_eq "FOO" "$(ifsm_get "$map" "foo")"
 )
