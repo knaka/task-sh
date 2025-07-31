@@ -385,7 +385,7 @@ ifsm_values() {
 uname_s() {
   local os_name="$(uname -s)"
   case "$os_name" in
-    (MINGW*|CYGWIN*) os_name="Windows" ;;
+    (Windows_NT|MINGW*|CYGWIN*) os_name="Windows" ;;
   esac
   echo "$os_name"
 }
@@ -629,6 +629,14 @@ run_required_cmd() {
     # shellcheck disable=SC2086
     printf " %s" $(ifsm_values "$usm_brew_id") >&2
     IFS="$saved_ifs"
+  elif is_windows
+  then
+    printf "  winget install" >&2
+    local saved_ifs="$IFS"; IFS="$us"
+    # shellcheck disable=SC2046
+    # shellcheck disable=SC2086
+    printf " %s" $(ifsm_values "$usm_winget_id") >&2
+    IFS="$saved_ifs"
   fi
   echo >&2
   echo >&2
@@ -642,6 +650,14 @@ task_devinstall() { # Install necessary packages for this development environmen
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
     set -- "$@" $(ifsm_values "$usm_brew_id")
+    IFS="$saved_ifs"
+    invoke "$@"
+  elif is_windows
+  then
+    set - winget install
+    local saved_ifs="$IFS"; IFS="$us"
+    # shellcheck disable=SC2046
+    set -- "$@" $(ifsm_values "$usm_winget_id")
     IFS="$saved_ifs"
     invoke "$@"
   fi
