@@ -15,7 +15,7 @@ set_yq_version() {
 
 yq() {
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="yq" \
     --ver="$yq_version_c887ee2" \
     --os-map="$goos_map" \

@@ -12,7 +12,7 @@ set_mdpp_version() {
 
 mdpp() {
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="mdpp" \
     --ver="$mdpp_version_91a5418" \
     --os-map="$goos_camel_map" \

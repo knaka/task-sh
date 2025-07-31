@@ -24,7 +24,7 @@ set_terraform_path() {
 terraform() {
   push_dir "$terraform_path_ca65267"
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="terraform" \
     --ver="$terraform_version_0db0d51" \
     --os-map="$goos_map" \

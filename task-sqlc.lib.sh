@@ -14,7 +14,7 @@ set_sqlc_version() {
 
 sqlc() {
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="sqlc" \
     --ver="$sqlc_version_0d37f4b" \
     --os-map="$goos_map" \

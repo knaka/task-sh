@@ -14,7 +14,7 @@ set_volta_version() {
 volta_dir_path() {
   local saved_ifs="$IFS"; IFS=","
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="volta" \
     --ver="$volta_version_c919009" \
     --os-map="Linux,linux,Darwin,macos,Windows,windows," \

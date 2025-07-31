@@ -4,14 +4,14 @@
 
 . ./task.sh
 
-require_cmd \
+require_pkg_cmd \
   --brew-id=fswatch \
   --winget-id=emcrisostomo.fswatch \
   fswatch \
   "$LOCALAPPDATA"/Microsoft/fswatch/Packages/fswatch.exe
 
 fswatch() {
-  run_required_cmd fswatch "$@"
+  run_pkg_cmd fswatch "$@"
 }
 
 subcmd_fswatch() { # Run fswatch(1).

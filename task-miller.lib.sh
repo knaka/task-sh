@@ -16,7 +16,7 @@ set_miller_version() {
 
 mlr() {
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="miller" \
     --ver="$miller_version_4bb65e2" \
     --cmd="mlr" \

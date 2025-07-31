@@ -412,7 +412,7 @@ map_arch() {
 #   --rel-dir-template=TEMPLATE   Relative path template within archive to the directory containing the command (default: ".")
 #   --print-dir           Print the directory path where the command is installed instead of executing the command
 #   --macos-remove-signature      Remove code signature from the downloaded binary on macOS to bypass security checks
-fetch_cmd_run() {
+run_fetched_cmd() {
   local name=
   local ver=
   local cmd=
@@ -567,7 +567,7 @@ usm_psv_cmd=
 #   --brew-id=<id>    Package ID for Homebrew (macOS)
 #   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
 #   --winget-id=<id>  Package ID for Windows Package Manager
-require_cmd() {
+require_pkg_cmd() {
   local brew_id=
   local deb_id=
   local winget_id=
@@ -611,7 +611,7 @@ require_cmd() {
 # For Windows
 : "${LOCALAPPDATA:=e06a91c}"
 
-run_required_cmd() {
+run_pkg_cmd() {
   local cmd_name="$1"
   shift
   local saved_IFS="$IFS"; IFS="|"
@@ -677,12 +677,12 @@ task_devinstall() { # Install necessary packages for this development environmen
 # --------------------------------------------------------------------------
 
 # curl(1) is available on MacOS and Window as default.
-require_cmd \
+require_pkg_cmd \
   --deb-id=curl \
   curl
 
 curl() {
-  run_required_cmd curl "$@"
+  run_pkg_cmd curl "$@"
 }
 
 subcmd_curl() { # Run curl(1).

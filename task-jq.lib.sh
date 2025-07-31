@@ -4,27 +4,29 @@
 
 # jqlang/jq: Command-line JSON processor https://github.com/jqlang/jq
 
-. ./task.sh
+# Whether to use the fetched jq binary or the command installed by the package manager.
+jq_use_fetched=false
 
-require_cmd \
-  --brew-id=jq \
-  --winget-id=jqlang.jq \
-  jq \
-  "$LOCALAPPDATA"/Microsoft/WinGet/Links/jq.exe
-
+# Releases · jqlang/jq · GitHub https://github.com/jqlang/jq/releases
 jq_version_6d4ce66=1.8.1
 
 set_jq_version() {
   jq_version_6d4ce66="$1"
 }
 
-jq_use_fetched=false
+. ./task.sh
+
+require_pkg_cmd \
+  --brew-id=jq \
+  --winget-id=jqlang.jq \
+  jq \
+  "$LOCALAPPDATA"/Microsoft/WinGet/Links/jq.exe
 
 jq() {
   if "$jq_use_fetched"
   then
     # shellcheck disable=SC2016
-    fetch_cmd_run \
+    run_fetched_cmd \
       --name="jq" \
       --ver="$jq_version_6d4ce66" \
       --os-map="Linux linux Darwin macos Windows windows " \
@@ -34,7 +36,7 @@ jq() {
       "$@"
     return "$?"
   fi
-  run_required_cmd jq "$@"
+  run_pkg_cmd jq "$@"
 }
 
 subcmd_jq() { # Run jq(1).
