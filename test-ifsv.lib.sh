@@ -50,9 +50,9 @@ test_ifsv_map() (
   set -o errexit
 
   # Procedural
-  local vec="foo,bar,baz,"
-  local new_vec=
-  local saved_ifs="$IFS"; IFS=","
+  vec="foo,bar,baz,"
+  new_vec=
+  saved_ifs="$IFS"; IFS=","
   for elem in $vec
   do
     new_vec="$new_vec$(toupper_6201a5f "$elem"),"
