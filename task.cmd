@@ -1,15 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
-if "%~1" == "update-me" (
-  curl.exe --fail --location --output %TEMP%\task_cmd-%~nx0 https://raw.githubusercontent.com/knaka/src/main/task.cmd || exit /b !ERRORLEVEL!
-  move /y %TEMP%\task_cmd-%~nx0 %~f0
-  exit /b 0
-)
 
 @REM BusyBox for Windows https://frippery.org/busybox/index.html
 @REM Release Notes https://frippery.org/busybox/release-notes/index.html
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
-set ver=FRP-5467-g9376eebd8
+set ver=FRP-5579-g5749feb35
 if "%PROCESSOR_ARCHITECTURE%" == "x86" (
   echo WARNING: Your environment is 32-bit. Not all features are supported. >&2
   set arch=32
@@ -21,11 +16,11 @@ if "%PROCESSOR_ARCHITECTURE%" == "x86" (
   exit /b 1 
 )
 set cmd_name=busybox-w!arch!-!ver!.exe
-set bin_dir_path=%USERPROFILE%\.bin
-if not exist !bin_dir_path! (
-  mkdir "!bin_dir_path!"
+set cache_dir_path=%USERPROFILE%\.cache\task-sh
+if not exist !cache_dir_path! (
+  mkdir "!cache_dir_path!"
 )
-set cmd_path=!bin_dir_path!\!cmd_name!
+set cmd_path=!cache_dir_path!\!cmd_name!
 if not exist !cmd_path! (
   echo Downloading BusyBox for Windows. >&2
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b !ERRORLEVEL!
@@ -35,7 +30,9 @@ set "ARG0=%~f0"
 set "ARG0BASE=%~n0"
 set saved_pwd=%CD%
 set initial_dir=%~dp0
+@REM Remove trailing backslash from initial directory path if present
 if "!initial_dir:~-1!"=="\" set "initial_dir=!initial_dir:~0,-1!"
+@REM Change to the initial directory where the script is located
 cd /d "!initial_dir!" || exit /b 1
 set "PROJECT_DIR=%CD%"
 set script_file_path=
