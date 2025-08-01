@@ -6,16 +6,16 @@ test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 
 . ./task.sh
 
-if ! test -L "$PROJECT_DIR"/sh/task.sh
-then
-  # shellcheck disable=SC2016
-  echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
-  if is_windows
-  then
-    echo "To enable symlink creation on Windows, enable Developer Mode or run as Administrator." >&2
-  fi
-  exit 1
-fi
+# if ! test -L "$PROJECT_DIR"/sh/task.sh
+# then
+#   # shellcheck disable=SC2016
+#   echo 'Git work seems not checked out with symlinks support. Configure with `git config --global core.symlinks true` and check out again.' >&2
+#   if is_windows
+#   then
+#     echo "To enable symlink creation on Windows, enable Developer Mode or run as Administrator." >&2
+#   fi
+#   exit 1
+# fi
 
 . ./task-docker.lib.sh
 

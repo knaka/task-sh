@@ -33,25 +33,33 @@ if not exist !cmd_path! (
 
 set "ARG0=%~f0"
 set "ARG0BASE=%~n0"
-set script_dir_path=%~dp0
-set script_name=%~n0
-set sh_dir_path=
-set env_file_path=!script_dir_path!\.env.sh.cmd
-if exist !env_file_path! (
-  call !env_file_path!
+set saved_pwd=%CD%
+set initial_dir=%~dp0
+if "!initial_dir:~-1!"=="\" set "initial_dir=!initial_dir:~0,-1!"
+cd /d "!initial_dir!" || exit /b 1
+set "PROJECT_DIR=%CD%"
+set script_file_path=
+:search_loop
+if exist "!ARG0BASE!.sh" (
+  set "script_file_path=%CD%\!ARG0BASE!.sh"
+  goto found_script
 )
-if not defined sh_dir_path (
-  if "!script_name!"=="task" (
-    if not exist "!script_dir_path!\task.sh" (
-      if exist "!script_dir_path!\tasks\task.sh" (
-        set "sh_dir_path=!script_dir_path!\tasks"
-      )
-    )
-  )
-  if not defined sh_dir_path (
-    set "sh_dir_path=!script_dir_path!"
-  )
+if exist "tasks\!ARG0BASE!.sh" (
+  set "script_file_path=%CD%\tasks\!ARG0BASE!.sh"
+  goto found_script
 )
+set parent_dir=%CD%
+cd ..
+if "%CD%"=="!parent_dir!" (
+  goto script_not_found
+)
+goto search_loop
+:script_not_found
+echo Cannot find script file for !ARG0! >&2
+exit /b 1
+:found_script
+set "TASK_SH_DIR=%CD%"
+cd /d "!saved_pwd!" || exit /b 1
 set BB_GLOBBING=0
-!cmd_path! sh !sh_dir_path!\!script_name!.sh %* || exit /b !ERRORLEVEL!
+!cmd_path! sh "!script_file_path!" %* || exit /b !ERRORLEVEL!
 endlocal

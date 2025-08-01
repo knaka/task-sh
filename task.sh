@@ -74,8 +74,13 @@ finalize() {
 # Directory in which the task files are located.
 : "${TASKS_DIR:=}"
 
+# Directory in which the task runner is located.
+: "${TASK_SH_DIR:=}"
+# echo TASK_SH_DIR: "$TASK_SH_DIR" >&2
+
 # The root directory of the project.
 : "${PROJECT_DIR:=}"
+# echo PROJECT_DIR: "$PROJECT_DIR" >&2
 
 # The path to the file which was called.
 : "${ARG0:=}"
@@ -1456,7 +1461,8 @@ main() {
 
   if test -z "$TASKS_DIR"
   then
-    TASKS_DIR="$(realpath "$(dirname "$0")")"
+    # TASKS_DIR="$(realpath "$(dirname "$0")")"
+    TASKS_DIR="$(dirname "$0")"
     export TASKS_DIR
   fi
 
@@ -1486,6 +1492,13 @@ main() {
     fi
     export PROJECT_DIR
   fi
+
+  PROJECT_REL_DIR="${PROJECT_DIR#"$TASK_SH_DIR/"}"
+  if test "$PROJECT_REL_DIR" = "$PROJECT_DIR"
+  then
+    PROJECT_REL_DIR=""
+  fi
+  # echo "PROJECT_REL_DIR: $PROJECT_REL_DIR" >&2
 
   # Set the environment variables according to the script name.
   if test "${ARG0BASE+set}" = "set"
@@ -1519,6 +1532,23 @@ main() {
   psv_task_file_paths_4a5f3ab="$(realpath "$0")|"
   load_tasks_in_dir() {
     push_dir "$TASKS_DIR"
+    local project_rel_prefix="$PROJECT_REL_DIR"
+    if test -n "$project_rel_prefix"
+    then
+      project_rel_prefix="$project_rel_prefix."
+    fi
+    case "$project_rel_prefix" in
+      (*/*) project_rel_prefix="$(echo "$project_rel_prefix" | sed -E -e 's/\/$/./')" ;;
+    esac
+    # echo Checking tasks in "$project_rel_dir" >&2
+    if test -r "$1"/"${project_rel_prefix}project.lib.sh"
+    then
+      # echo Loading "$1"/"${project_rel_prefix}project.lib.sh" >&2
+      # ls -l "$1"/"${project_rel_dir}project.lib.sh" >&2
+      psv_task_file_paths_4a5f3ab="$psv_task_file_paths_4a5f3ab$1/${project_rel_prefix}project.lib.sh|"
+      # shellcheck disable=SC1090
+      . "$1"/"${project_rel_prefix}project.lib.sh"
+    fi
     for task_file_path in "$1"/task-*.sh
     do
       if ! test -r "$task_file_path"

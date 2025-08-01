@@ -31,7 +31,6 @@ terraform() {
     --arch-map="$goarch_map" \
     --ext-map="Linux .zip Darwin .zip Windows .zip " \
     --url-template='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
-    --rel-dir-template"." \
     -- \
     "$@"
   pop_dir

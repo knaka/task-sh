@@ -16,7 +16,7 @@ export GHQ_ROOT
 
 ghq() {
   # shellcheck disable=SC2016
-  fetch_cmd_run \
+  run_fetched_cmd \
     --name="ghq" \
     --ver="$ghq_version" \
     --os-map="$goos_map" \

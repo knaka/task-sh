@@ -5,18 +5,41 @@ set -o nounset -o errexit
 
 export ARG0="$0"
 export ARG0BASE="${0##*/}"
-arg0_dir_path="${0%/*}"
-script_path=
-if test -r "$arg0_dir_path"/"$ARG0BASE".sh
+saved_pwd="$PWD"
+dir="${0%/*}"
+if test -z "$dir"
 then
-  script_path="$arg0_dir_path"/"$ARG0BASE".sh
-elif test -r "$arg0_dir_path"/tasks/"$ARG0BASE".sh
+  dir="$PWD"
+fi
+cd "$dir" || exit 1
+export PROJECT_DIR="$PWD"
+script_file_path=
+while :
+do
+  if test -r "$PWD"/"$ARG0BASE".sh
+  then
+    script_file_path="$PWD"/"$ARG0BASE".sh
+    break
+  fi
+  if test -r "$PWD"/tasks/"$ARG0BASE".sh
+  then
+    script_file_path="$PWD"/tasks/"$ARG0BASE".sh
+    break
+  fi
+  cd ..
+  if test "$PWD" = "$dir"
+  then
+    # Reached the root directory without finding the script file.
+    break
+  fi 
+done
+if test -z "$script_file_path"
 then
-  script_path="$arg0_dir_path"/tasks/"$ARG0BASE".sh
-else
-  echo "No script found for $ARG0BASE." >&2
+  echo "Cannot find script file for $ARG0" >&2
   exit 1
 fi
+export TASK_SH_DIR="$PWD"
+cd "$saved_pwd" || exit 1
 for SH in /bin/dash /bin/ash /bin/bash
 do
   # Avoid using Dash on Debian because which is built with --disable-lineno option.
@@ -32,7 +55,7 @@ do
   if test -x "$SH"
   then
     export SH
-    exec "$SH" "$script_path" "$@"
+    exec "$SH" "$script_file_path" "$@"
   fi
 done
 echo "No appropriate shell found." >&2

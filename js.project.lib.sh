@@ -63,8 +63,7 @@ subcmd_httpd() { # Run a simple HTTP server.
   fi
   local host=127.0.0.1
   local port="$(ip_random_free_port)"
-  # subcmd_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.mjs "$host" "$port" "$WORKING_DIR"
-  subcmd_vite_node --invocation-mode=background "$PROJECT_DIR"/scripts/httpd-mini.ts "$path" "$host" "$port"
+  INVOCATION_MODE=background subcmd_vite_node "$PROJECT_DIR"/scripts/httpd-mini.ts "$path" "$host" "$port"
   pop_dir
   while true
   do
