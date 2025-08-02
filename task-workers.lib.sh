@@ -2,7 +2,7 @@
 # shellcheck shell=sh
 "${sourced_8bf8f23-false}" && return 0; sourced_8bf8f23=true
 
-. ./task-cf.lib.sh
+. ./task-cloudflare.lib.sh
 . ./task-yq.lib.sh
 
 : "${workers_dir_path:=$PROJECT_DIR}"
