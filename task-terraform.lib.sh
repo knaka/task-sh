@@ -22,18 +22,17 @@ set_terraform_path() {
 }
 
 terraform() {
-  push_dir "$terraform_path_ca65267"
   # shellcheck disable=SC2016
   run_fetched_cmd \
     --name="terraform" \
     --ver="$terraform_version_0db0d51" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
-    --ext-map="Linux .zip Darwin .zip Windows .zip " \
+    --ext=".zip" \
     --url-template='https://releases.hashicorp.com/terraform/${ver}/terraform_${ver}_${os}_${arch}${ext}' \
     -- \
+    -chdir="$terraform_path_ca65267" \
     "$@"
-  pop_dir
 }
 
 subcmd_terraform() { # Run terraform(1) command
