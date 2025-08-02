@@ -7,7 +7,7 @@
 . ./task.sh
 
   # Terraform Versions | HashiCorp Releases https://releases.hashicorp.com/terraform/
-terraform_version_0db0d51="1.9.8"
+terraform_version_0db0d51="1.12.2"
 
 # Set the Terraform version
 set_terraform_version() {
