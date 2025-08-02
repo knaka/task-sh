@@ -26,3 +26,12 @@ subcmd_cf__typegen() { # Generate TypeScript types for the Cloudflare project.
 task_cf__whoami() { # Show the Cloudflare account information which is logged in.
   wrangler whoami
 }
+
+task_cf__authenticated() { # Check localy if the user is authenticated with Cloudflare.
+  local config_file="$HOME"/.wrangler/config/default.toml
+  ! test -r "$config_file" && return 1
+  local expiration_utc_time_iso="$(yq --exit-status eval .expiration_time "$config_file")"
+  test -z "$expiration_utc_time_iso" && return 1
+  local current_utc_time_iso="$(LANG=C date -u +%Y-%m-%dT%H:%M:%SZ)"
+  expr "$expiration_utc_time_iso" \> "$current_utc_time_iso" >/dev/null
+}
