@@ -6,11 +6,15 @@
 . ./task-python.lib.sh
 
 oci() {
-  uv tool run --from oci-cli oci "$@"
+  uv --quiet tool run --from oci-cli oci "$@"
 }
 
 oci_config() {
-  uv tool run --from oci python3 -c 'import os, oci, json; print(json.dumps(oci.config.from_file(profile_name=os.environ.get("OCI_PROFILE", "DEFAULT")), indent=2))'
+  uv --quiet tool run --from oci python3 -c 'import os, oci, json; print(json.dumps(oci.config.from_file(profile_name=os.environ.get("OCI_PROFILE", "DEFAULT")), indent=2))'
+}
+
+oci_config_get() {
+  uv --quiet tool run --from oci python3 -c 'import os, sys, oci; print(oci.config.from_file(profile_name=os.environ.get("OCI_PROFILE", "DEFAULT"))[sys.argv[1]])' "$1"
 }
 
 subcmd_oci() { # Run OCI CLI command.

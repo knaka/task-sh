@@ -5,7 +5,7 @@ test "${guard_f4297b5+set}" = set && return 0; guard_f4297b5=x
 
 . ./task.sh
 
-subcmd_aws() {
+aws() {
   run_pkg_cmd \
     --cmd=aws \
     --brew-id=awscli \
@@ -14,10 +14,18 @@ subcmd_aws() {
     -- "$@"
 }
 
+subcmd_aws() {
+  aws "$@"
+}
+
 task_aws__caller() {
-  subcmd_aws sts get-caller-identity
+  aws sts get-caller-identity
 }
 
 task_aws__account() {
-  subcmd_aws iam list-account-aliases
+  aws iam list-account-aliases
+}
+
+aws_config_get() {
+  aws configure get "$@"
 }
