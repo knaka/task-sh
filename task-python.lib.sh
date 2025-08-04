@@ -1,80 +1,37 @@
-#!/bin/sh
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_ae30849-false}" && return 0; sourced_ae30849=true
 
-test "${guard_dce0096+set}" = set && return 0; guard_dce0096=x
+# astral-sh/uv: An extremely fast Python package and project manager, written in Rust. https://github.com/astral-sh/uv
 
 . ./task.sh
 
-# set_sync_ignored .venv
+# Releases · astral-sh/uv https://github.com/astral-sh/uv/releases
+uv_version_3c621e6=0.8.4
 
-# https://github.com/astral-sh/uv/releases/download/0.4.21/uv-i686-pc-windows-msvc.zip
-# https://github.com/astral-sh/uv/releases/download/0.4.21/uv-x86_64-pc-windows-msvc.zip
+set_uv_version() {
+  uv_version_3c621e6="$1"
+}
 
-
-uv_dir_path() (
-  cmd_base=uv
-  ver=0.4.21
-
-  bin_dir_path="$HOME"/.bin
-  uv_dir_path="$bin_dir_path/${cmd_base}@${ver}"
-  mkdir -p "$uv_dir_path"
-  uv_cmd_path="$uv_dir_path/$cmd_base$(exe_ext)"
-  if ! test -x "$uv_cmd_path"
-  then
-    vendor=unknown
-    runtime=
-    arc_ext=".tar.gz"
-    case "$(uname -s)" in
-      Linux)
-        runtime=-gnu
-        rust_os="linux"
-        ;;
-      Darwin)
-        vendor=apple
-        rust_os="darwin"
-        ;;
-      Windows_NT)
-        vendor=pc
-        rust_os="windows"
-        runtime=-msvc
-        arc_ext=".zip"
-        ;;
-      *) echo "Unsupported platform: $(uname -s)" >&2; exit 1 ;;
-    esac
-    case "$(uname -m)" in
-      i386 | i486 | i586 | i686) rust_arch="i686" ;;
-      x86_64) rust_arch="x86_64" ;;
-      arm64) rust_arch="aarch64" ;;
-      *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
-    esac
-    url="https://github.com/astral-sh/uv/releases/download/$ver/uv-${rust_arch}-${vendor}-${rust_os}${runtime}${arc_ext}"
-    temp_file_path=$(get_temp_dir_path)/tmp"$arc_ext"
-    curl"$(exe_ext)" --fail --location "$url" -o "$temp_file_path"
-    mkdir -p "$uv_dir_path"
-    cd "$uv_dir_path"
-    case "$arc_ext" in
-      .tar.gz)
-        tar"$(exe_ext)" -xf "$temp_file_path"
-        mv uv-*/* .
-        rmdir uv-*/
-        ;;
-      .zip)
-        unzip -o "$temp_file_path"
-        ;;
-    esac
-    chmod +x "$uv_dir_path"/*
-  fi
-  echo "$uv_dir_path"
-)
-
-set_uv_env() {
-  test "${guard_10c8d60+set}" = set && return 0; guard_10c8d60=x
-  PATH="$(uv_dir_path):$PATH"
+uv_run_cmd() {
+  local cmd="$1"
+  shift 
+  # shellcheck disable=SC2016
+  run_fetched_cmd \
+    --name="uv" \
+    --ver="$uv_version_3c621e6" \
+    --cmd="$cmd" \
+    --os-map="Linux unknown-linux-gnu Darwin apple-darwin Windows pc-windows-msvc " \
+    --arch-map="x86_64 x86_64 aarch64 aarch64 " \
+    --ext-map="$archive_ext_map" \
+    --url-template='https://github.com/astral-sh/uv/releases/download/$ver/uv-$arch-$os$ext' \
+    --rel-dir-template='uv-$arch-$os' \
+    -- \
+    "$@"
 }
 
 uv() {
-  set_uv_env
-  invoke uv "$@"
+  uv_run_cmd "uv" "$@"
 }
 
 subcmd_uv() { # Run uv(1)
@@ -82,8 +39,7 @@ subcmd_uv() { # Run uv(1)
 }
 
 uvx() {
-  set_uv_env
-  invoke uvx "$@"
+  uv_run_cmd "uvx" "$@"
 }
 
 subcmd_uvx() { # Run uvx(1)
