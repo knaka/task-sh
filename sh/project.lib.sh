@@ -31,6 +31,7 @@ subcmd_install() ( # Install shell scripts.
     fi
     cat <<EOF >"$sh_bin_dir_path"/"$sh_name".sh
 #!/usr/bin/env sh
+unset PROJECT_DIR
 exec "$SH" "$PROJECT_DIR"/"$sh_file" "\$@"
 EOF
   done

@@ -80,6 +80,10 @@ finalize() {
 
 # The root directory of the project.
 : "${PROJECT_DIR:=}"
+if test -z "$PROJECT_DIR"
+then
+  PROJECT_DIR="${0%/*}"
+fi
 # echo PROJECT_DIR: "$PROJECT_DIR" >&2
 
 # The path to the file which was called.

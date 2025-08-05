@@ -43,6 +43,5 @@ subcmd_volta() { # Run Volta.
 set_node_env() {
   first_call ae97cdf || return 0
   set_volta_env
-  PATH="$(dirname "$(volta which node)"):$PATH"
-  export PATH
+  export PATH="$PROJECT_DIR/node_modules/.bin":"$(dirname "$(volta which node)"):$PATH"
 }
