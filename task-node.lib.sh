@@ -22,7 +22,8 @@ subcmd_node() { # Run Node.js.
 
 last_check_path="$PROJECT_DIR"/node_modules/.npm_last_check
 
-subcmd_npm__install() { # Install the npm packages if the package.json is modified.
+npm_depinstall() {
+  push_dir "$PROJECT_DIR" || exit 1
   ! test -f "$PROJECT_DIR"/package.json && return 1
   while true
   do
@@ -33,10 +34,16 @@ subcmd_npm__install() { # Install the npm packages if the package.json is modifi
     ! test -f "$last_check_path" && break
     newer "$PROJECT_DIR"/package.json --than "$last_check_path" && break
     newer "$PROJECT_DIR"/package-lock.json --than "$last_check_path" && break
+    pop_dir || exit 1
     return 0
   done
   subcmd_npm install "$@"
   touch "$last_check_path"
+  pop_dir || exit 1
+}
+
+subcmd_npm__install() { # Install the npm packages if the package.json is modified.
+  npm_depinstall "$@"
 }
 
 run_node_modules_bin() { # Run the bin file in the node_modules.
@@ -80,4 +87,14 @@ subcmd_npm__ensure() { # Ensure the npm packages are installed.
     fi
   done
   touch "$last_check_path"
+}
+
+set_local_node_env() {
+  first_call 76e8009 || return 0
+  push_dir "$PROJECT_DIR" || exit 1
+  local node_cmd_path="$(volta which node)"
+  local node_bin_dir_path="${node_cmd_path%/*}"
+  export PATH="$node_bin_dir_path:$PROJECT_DIR/node_modules/.bin:$PATH"
+  npm_depinstall
+  pop_dir || exit 1
 }

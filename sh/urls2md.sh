@@ -3,6 +3,8 @@
 # shellcheck shell=sh
 "${sourced_185ce30-false}" && return 0; sourced_185ce30=true
 
+# Read URLs from standard input, summarize the corresponding web page content with Readability, and output as a single concatenated Markdown document.
+
 set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
 . ./clipper.sh
 cd "$1"; shift 2

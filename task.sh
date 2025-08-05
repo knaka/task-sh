@@ -413,6 +413,7 @@ map_arch() {
 #   --name=NAME           Application name. Used as the directory name to store the command.
 #   --ver=VERSION         Application version
 #   --cmd=COMMAND         Command name to execute. If not specified, the application name is used.
+#   --ifs=IFS             IFS to split the os_map and arch_map options. Default: $IFS
 #   --os-map=MAP          OS name mapping (IFS-separated key-value pairs)
 #   --arch-map=MAP        Architecture name mapping (IFS-separated key-value pairs)
 #   --ext=EXTENSION       Archive file extension (e.g., ".zip", ".tar.gz"). Takes precedence over --ext-map.
@@ -425,6 +426,8 @@ run_fetched_cmd() {
   local name=
   local ver=
   local cmd=
+  local ifs=
+  local ifs_saved=
   local os_map=
   local arch_map=
   local ext=
@@ -446,6 +449,7 @@ run_fetched_cmd() {
       (name) name=$OPTARG;;
       (ver) ver=$OPTARG;;
       (cmd) cmd=$OPTARG;;
+      (ifs) ifs=$OPTARG;;
       (os-map) os_map=$OPTARG;;
       (arch-map) arch_map=$OPTARG;;
       (ext) ext=$OPTARG;;
@@ -464,6 +468,11 @@ run_fetched_cmd() {
   then
     cmd="$name"
   fi
+  if test -n "$ifs"
+  then
+    ifs_saved="$IFS"
+    IFS="$ifs"
+  fi
   local app_dir_path="$CACHE_DIR"/"$name"@"$ver"
   mkdir -p "$app_dir_path"
   local cmd_path="$app_dir_path"/"$cmd""$exe_ext"
@@ -477,6 +486,10 @@ run_fetched_cmd() {
     if test -z "$ext" -a -n "$ext_map"
     then
       ext="$(map_os "$ext_map")"
+    fi
+    if test -n "$ifs_saved"
+    then
+      IFS="$ifs_saved"
     fi
     local url="$(eval echo "$url_template")"
     local out_file_path="$TEMP_DIR"/"$name""$ext"
@@ -511,7 +524,7 @@ run_fetched_cmd() {
   then
     echo "$app_dir_path"
   else
-    "$cmd_path" "$@"
+    PATH="$app_dir_path":$PATH "$cmd_path" "$@"
   fi
 }
 
