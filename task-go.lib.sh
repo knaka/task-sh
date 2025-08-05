@@ -1,6 +1,6 @@
-#!/bin/sh
-
-test "${guard_1e6bc22+set}" = set && return 0; guard_1e6bc22=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_de46f52-false}" && return 0; sourced_de46f52=true
 
 . ./task.sh
 
@@ -92,8 +92,7 @@ set_go_env() {
   first_call 1dc30dd || return 0
   unset GOROOT
   echo Using Go toolchain in "$(goroot_path)" >&2
-  PATH="$(goroot_path)"/bin:"$PATH"
-  export PAT
+  export PATH="$(goroot_path)"/bin:"$PATH"
 }
 
 go() {
