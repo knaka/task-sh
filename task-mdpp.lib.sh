@@ -2,6 +2,8 @@
 # shellcheck shell=sh
 "${sourced_02dddda-false}" && return 0; sourced_02dddda=true
 
+# knaka/mdpp: Markdown preprocessor for cross-file code, table, title synchronization, and file inclusion. Processing is idempotent. https://github.com/knaka/mdpp
+
 . ./task.sh
 
 mdpp_version_91a5418=v0.9.5
