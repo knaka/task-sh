@@ -9,6 +9,8 @@ set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || 
 . ./clipper.sh
 cd "$1"; shift 2
 
+init_temp_dir
+
 urls2md() {
   local temp_file="$TEMP_DIR"/temp.md
   while read -r url

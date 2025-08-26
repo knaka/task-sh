@@ -7,6 +7,8 @@ set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || 
 . ./task.sh
 cd "$1"; shift 2
 
+init_temp_dir
+
 urlrec() {
   local excluded_directories=
   OPTIND=1; while getopts _x:-: OPT

@@ -63,6 +63,7 @@ emlr() {
     case "$file_path" in
       (*.cmt.csv|*.cmt.tsv)
         file_ext="${file_path##*.}"
+        init_temp_dir
         script_file_path="$TEMP_DIR"/script.mlr
         sed -n -E -e 's/^# \+MLR: *(.*)/\1/p' -e 's/^# \+MILLER: *(.*)/\1/p' "$file_path" >"$script_file_path"
         if ! test -s "$script_file_path"

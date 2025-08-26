@@ -1,6 +1,6 @@
-# MLR: begin { @Total = 0 }
-# MLR: is_not_empty($Item) { $Total = $UnitPrice * $Quantity; @Total += $Total }
-# MLR: is_empty($Item) { $Total = @Total }
+# +MLR: begin { @Total = 0 }
+# +MLR: is_not_empty($Item) { $Total = $UnitPrice * $Quantity; @Total += $Total }
+# +MLR: is_empty($Item) { $Total = @Total }
 Item,UnitPrice,Quantity,Total
 Apple,1.5,12,18
 Banana,2.0,5,10

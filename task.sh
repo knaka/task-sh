@@ -19,18 +19,32 @@ rc_test_skipped=11
 # Temporary directory and cleaning up
 # --------------------------------------------------------------------------
 
-TEMP_DIR="$(mktemp -d)"
-# shellcheck disable=SC2064
-trap "rm -fr '$TEMP_DIR'" EXIT
+init_temp_dir() {
+  test "${TEMP_DIR+set}" = set && return 0
+  TEMP_DIR="$(mktemp -d)"
+  # shellcheck disable=SC2064
+  trap "rm -fr '$TEMP_DIR'" EXIT
+}
 
-# Base name of the script file containing the statements to be called during finalization
-readonly stmts_file_base="$TEMP_DIR"/b6a5748
+# Guard against multiple calls. $1 is a unique ID
+first_call() {
+  if eval "test \"\${called_$1-}\" = true"
+  then
+    return 1
+  fi
+  eval "called_$1=true"
+}
+
+readonly stmts_file_id=523f163
 
 # Chain traps to avoid overwriting the previous trap.
 # shellcheck disable=SC2064
 chaintrap() {
   local stmts="$1"
   shift 
+  init_temp_dir
+  # Base name of the script file containing the statements to be called during finalization
+  local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_bak_file="$TEMP_DIR"/347803f
   local sigspec
   for sigspec in "$@"
@@ -52,6 +66,8 @@ chaintrap() {
 
 # Call the finalization function before `exec`.
 finalize() {
+  test "${TEMP_DIR+set}" != set && return 0
+  local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_file="$stmts_file_base"-EXIT
   # shellcheck disable=SC1090
   test -f "$stmts_file" && . "$stmts_file"
@@ -536,7 +552,7 @@ goos_map=\
 "Linux linux "\
 "Darwin darwin "\
 "Windows windows "\
-#nop
+""
 
 # Uname kernel name -> GOOS in CamelCase mapping
 # shellcheck disable=SC2140
@@ -545,7 +561,7 @@ goos_camel_map=\
 "Linux Linux "\
 "Darwin Darwin "\
 "Windows Windows "\
-#nop
+""
 
 # Uname architecture name -> GOARCH mapping
 # shellcheck disable=SC2140
@@ -555,7 +571,7 @@ goarch_map=\
 "aarch64 arm64 "\
 "armv7l arm "\
 "i386 386 "\
-#nop
+""
 
 # Uname kernel name -> generally used archive file extension mapping
 # shellcheck disable=SC2140
@@ -564,7 +580,7 @@ archive_ext_map=\
 "Linux .tar.gz "\
 "Darwin .tar.gz "\
 "Windows .zip "\
-#nop
+""
 
 # --------------------------------------------------------------------------
 # Package command registration
@@ -740,6 +756,7 @@ load_env_file() {
 
 # Load environment variables from multiple files
 load_env() {
+  first_call 8005f70 || return 0
   # Load the files in the order of priority.
   if test "${APP_ENV+set}" = set
   then
@@ -1178,15 +1195,6 @@ ensure_file() {
   echo "Creating file $file_path." >&2
   mkdir -p "$(dirname "$file_path")"
   cat >"$file_path"
-}
-
-# Guard against multiple calls. $1 is a unique ID
-first_call() {
-  if eval "test \"\${called_$1-}\" = true"
-  then
-    return 1
-  fi
-  eval "called_$1=true"
 }
 
 underline() {
