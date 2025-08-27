@@ -16,15 +16,8 @@ rc_delegate_task_not_found=10
 rc_test_skipped=11
 
 # --------------------------------------------------------------------------
-# Temporary directory and cleaning up
+# Basic functions
 # --------------------------------------------------------------------------
-
-init_temp_dir() {
-  test "${TEMP_DIR+set}" = set && return 0
-  TEMP_DIR="$(mktemp -d)"
-  # shellcheck disable=SC2064
-  trap "rm -fr '$TEMP_DIR'" EXIT
-}
 
 # Guard against multiple calls. $1 is a unique ID
 first_call() {
@@ -35,10 +28,21 @@ first_call() {
   eval "called_$1=true"
 }
 
+# --------------------------------------------------------------------------
+# Temporary directory and cleaning up
+# --------------------------------------------------------------------------
+
+# Create a temporary directory and assign $TEMP_DIR env var
+init_temp_dir() {
+  test "${TEMP_DIR+set}" = set && return 0
+  TEMP_DIR="$(mktemp -d)"
+  # shellcheck disable=SC2064
+  trap "rm -fr '$TEMP_DIR'" EXIT
+}
+
 readonly stmts_file_id=523f163
 
 # Chain traps to avoid overwriting the previous trap.
-# shellcheck disable=SC2064
 chaintrap() {
   local stmts="$1"
   shift 
@@ -49,7 +53,6 @@ chaintrap() {
   local sigspec
   for sigspec in "$@"
   do
-    # sigspec=$(echo "$sigspec" | tr '[:lower:]' '[:upper:]')
     local stmts_file="$stmts_file_base"-"$sigspec"
     if test -f "$stmts_file"
     then
@@ -59,17 +62,18 @@ chaintrap() {
     fi
     echo "{ $stmts; };" >"$stmts_file"
     cat "$stmts_bak_file" >>"$stmts_file"
-    # shellcheck disable=SC2154
+    # shellcheck disable=SC2064 # "Use single quotes, otherwise this expands now rather than when signalled."
+    # shellcheck disable=SC2154 # "var is referenced but not assigned."
     trap "rc=\$?; . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
   done
 }
 
-# Call the finalization function before `exec`.
+# Call the finalization function before `exec` which does not call trap function.
 finalize() {
   test "${TEMP_DIR+set}" != set && return 0
   local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_file="$stmts_file_base"-EXIT
-  # shellcheck disable=SC1090
+  # shellcheck disable=SC1090 # "Can't follow non-constant source. Use a directive to specify location"
   test -f "$stmts_file" && . "$stmts_file"
   rm -fr "$TEMP_DIR"
 }
@@ -711,7 +715,7 @@ task_devinstall() { # Install necessary packages for this development environmen
 # Fetching
 # --------------------------------------------------------------------------
 
-# curl(1) is available on MacOS and Window as default.
+# curl(1) is available on macOS and Windows as default.
 require_pkg_cmd \
   --deb-id=curl \
   curl
@@ -780,7 +784,7 @@ load_env() {
 # Misc
 # --------------------------------------------------------------------------
 
-# shuf(1) for MacOS environment.
+# shuf(1) for macOS environment.
 if ! command -v shuf >/dev/null 2>&1
 then
   alias shuf='sort -R'
@@ -1283,7 +1287,7 @@ field() {
   printf "%s\n" $(cat) | head -n "$1" | tail -n 1
 }
 
-# tac(1) for MacOS environment.
+# tac(1) for macOS environment.
 if ! command -v tac >/dev/null 2>&1
 then
   tac() {
