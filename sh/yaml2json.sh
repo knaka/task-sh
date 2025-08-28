@@ -79,11 +79,11 @@ yaml2json() {
       then
         chmod +w "$json_file"
       fi
-      subcmd_yq -o json "$file" >"$json_file"
+      yq -o json "$file" >"$json_file"
       chmod -w "$json_file"
     done
   else
-    subcmd_yq -o json "$@"
+    yq -o json "$@"
   fi
 }
 

@@ -50,7 +50,7 @@ do
 		Id: $(rand7)
 		Title: Memo
 		Tags:
-		CreatedAtRfc: $(datetime_rfc)
+		CreatedAtRfc: $(datetime_iso)
 		---
 
 		← <!-- mdpplink href=../README.md -->[Memo](../README.md)<!-- /mdpplink -->

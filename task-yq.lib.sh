@@ -25,6 +25,6 @@ yq() {
     "$@"
 }
 
-subcmd_yq() { # Run yq(1).ß
+subcmd_yq() { # Run yq(1).
   yq "$@"
 }
