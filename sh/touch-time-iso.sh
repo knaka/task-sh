@@ -16,7 +16,7 @@ iso_time_format_utc='%Y-%m-%dT%H:%M:%SZ'
 touch_time_iso() {
   local time="$1"
   shift
-  # Linux touch accepts ISO format directly with -d
+  # BSD touch cannot accept ISO format directly with -d
   if is_bsd
   then
     time="$(TZ=UTC date -j -f "$iso_time_format" "$time" +"$iso_time_format_utc")"
