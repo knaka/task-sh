@@ -219,7 +219,7 @@ d1_diff() {
     (--local) subcmd_d1__local__schema ;;
     (--prod) subcmd_d1__prod__schema ;;
     (--prev) subcmd_d1__prev__schema ;;
-  esac | subcmd_sqlite3 "$db_file_path"
+  esac | sqlite3 "$db_file_path"
   # `--dry-run` prints the SQL commands that would be executed to idempotently apply the schema changes.
   subcmd_sqlite3def --file="$db_schema_path_d4253e5" "$db_file_path" --dry-run
   rm -f "$db_file_path"

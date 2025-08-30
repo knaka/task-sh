@@ -18,15 +18,7 @@ set_workers_dir_path() {
 }
 
 subcmd_workers_wrangler() { # Run the Cloudflare Wrangler command.
-  subcmd_wrangler --config "$workers_wrangler_toml_path" "$@"
-}
-
-task_workers__prod__deploy() { # Deploy the project to the production environment.
-  subcmd_workers_wrangler deploy "$@"
-}
-
-task_workers__prev__deploy() { # Deploy the project to the preview environment.
-  subcmd_workers_wrangler deploy --env preview "$@"
+  wrangler "$@"
 }
 
 task_workers__prod__tail() { # Tail the logs of the production environment.

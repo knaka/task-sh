@@ -639,7 +639,7 @@ require_pkg_cmd() {
   for cmd in "$@"
   do
     cmd_name="$cmd"
-    psv_cmd="$psv_cmd|$cmd"
+    psv_cmd="$psv_cmd$cmd|"
   done
   test -n "$brew_id" && usm_brew_id="$usm_brew_id$cmd_name$us$brew_id$us"
   test -n "$winget_id" && usm_winget_id="$usm_winget_id$cmd_name$us$winget_id$us"
