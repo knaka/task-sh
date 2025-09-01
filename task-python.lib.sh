@@ -34,7 +34,7 @@ uv() {
   uv_run_cmd "uv" "$@"
 }
 
-desc_uv="Run uv(1)"
+# Run uv(1)
 subcmd_uv() {
   uv "$@"
 }
@@ -43,7 +43,7 @@ uvx() {
   uv_run_cmd "uvx" "$@"
 }
 
-desc_uvx="Run uvx(1)"
+# Run uvx(1)
 subcmd_uvx() {
   uvx "$@"
 }
@@ -52,7 +52,7 @@ python3() {
   uv run python3 "$@"
 }
 
-desc_python3="Run python3 in a UV environment"
+# Run python3 in a UV environment
 subcmd_python3() {
   python3 "$@"
 }

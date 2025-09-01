@@ -15,7 +15,7 @@ fswatch() {
   run_pkg_cmd fswatch "$@"
 }
 
-desc_fswatch="Run fswatch(1)."
+# Run fswatch(1).
 subcmd_fswatch() {
   fswatch "$@"
 }

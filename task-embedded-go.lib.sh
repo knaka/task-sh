@@ -3,7 +3,7 @@ test "${guard_54039c5+set}" = set && return 0; guard_54039c5=-
 
 . ./task.sh
 
-desc_go__embedded__sh__gen="Generate a shell script with embedded Go code."
+# Generate a shell script with embedded Go code.
 subcmd_go__embedded__sh__gen() {
   first_call 902b3c5 || return 0
 
@@ -63,7 +63,7 @@ subcmd_go__embedded__sh__gen() {
   chmod 0755 "$out_sh"
 }
 
-desc_go__embedded__cmd__gen="Generate a command script with embedded Go code."
+# Generate a command script with embedded Go code.
 subcmd_go__embedded__cmd__gen() {
   first_call 645592d || return 0
 

@@ -36,7 +36,7 @@ volta() {
   invoke volta "$@"
 }
 
-desc_volta="Run Volta."
+# Run Volta.
 subcmd_volta() {
   volta "$@"
 }

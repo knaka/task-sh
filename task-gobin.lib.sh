@@ -3,7 +3,7 @@ test "${guard_fa77b11+set}" = set && return 0; guard_fa77b11=-
 
 . ./task.sh
 
-desc_gobin="Run the gobin command."
+# Run the gobin command.
 subcmd_gobin() {
   if ! test -r Gobinfile
   then

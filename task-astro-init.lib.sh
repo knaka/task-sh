@@ -8,7 +8,7 @@ test "${sourced_eb0c4bb-}" = true && return 0; sourced_eb0c4bb=true
 
 # Install Astro | Docs https://docs.astro.build/en/install-and-setup/
 
-desc_astro__init="Initialize Astro."
+# Initialize Astro.
 task_astro__init() {
   local src_dir out_dir public_dir
 

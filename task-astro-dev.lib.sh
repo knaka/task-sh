@@ -7,7 +7,7 @@ set -o nounset -o errexit
 . ./task.sh
 . ./task-astro.lib.sh
 
-desc_astro__dev="Launch the Astro development server."
+# Launch the Astro development server.
 task_astro__dev() {
   export APP_ENV=development
   export NODE_ENV="$APP_ENV"

@@ -29,7 +29,7 @@ mlr() {
     "$@"
 }
 
-desc_mlr="Run Miller command"
+# Run Miller command
 subcmd_mlr() {
   mlr "$@"
 }

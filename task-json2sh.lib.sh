@@ -14,7 +14,7 @@ else
   exit 1
 fi
 
-desc_json2sh="Convert JSON to shell script."
+# Convert JSON to shell script.
 subcmd_json2sh() (
   if command -v subcmd_volta >/dev/null 2>&1 && test -r ./json2sh.mjs
   then

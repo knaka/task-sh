@@ -16,7 +16,7 @@ ansible() {
   uvx --quiet --from "ansible-core" --with "ansible==$ansible_version_6e3d355" ansible "$@"
 }
 
-desc_ansible="Run Ansible command."
+# Run Ansible command.
 subcmd_ansible() {
   ansible "$@"
 }
@@ -25,7 +25,7 @@ ansible_playbook() {
   uvx --quiet --from "ansible-core" --with "ansible==$ansible_version_6e3d355" ansible-playbook "$@"
 }
 
-desc_ansible_playbook="Run Ansible playbook command."
+# Run Ansible playbook command.
 subcmd_ansible_playbook() {
   ansible_playbook "$@"
 }

@@ -5,7 +5,7 @@ test "${guard_7ebf15b+set}" = set && return 0; guard_7ebf15b=-
 
 . ./task.sh
 
-desc_javy="Javy: JS to WebAssembly toolchain"
+# Javy: JS to WebAssembly toolchain
 subcmd_javy() (
   # Releases · bytecodealliance/javy https://github.com/bytecodealliance/javy/releases
   ver=v3.1.1

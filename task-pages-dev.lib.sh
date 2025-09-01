@@ -4,7 +4,7 @@ test "${sourced_5268aba-}" = true && return 0; sourced_5268aba=true
 
 . ./task-pages.lib.sh
 
-desc_pages__dev="Launch the Wrangler Pages development server."
+# Launch the Wrangler Pages development server.
 task_pages__dev() {
   export APP_ENV=development
   export NODE_ENV="$APP_ENV"

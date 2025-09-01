@@ -17,7 +17,7 @@ jq() {
   run_pkg_cmd jq "$@"
 }
 
-desc_jq="Run jq(1)."
+# Run jq(1).
 subcmd_jq() {
   jq "$@"
 }

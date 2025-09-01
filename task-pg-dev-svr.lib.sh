@@ -69,7 +69,7 @@ pg_dev_prompt() {
   done
 }
 
-desc_pg__dev="Start PostgreSQL DB (creates DB cluster if not exists)."
+# Start PostgreSQL DB (creates DB cluster if not exists).
 task_pg__dev() {
   load_env
   if ! test "${PGPORT+set}" = set

@@ -13,7 +13,7 @@ set_rr_project_dir() {
   rr_project_dir_3376d5a="$1"
 }
 
-desc_rr="Run \`react-router\`."
+# Run `react-router`.
 subcmd_rr() {
   run_node_modules_bin @react-router dev/bin.js "$@"
 }
@@ -22,17 +22,17 @@ alias react-router=subcmd_rr
 
 alias subcmd_react-router=subcmd_rr
 
-desc_rr__build="Build"
+# Build
 task_rr__build() {
   react-router build "$rr_project_dir_3376d5a"
 }
 
-desc_rr__routes="List routes"
+# List routes
 task_rr__routes() {
   react-router routes "$rr_project_dir_3376d5a"
 }
 
-desc_rr__dev="Start development server"
+# Start development server
 task_rr__dev() {
   load_env
   local host="${RR_DEV_HOST:-127.0.0.1}"

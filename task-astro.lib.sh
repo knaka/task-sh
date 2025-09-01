@@ -19,12 +19,12 @@ astro() {
   run_node_modules_bin astro astro.js "$@"
 }
 
-desc_astro="Execute Astro command"
+# Execute Astro command
 subcmd_astro() {
   astro "$@"
 }
 
-desc_astro__build="Build Astro application"
+# Build Astro application
 task_astro__build() {
   astro --root "$astro_project_dir_0135e32" build "$@"
 }

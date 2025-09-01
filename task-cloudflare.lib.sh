@@ -11,27 +11,27 @@ wrangler() {
   run_node_modules_bin wrangler bin/wrangler.js "$@"
 }
 
-desc_wrangler="Run the Cloudflare Wrangler command."
+# Run the Cloudflare Wrangler command.
 subcmd_wrangler() {
   wrangler "$@"
 }
 
-desc_cf__name="Show the name of the Cloudflare project."
+# Show the name of the Cloudflare project.
 subcmd_cf__name() {
   yq --exit-status eval ".name" "$wrangler_toml_path"
 }
 
-desc_cf__typegen="Generate TypeScript types for the Cloudflare project."
+# Generate TypeScript types for the Cloudflare project.
 subcmd_cf__typegen() {
   wrangler types
 }
 
-desc_cf__whoami="Show the Cloudflare account information which is logged in."
+# Show the Cloudflare account information which is logged in.
 task_cf__whoami() {
   wrangler whoami
 }
 
-desc_cf__authenticated="Check localy if the user is authenticated with Cloudflare."
+# Check localy if the user is authenticated with Cloudflare.
 task_cf__authenticated() {
   local config_file="$HOME"/.wrangler/config/default.toml
   ! test -r "$config_file" && return 1

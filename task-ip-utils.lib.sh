@@ -73,7 +73,7 @@ ip_free_port() {
   echo "$port"
 }
 
-desc_ip__free_port="[begin end] Search for a free port in the range."
+# [begin end] Search for a free port in the range.
 subcmd_ip__free_port() {
   ip_free_port "$@"
 }
@@ -86,7 +86,7 @@ ip_random_free_port() {
   echo "$port"
 }
 
-desc_ip__random_free_port="[begin end] Search for a random free port in the range."
+# [begin end] Search for a random free port in the range.
 subcmd_ip__random_free_port() {
   ip_random_free_port "$@"
 }

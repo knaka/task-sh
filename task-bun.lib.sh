@@ -3,7 +3,7 @@ test "${guard_920f884+set}" = set && return 0; guard_920f884=-
 
 . ./task.sh
 
-desc_bun="Run bun(1)."
+# Run bun(1).
 subcmd_bun() {
   run_pkg_cmd \
     --cmd=bun \

@@ -729,6 +729,8 @@ curl() {
 }
 
 desc_curl="Run curl(1)."
+
+# Run curl(1).
 subcmd_curl() {
   curl "$@"
 }
@@ -1435,6 +1437,35 @@ Options:
   -v, --verbose          Verbose mode.
 EOF
 
+  local ifs_saved="$IFS"
+  IFS="|"
+  # shellcheck disable=SC2086
+  lines="$(
+    awk '
+      /^#/ { 
+        comment = $0
+        gsub(/^#+[ ]*/, "", comment)
+        next
+      }
+      /^(task_|subcmd_)[[:alnum:]_]()/ { 
+        func_name = $1
+        sub(/\(\).*$/, "", func_name)
+        type = func_name
+        sub(/_.*$/, "", type)
+        name = func_name
+        sub(/^[^_]+_/, "", name)
+        gsub(/__/, ":", name)
+        print type " " name " " comment
+        comment = ""
+        next
+      }
+      {
+        comment = "" 
+      }
+    ' $psv_task_file_paths_4a5f3ab
+  )"
+  IFS="$ifs_saved"
+  
   local i
   for i in subcmd task
   do
@@ -1445,29 +1476,19 @@ EOF
     else
       echo "Tasks:"
     fi
-    local ifs_saved="$IFS"
-    IFS="|"
-    # shellcheck disable=SC2086
-    local names="$(sed -E -n -e 's/^'"$i"'_([[:alnum:]_]+)\(\) *[{(].*/\1/p' $psv_task_file_paths_4a5f3ab | sed -E -e 's/__/:/g')"
     local max_name_len="$(
-      echo "$names" \
-        | while read -r name
-        do
-          echo "${#name}"
-        done \
-        | sort -nr \
-        | head -1
+      echo "$lines" \
+      | while read -r t name _
+      do
+        test "$t" = "$i" || continue
+        echo "${#name}"
+      done \
+      | sort -nr \
+      | head -1
     )"
-    IFS="$ifs_saved"
-    local
-    echo "$names" | while read -r name
+    echo "$lines" | while read -r t name desc
     do
-      local uname="$(echo "$name" | sed -E -e 's/:/__/g')"
-      desc=
-      if eval "test \"\${desc_$uname+set}\" = set"
-      then
-        eval "desc=\"\${desc_$uname}\""
-      fi
+      test "$t" = "$i" || continue
       printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
     done | sort
   done

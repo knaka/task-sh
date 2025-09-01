@@ -4,7 +4,7 @@ test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 . ./task.sh
 . ./task-json2sh.lib.sh
 
-desc_my_ip_addr="Shows my IP address for testing."
+# Shows my IP address for testing.
 task_my_ip_addr() {
   local cache_file_path
   cache_file_path="$TEMP_DIR"/9fa603e

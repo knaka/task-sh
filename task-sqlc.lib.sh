@@ -26,7 +26,7 @@ sqlc() {
     "$@"
 }
 
-desc_sqlc="Run sqlc(1)."
+# Run sqlc(1).
 subcmd_sqlc() {
   sqlc "$@"
 }
