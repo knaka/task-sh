@@ -694,7 +694,8 @@ run_pkg_cmd() {
   return 1
 }
 
-task_devinstall() { # Install necessary packages for this development environment.
+desc_devinstall="Install necessary packages for this development environment."
+task_devinstall() {
   if is_macos
   then
     set - brew install
@@ -727,7 +728,8 @@ curl() {
   run_pkg_cmd curl "$@"
 }
 
-subcmd_curl() { # Run curl(1).
+desc_curl="Run curl(1)."
+subcmd_curl() {
   curl "$@"
 }
 
@@ -1359,7 +1361,8 @@ is_dir_empty() {
 
 psv_task_file_paths_4a5f3ab=
 
-task_subcmds() ( # List subcommands.
+desc_subcmds="List subcommands."
+task_subcmds() (
   lines="$(
     (
       IFS="|"
@@ -1389,7 +1392,8 @@ task_subcmds() ( # List subcommands.
   done | sort
 )
 
-task_tasks() ( # List tasks.
+desc_tasks="List tasks."
+task_tasks() (
   lines="$(
     (
       IFS="|"
@@ -1419,7 +1423,7 @@ task_tasks() ( # List tasks.
   done | sort
 )
 
-task_sh_usage() ( # Show help message.
+help() {
   cat <<EOF
 Usage:
   $ARG0BASE [options] <subcommand> [args...]
@@ -1429,16 +1433,48 @@ Options:
   -d, --directory=<dir>  Change directory before running tasks.
   -h, --help             Display this help and exit.
   -v, --verbose          Verbose mode.
-
-Subcommands:
-$(task_subcmds | while IFS= read -r line; do echo "  $line"; done)
-
-Tasks:
-$(task_tasks | while IFS= read -r line; do echo "  $line"; done)
 EOF
-)
 
-subcmd_task__exec() { # Execute a command in task.sh context.
+  local i
+  for i in subcmd task
+  do
+    echo
+    if test "$i" = subcmd
+    then
+      echo "Subcommands:"
+    else
+      echo "Tasks:"
+    fi
+    local ifs_saved="$IFS"
+    IFS="|"
+    # shellcheck disable=SC2086
+    local names="$(sed -E -n -e 's/^'"$i"'_([[:alnum:]_]+)\(\) *[{(].*/\1/p' $psv_task_file_paths_4a5f3ab | sed -E -e 's/__/:/g')"
+    local max_name_len="$(
+      echo "$names" \
+        | while read -r name
+        do
+          echo "${#name}"
+        done \
+        | sort -nr \
+        | head -1
+    )"
+    IFS="$ifs_saved"
+    local
+    echo "$names" | while read -r name
+    do
+      local uname="$(echo "$name" | sed -E -e 's/:/__/g')"
+      desc=
+      if eval "test \"\${desc_$uname+set}\" = set"
+      then
+        eval "desc=\"\${desc_$uname}\""
+      fi
+      printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
+    done | sort
+  done
+}
+
+desc_task__exec="Execute a command in task.sh context."
+subcmd_task__exec() {
   backup_shell_flags
   set +o errexit
   "$@"
@@ -1467,158 +1503,20 @@ main() {
 
   chaintrap kill_child_processes EXIT TERM INT
 
-  # If launched by `task`, $SH is set. Otherwise, determine the shell.
-  if test -z "$SH"
-  then
-    SH="$(shell_path)"
-    SHBASE="${SH##*/}"
-    while true
-    do
-      if is_windows
-      then
-        if test "$SHBASE" = "sh"
-        then
-          break
-        fi
-      elif is_macos
-      then
-        if test "$SHBASE" = "dash"
-        then
-          break
-        fi
-        finalize
-        exec /bin/dash "$0" "$@"
-      elif is_linux
-      then
-        case "$SHBASE" in
-          (ash|dash|bash)
-            break
-            ;;
-        esac
-      fi
-      echo "Unsupported environment: $(uname -s)", "$SH" >&2
-      exit 1
-    done
-    export SH
-    export SHBASE
-  fi
-
-  if test -z "$WORKING_DIR"
-  then
-    WORKING_DIR="$(realpath "$PWD")"
-    export WORKING_DIR
-  fi
-
-  if test -z "$TASKS_DIR"
-  then
-    # TASKS_DIR="$(realpath "$(dirname "$0")")"
-    TASKS_DIR="$(dirname "$0")"
-    export TASKS_DIR
-  fi
-
-  if test -z "${PROJECT_DIR}"
-  then
-    if test "${ARG0+set}" = set
-    then
-      PROJECT_DIR="$(realpath "$(dirname "$ARG0")")"
-    else
-      local dir="$PWD"
-      local parent_dir
-      while true
-      do
-        if test -d "$dir"/tasks || test -f "$dir/task.sh"
-        then
-          PROJECT_DIR="$dir"
-          break
-        fi
-        parent_dir="$(realpath "$dir"/..)"
-        if test "$dir" = "$parent_dir"
-        then
-          echo "Project directory not found" >&2
-          exit 1
-        fi
-        dir="$parent_dir"
-      done
-    fi
-    export PROJECT_DIR
-  fi
-
-  PROJECT_REL_DIR="${PROJECT_DIR#"$TASK_SH_DIR/"}"
-  if test "$PROJECT_REL_DIR" = "$PROJECT_DIR"
-  then
-    PROJECT_REL_DIR=""
-  fi
-  # echo "PROJECT_REL_DIR: $PROJECT_REL_DIR" >&2
-
-  # Set the environment variables according to the script name.
-  if test "${ARG0BASE+set}" = "set"
-  then
-    case "$ARG0BASE" in
-      (task-*)
-        env="${ARG0BASE#task-}"
-        case "$env" in
-          (dev|development)
-            APP_ENV=development
-            APP_SENV=dev
-            ;;
-          (prd|production)
-            APP_ENV=production
-            APP_SENV=prd
-            ;;
-          (*) echo "Unknown environment: $env" >&2; exit 1;;
-        esac
-        export APP_ENV APP_SENV
-        ;;
-      (*)
-        ;;
-    esac
-  else
-    # shellcheck disable=SC2034
-    ARG0="$0"
-    ARG0BASE="$(basename "$0")"
-  fi
-
-  # Load all task files in the tasks directory and the project directory. All task files are sourced in the TASKS directory context.
-  psv_task_file_paths_4a5f3ab="$(realpath "$0")|"
-  load_tasks_in_dir() {
-    push_dir "$TASKS_DIR"
-    local project_rel_prefix="$PROJECT_REL_DIR"
-    if test -n "$project_rel_prefix"
-    then
-      project_rel_prefix="$project_rel_prefix."
-    fi
-    case "$project_rel_prefix" in
-      (*/*) project_rel_prefix="$(echo "$project_rel_prefix" | sed -E -e 's/\/$/./')" ;;
-    esac
-    # echo Checking tasks in "$project_rel_dir" >&2
-    if test -r "$1"/"${project_rel_prefix}project.lib.sh"
-    then
-      # echo Loading "$1"/"${project_rel_prefix}project.lib.sh" >&2
-      # ls -l "$1"/"${project_rel_dir}project.lib.sh" >&2
-      psv_task_file_paths_4a5f3ab="$psv_task_file_paths_4a5f3ab$1/${project_rel_prefix}project.lib.sh|"
-      # shellcheck disable=SC1090
-      . "$1"/"${project_rel_prefix}project.lib.sh"
-    fi
-    for task_file_path in "$1"/task-*.sh
-    do
-      if ! test -r "$task_file_path"
-      then
-        continue
-      fi
-      case "$(basename "$task_file_path")" in
-        (task-dev.sh|task-prd.sh)
-          continue
-          ;;
-      esac
-      psv_task_file_paths_4a5f3ab="$psv_task_file_paths_4a5f3ab$task_file_path|"
-      # echo Loading "$task_file_path" >&2
-      # shellcheck disable=SC1090
-      . "$task_file_path"
-    done
-    pop_dir
-  }
-  load_tasks_in_dir "$PROJECT_DIR"
-  test "$TASKS_DIR" != "$PROJECT_DIR" && load_tasks_in_dir "$TASKS_DIR"
+  export PROJECT_DIR="$(realpath "$PROJECT_DIR")"
+  export TASKS_DIR="$(realpath "$TASKS_DIR")"
+  echo "2ad01c1: PROJECT_DIR=$PROJECT_DIR, TASKS_DIR=$TASKS_DIR" >&2
+  # Load all task files in the tasks directory. All task files are sourced in the $TASKS directory context.
+  push_dir "$TASKS_DIR"
+  local path
+  for path in "$TASKS_DIR"/task.sh "$TASKS_DIR"/*.lib.sh
+  do
+    test -r "$path" || continue
+    psv_task_file_paths_4a5f3ab="$psv_task_file_paths_4a5f3ab$path|"
+    # shellcheck disable=SC1090
+    . "$path"
+  done
+  pop_dir
 
   # Parse the command line arguments.
   shows_help=false
@@ -1641,16 +1539,16 @@ main() {
       (s|skip-missing) skip_missing=true;;
       (i|ignore-missing) ignore_missing=true;;
       (v|verbose) VERBOSE=true;;
-      (\?) task_sh_usage; exit 1;;
+      (\?) help; exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
   shift $((OPTIND-1))
 
   # Show help message and exit.
-  if $shows_help || test "${1+set}" != "set"
+  if $shows_help || test "$#" -eq 0
   then
-    task_sh_usage
+    help
     exit 0
   fi
 

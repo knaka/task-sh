@@ -11,7 +11,8 @@ test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
 #   set_sync_ignored "$SCRIPT_DIR"/.git
 # fi
 
-subcmd_git() ( # Run git command.
+desc_git="Run git command."
+subcmd_git() (
   chdir_script
   git_cmd_path="$(command -v git)"
   if ! test -r .git/HEAD

@@ -10,15 +10,18 @@ set_remix_project_dir() {
   remix_project_dir_b4b3371="$1"
 }
 
-subcmd_remix() { # Run remix.
+desc_remix="Run remix."
+subcmd_remix() {
   run_node_modules_bin @remix-run/dev dist/cli.js "$@" "$remix_project_dir_b4b3371"
 }
 
-task_remix__build() { # Build
+desc_remix__build="Build"
+task_remix__build() {
   subcmd_remix vite:build
 }
 
-task_remix__dev() { # Start development server
+desc_remix__dev="Start development server"
+task_remix__dev() {
   load_env
   local host="${REMIX_DEV_HOST:-127.0.0.1}"
   local port="${REMIX_DEV_PORT:-3000}"

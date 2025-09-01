@@ -25,6 +25,7 @@ jq() {
     "$@"
 }
 
-subcmd_jq() { # Run jq(1).
+desc_jq="Run jq(1)."
+subcmd_jq() {
   jq "$@"
 }

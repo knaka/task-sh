@@ -12,19 +12,23 @@ set_sqldef_version() {
   sqldef_version="$1"
 }
 
-subcmd_psqldef() { # Idempotent PostgreSQL DB schema management by SQL.
+desc_psqldef="Idempotent PostgreSQL DB schema management by SQL."
+subcmd_psqldef() {
   subcmd_gorun github.com/sqldef/sqldef/cmd/psqldef@"$sqldef_version" "$@"
 }
 
-subcmd_mysqldef() { # Idempotent MySQL DB schema management by SQL.
+desc_mysqldef="Idempotent MySQL DB schema management by SQL."
+subcmd_mysqldef() {
   subcmd_gorun github.com/sqldef/sqldef/cmd/mysqldef@"$sqldef_version" "$@"
 }
 
-subcmd_sqlite3def() { # Idempotent SQLite3 DB schema management by SQL.
+desc_sqlite3def="Idempotent SQLite3 DB schema management by SQL."
+subcmd_sqlite3def() {
   subcmd_gorun github.com/sqldef/sqldef/cmd/sqlite3def@"$sqldef_version" "$@"
 }
 
-subcmd_mssqldef() { # Idempotent MSSQL DB schema management by SQL.
+desc_mssqldef="Idempotent MSSQL DB schema management by SQL."
+subcmd_mssqldef() {
   subcmd_gorun github.com/sqldef/sqldef/cmd/mssqldef@"$sqldef_version" "$@"
 }
 

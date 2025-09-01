@@ -35,6 +35,7 @@ terraform() {
     "$@"
 }
 
-subcmd_terraform() { # Run terraform(1) command
+desc_terraform="Run terraform(1) command"
+subcmd_terraform() {
   terraform "$@"
 }

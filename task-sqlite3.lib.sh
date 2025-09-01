@@ -16,6 +16,7 @@ sqlite3() {
   run_pkg_cmd sqlite3 "$@"
 }
 
-subcmd_sqlite3() { # Run sqlite3(1).
+desc_sqlite3="Run sqlite3(1)."
+subcmd_sqlite3() {
   sqlite3 "$@"
 }

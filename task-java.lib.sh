@@ -105,12 +105,14 @@ set_java_env() {
   export PATH 
 }
 
-subcmd_java() { # Runs java command.
+desc_java="Runs java command."
+subcmd_java() {
   set_java_env
   "$JAVA_HOME"/bin/java "$@"
 }
 
-subcmd_javac() { # Runs javac command.
+desc_javac="Runs javac command."
+subcmd_javac() {
   set_java_env
   "$JAVA_HOME"/bin/javac "$@"
 }

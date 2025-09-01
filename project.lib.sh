@@ -23,7 +23,8 @@ repl_usage() {
   echo "exit: Exit the program."
 }
 
-task_repl() { # Start a REPL.
+desc_repl="Start a REPL."
+task_repl() {
   while true
   do
     printf "> "
@@ -42,47 +43,57 @@ task_repl() { # Start a REPL.
   done
 }
 
-subcmd_docker__ubuntu__exec() { # Run a command in an Ubuntu Docker container.
+desc_docker__ubuntu__exec="Run a command in an Ubuntu Docker container."
+subcmd_docker__ubuntu__exec() {
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file ubuntu.Dockerfile .)" "$@"
 }
 
-task_docker__ubuntu__test() { # Run tests in an Ubuntu Docker container.
+desc_docker__ubuntu__test="Run tests in an Ubuntu Docker container."
+task_docker__ubuntu__test() {
   subcmd_docker__ubuntu__exec ./task test
 }
 
-subcmd_docker__debian__exec() { # Run a command in a Debian Docker container.
+desc_docker__debian__exec="Run a command in a Debian Docker container."
+subcmd_docker__debian__exec() {
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"
 }
 
-task_docker__debian__test() { # Run tests in a Debian Docker container.
+desc_docker__debian__test="Run tests in a Debian Docker container."
+task_docker__debian__test() {
   subcmd_docker__debian__exec ./task test
 }
 
-subcmd_docker__busybox__exec() { # Run a command in a BusyBox Docker container.
+desc_docker__busybox__exec="Run a command in a BusyBox Docker container."
+subcmd_docker__busybox__exec() {
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file busybox.Dockerfile .)" "$@"
 }
 
-task_docker__busybox__test() { # Run tests in a BusyBox Docker container.
+desc_docker__busybox__test="Run tests in a BusyBox Docker container."
+task_docker__busybox__test() {
   subcmd_docker__busybox__exec ./task test
 }
 
-subcmd_docker__alpine__exec() { # Run a command in an Alpine Docker container.
+desc_docker__alpine__exec="Run a command in an Alpine Docker container."
+subcmd_docker__alpine__exec() {
   task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file alpine.Dockerfile .)" "$@"
 }
 
-task_docker__alpine__test() { # Run tests in an Alpine Docker container.
+desc_docker__alpine__test="Run tests in an Alpine Docker container."
+task_docker__alpine__test() {
   subcmd_docker__alpine__exec ./task test
 }
 
-task_nop() { # Do nothing.
+desc_nop="Do nothing."
+task_nop() {
   :
 }
 
-subcmd_diff() { # Detect differences from the directory.
+desc_diff="Detect differences from the directory."
+subcmd_diff() {
   local target_dir="${1}"
   find "${target_dir}" -type f -name "task*.sh" -maxdepth 1 \
   | while IFS= read -r theirs
@@ -149,7 +160,8 @@ task_install() {
   pop_dir
 }
 
-task_client__foo__build() ( # [args...] Build client.
+desc_client__foo__build="[args...] Build client."
+task_client__foo__build() (
   printf "Building client: "
   delim=
   for arg in "$@"
@@ -160,7 +172,8 @@ task_client__foo__build() ( # [args...] Build client.
   echo
 )
 
-task_client__deploy() ( # [args...] Deploy client.
+desc_client__deploy="[args...] Deploy client."
+task_client__deploy() (
   printf "Deploying client: "
   delim=""
   for arg in "$@"
@@ -171,7 +184,8 @@ task_client__deploy() ( # [args...] Deploy client.
   echo
 )
 
-task_task_cmd__copy() ( # Copy task.cmd to each directory.
+desc_task_cmd__copy="Copy task.cmd to each directory."
+task_task_cmd__copy() (
   for path in */task*.cmd
   do
     if ! test -e "$path"
@@ -182,12 +196,14 @@ task_task_cmd__copy() ( # Copy task.cmd to each directory.
   done
 )
 
-task_home_link() ( # Link this directory to home.
+desc_home_link="Link this directory to home."
+task_home_link() (
   script_dir_name="$(basename "$SCRIPT_DIR")"
   ln -sf "$SCRIPT_DIR" "$HOME"/"$script_dir_name"
 )
 
-subcmd_env() ( # Show environment.
+desc_env="Show environment."
+subcmd_env() (
   echo "APP_SENV:" "${APP_SENV:-}"
   echo "APP_ENV:" "${APP_ENV:-}"
 )
@@ -214,7 +230,8 @@ delegate_tasks() (
   esac
 )
 
-subcmd_newer() { # Check newer files.
+desc_newer="Check newer files."
+subcmd_newer() {
   newer "$@"
 }
 
@@ -242,12 +259,14 @@ task_hello2() (
   done
 )
 
-subcmd_test() { # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
+desc_test="[test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run."
+subcmd_test() {
   echo "Running tests with shell ${SH}."
   subcmd_task__test "$@"
 }
 
-task_all__test() { # Run all tests in sub directories. This can take a long time if the environment is not set up.
+desc_all__test="Run all tests in sub directories. This can take a long time if the environment is not set up."
+task_all__test() {
   local some_failed=false
   local i
   for i in js/ tools/ ./
@@ -264,7 +283,8 @@ task_all__test() { # Run all tests in sub directories. This can take a long time
   return 0
 }
 
-subcmd_modcheck() { # [dir1] [dir2] Check for modifications of task files in two directories.
+desc_modcheck="[dir1] [dir2] Check for modifications of task files in two directories."
+subcmd_modcheck() {
   local add_pattern='{\+.*\+\}'
   local rem_pattern='\[\-.*\-\]'
   local mod_pattern="$rem_pattern$add_pattern"

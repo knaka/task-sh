@@ -5,7 +5,8 @@ test "${guard_2c50c57+set}" = set && return 0; guard_2c50c57=x
 
 . ./task.sh
 
-subcmd_docker() ( # Run a Docker command.
+desc_docker="Run a Docker command."
+subcmd_docker() (
   if ! type docker > /dev/null 2>&1
   then
     echo "Docker is not installed. Exiting." >&2
@@ -19,11 +20,13 @@ subcmd_docker() ( # Run a Docker command.
   docker "$@"
 )
 
-task_docker__status() { # Show the status of Docker.
+desc_docker__status="Show the status of Docker."
+task_docker__status() {
   subcmd_docker info
 }
 
-task_docker__start() { # Start Docker.
+desc_docker__start="Start Docker."
+task_docker__start() {
   if task_docker__status >/dev/null 2>&1
   then
     echo "Docker is already running." >&2
@@ -50,7 +53,8 @@ task_docker__start() { # Start Docker.
   fi
 }
 
-task_docker__start__temp() { # Start Docker temporarily. If Docker is already running, do nothing when the task runner exits.
+desc_docker__start__temp="Start Docker temporarily. If Docker is already running, do nothing when the task runner exits."
+task_docker__start__temp() {
   if task_docker__status >/dev/null 2>&1
   then
     echo "Docker is already running. Using the existing Docker." >&2
@@ -60,7 +64,8 @@ task_docker__start__temp() { # Start Docker temporarily. If Docker is already ru
   fi
 }
 
-task_docker__stop() { # Stop Docker.
+desc_docker__stop="Stop Docker."
+task_docker__stop() {
   if ! task_docker__status >/dev/null 2>&1
   then
     echo "Docker is not running." >&2

@@ -30,14 +30,17 @@ oci_config_get() {
   memoize oci_config | jq -r ".\"$1\""
 }
 
-subcmd_oci() { # Run OCI CLI command.
+desc_oci="Run OCI CLI command."
+subcmd_oci() {
   oci "$@"
 }
 
-task_oci__config() { # Print OCI client config considering OCI_PROFILE env var.
+desc_oci__config="Print OCI client config considering OCI_PROFILE env var."
+task_oci__config() {
   memoize oci_config
 }
 
-subcmd_oci__config__get() { # Get a specific OCI config value.
+desc_oci__config__get="Get a specific OCI config value."
+subcmd_oci__config__get() {
   oci_config_get "$1"
 }

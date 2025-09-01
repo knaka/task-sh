@@ -12,3 +12,6 @@ disable=SC2155
 
 # ShellCheck: SC3043 – In POSIX sh, `local` is undefined. https://www.shellcheck.net/wiki/SC3043
 disable=SC3043
+
+# ShellCheck: SC2034 – foo appears unused. Verify it or export it. https://www.shellcheck.net/wiki/SC2034
+disable=SC2034

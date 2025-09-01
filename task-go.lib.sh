@@ -100,11 +100,13 @@ go() {
   invoke go "$@"
 }
 
-subcmd_go() { # Run go command.
+desc_go="Run go command."
+subcmd_go() {
   go "$@"
 }
 
-subcmd_gofmt() { # Run gofmt command.
+desc_gofmt="Run gofmt command."
+subcmd_gofmt() {
   set_go_env
   invoke gofmt "$@"
 }

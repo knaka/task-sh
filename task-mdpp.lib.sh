@@ -25,6 +25,7 @@ mdpp() {
     "$@"
 }
 
-subcmd_mdpp() { # Run mdpp(1)
+desc_mdpp="Run mdpp(1)"
+subcmd_mdpp() {
   mdpp "$@"
 }

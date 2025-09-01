@@ -7,7 +7,8 @@ test "${sourced_ca6b512-}" = true && return 0; sourced_ca6b512=true
 . ./task-javy.lib.sh
 
 # Currently, the published WASM on sqlc.dev does not support SQLite3.
-task_sqlc__ts__build() { # Builds the gen-typescript plugin.
+desc_sqlc__ts__build="Builds the gen-typescript plugin."
+task_sqlc__ts__build() {
   first_call 121be92 || return 0
   if test -r ./build/sqlc-gen-typescript/examples/plugin.wasm
   then

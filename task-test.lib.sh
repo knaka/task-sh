@@ -42,7 +42,8 @@ skip_if() {
   return 0
 }
 
-subcmd_task__test() ( # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
+desc_task__test="[test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run."
+subcmd_task__test() (
   OPTIND=1; while getopts a-: OPT
   do
     if test "$OPT" = "-"

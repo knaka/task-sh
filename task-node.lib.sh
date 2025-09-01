@@ -7,17 +7,20 @@
 
 export PATH="$PROJECT_DIR/node_modules/.bin:$PATH"
 
-subcmd_npm() { # Run npm.
+desc_npm="Run npm."
+subcmd_npm() {
   set_node_env
   invoke npm "$@"
 }
 
-subcmd_npx() { # Run npx.
+desc_npx="Run npx."
+subcmd_npx() {
   set_node_env
   invoke npx "$@"
 } 
 
-subcmd_node() { # Run Node.js.
+desc_node="Run Node.js."
+subcmd_node() {
   set_node_env
   invoke node "$@"
 }
@@ -44,7 +47,8 @@ npm_depinstall() {
   pop_dir || exit 1
 }
 
-subcmd_npm__install() { # Install the npm packages if the package.json is modified.
+desc_npm__install="Install the npm packages if the package.json is modified."
+subcmd_npm__install() {
   npm_depinstall "$@"
 }
 
@@ -74,12 +78,14 @@ run_node_modules_bin() { # Run the bin file in the node_modules.
   invoke "$p" "$@"
 }
 
-subcmd_npm__dev__install() { # Install the npm packages for development.
+desc_npm__dev__install="Install the npm packages for development."
+subcmd_npm__dev__install() {
   subcmd_npm install --save-dev "$@"
   touch "$last_check_path"
 }
 
-subcmd_npm__ensure() { # Ensure the npm packages are installed.
+desc_npm__ensure="Ensure the npm packages are installed."
+subcmd_npm__ensure() {
   local package
   for package in "$@"
   do

@@ -14,7 +14,8 @@ else
   exit 1
 fi
 
-subcmd_json2sh() ( # Convert JSON to shell script.
+desc_json2sh="Convert JSON to shell script."
+subcmd_json2sh() (
   if command -v subcmd_volta >/dev/null 2>&1 && test -r ./json2sh.mjs
   then
     subcmd_volta run node json2sh.mjs "$@"

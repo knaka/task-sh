@@ -11,23 +11,28 @@ wrangler() {
   run_node_modules_bin wrangler bin/wrangler.js "$@"
 }
 
-subcmd_wrangler() { # Run the Cloudflare Wrangler command.
+desc_wrangler="Run the Cloudflare Wrangler command."
+subcmd_wrangler() {
   wrangler "$@"
 }
 
-subcmd_cf__name() { # Show the name of the Cloudflare project.
+desc_cf__name="Show the name of the Cloudflare project."
+subcmd_cf__name() {
   yq --exit-status eval ".name" "$wrangler_toml_path"
 }
 
-subcmd_cf__typegen() { # Generate TypeScript types for the Cloudflare project.
+desc_cf__typegen="Generate TypeScript types for the Cloudflare project."
+subcmd_cf__typegen() {
   wrangler types
 }
 
-task_cf__whoami() { # Show the Cloudflare account information which is logged in.
+desc_cf__whoami="Show the Cloudflare account information which is logged in."
+task_cf__whoami() {
   wrangler whoami
 }
 
-task_cf__authenticated() { # Check localy if the user is authenticated with Cloudflare.
+desc_cf__authenticated="Check localy if the user is authenticated with Cloudflare."
+task_cf__authenticated() {
   local config_file="$HOME"/.wrangler/config/default.toml
   ! test -r "$config_file" && return 1
   local expiration_utc_time_iso="$(yq --exit-status eval .expiration_time "$config_file")"

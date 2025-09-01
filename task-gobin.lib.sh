@@ -3,7 +3,8 @@ test "${guard_fa77b11+set}" = set && return 0; guard_fa77b11=-
 
 . ./task.sh
 
-subcmd_gobin() { # Run the gobin command.
+desc_gobin="Run the gobin command."
+subcmd_gobin() {
   if ! test -r Gobinfile
   then
     echo "Gobinfile not found in the project root." >&2

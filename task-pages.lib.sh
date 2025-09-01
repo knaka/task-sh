@@ -25,7 +25,8 @@ set_pages_project_path() {
   set_pages_routes_json_path "$1/pages_routes.json"
 }
 
-subcmd_pages__wrangler() { # Run the Cloudflare Wrangler command.
+desc_pages__wrangler="Run the Cloudflare Wrangler command."
+subcmd_pages__wrangler() {
   # “ERROR Pages does not support custom paths for the `wrangler.toml` configuration file”, that's why we need to change the directory.
   push_dir "$pages_project_path"
   run_node_modules_bin wrangler bin/wrangler.js "$@"
@@ -42,7 +43,8 @@ pages_build_output_dir() {
   memoize subcmd_yq --exit-status eval '.pages_build_output_dir' "$pages_wrangler_toml_path_b0f864e"
 }
 
-task_pages__routes_json__put() { # Put the routes JSON file.
+desc_pages__routes_json__put="Put the routes JSON file."
+task_pages__routes_json__put() {
   if test -r "$pages_routes_json_path_6c18f24" && ! cmp -s "$pages_routes_json_path_6c18f24" "$(pages_build_output_dir)"/_routes.json >/dev/null 2>&1
   then
     cp -f "$pages_routes_json_path_6c18f24" "$(pages_build_output_dir)"/_routes.json
@@ -54,11 +56,13 @@ pages_deploy() {
   subcmd_pages__wrangler pages deploy "$@"
 }
 
-task_pages__prod__deploy() { # Deploy the project to the production environment.
+desc_pages__prod__deploy="Deploy the project to the production environment."
+task_pages__prod__deploy() {
   pages_deploy
 }
 
-task_pages__prev__deploy() { # Deploy the project to the preview environment.
+desc_pages__prev__deploy="Deploy the project to the preview environment."
+task_pages__prev__deploy() {
   pages_deploy --branch preview
 }
 
@@ -70,11 +74,13 @@ pages_secret_put() {
   subcmd_pages__wrangler pages secret put "$@"
 }
 
-subcmd_pages__prod__secret__put() { # [key] Put the secret to the Cloudflare Pages.
+desc_pages__prod__secret__put="[key] Put the secret to the Cloudflare Pages."
+subcmd_pages__prod__secret__put() {
   pages_secret_put --env production "$@"
 }
 
-subcmd_pages__prev__secret__put() { # [key] Put the secret to the Cloudflare Pages preview environment.
+desc_pages__prev__secret__put="[key] Put the secret to the Cloudflare Pages preview environment."
+subcmd_pages__prev__secret__put() {
   pages_secret_put --env preview "$@"
 }
 
@@ -86,10 +92,12 @@ pages_tail() { # Tail the log of the deployment.
   subcmd_pages__wrangler pages deployment tail --project-name "$(subcmd_pages__project_name)"
 }
 
-subcmd_pages__prod__tail() { # Tail the log of the production deployment.
+desc_pages__prod__tail="Tail the log of the production deployment."
+subcmd_pages__prod__tail() {
   pages_tail --environment production
 }
 
-subcmd_pages__prev__tail() { # Tail the log of the preview deployment.
+desc_pages__prev__tail="Tail the log of the preview deployment."
+subcmd_pages__prev__tail() {
   pages_tail --environment preview
 }
