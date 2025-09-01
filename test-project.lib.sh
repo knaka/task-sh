@@ -16,6 +16,17 @@ tolower_542075d() {
   printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
+test_abs2rel() (
+  base="$TEMP_DIR"/foo/bar
+  target="$TEMP_DIR"/foo/baz/qux.txt
+  assert_eq "$(abs2rel "$target" "$base")" "../baz/qux.txt"
+
+  base2="$TEMP_DIR"/foo/quux/quuux
+  mkdir -p "$base2"
+  cd "$base2"
+  assert_eq "$(abs2rel "$target")" "../../baz/qux.txt"
+)
+
 test_version_comparison() (
   set -o errexit
 

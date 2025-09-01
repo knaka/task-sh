@@ -5,6 +5,8 @@
 . ./task.sh
 . ./task-volta.lib.sh
 
+export PATH="$PROJECT_DIR/node_modules/.bin:$PATH"
+
 subcmd_npm() { # Run npm.
   set_node_env
   invoke npm "$@"

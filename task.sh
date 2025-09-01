@@ -32,6 +32,9 @@ first_call() {
 # Temporary directory and cleaning up
 # --------------------------------------------------------------------------
 
+TEMP_DIR=
+unset TEMP_DIR
+
 # Create a temporary directory and assign $TEMP_DIR env var
 init_temp_dir() {
   test "${TEMP_DIR+set}" = set && return 0
@@ -64,7 +67,7 @@ chaintrap() {
     cat "$stmts_bak_file" >>"$stmts_file"
     # shellcheck disable=SC2064 # "Use single quotes, otherwise this expands now rather than when signalled."
     # shellcheck disable=SC2154 # "var is referenced but not assigned."
-    trap "rc=\$?; . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
+    trap "rc=\$?; test -r '$stmts_file' && . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
   done
 }
 
@@ -783,6 +786,24 @@ load_env() {
 # --------------------------------------------------------------------------
 # Misc
 # --------------------------------------------------------------------------
+
+abs2rel() {
+  local target="$1"
+  shift
+  local source="$PWD"
+  if test "$#" -gt 0
+  then
+    source="$1"
+  fi
+  local common="$source"
+  local back=
+  while test "${target#"$common"}" = "${target}"
+  do
+    common=$(dirname "$common")
+    back="../${back}"
+  done
+  echo "${back}""${target#"$common"/}"
+}
 
 # shuf(1) for macOS environment.
 if ! command -v shuf >/dev/null 2>&1

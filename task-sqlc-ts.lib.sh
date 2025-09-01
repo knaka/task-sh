@@ -12,6 +12,7 @@ rewrite_sqlcgen_ts() {
   for file_path in "$@"
   do
     sed -E \
+      -e "s@^.*cloudflare/workers-types/2022-11-30.*@remove@" \
       -e "s/^([[:blank:]]*[_[:alnum:]]+)(: .* \| null;)$/rewrite_null_def${us}\1${us}\2${us}/" -e t \
       -e "s/^(.*\.${lwb}bind\()([^.][^)]*)(\).*)$/rewrite_bind${us}\1${us}\2${us}\3${us}/" -e t \
       -e 's#from "@cloudflare/workers-types/(.*)"#from "@cloudflare/workers-types/\1/index.js"#' \
@@ -25,6 +26,8 @@ rewrite_sqlcgen_ts() {
       op="$1"
       shift
       case "$op" in
+        (remove)
+          ;;
         (rewrite_null_def)
           echo "$1?$2"
           ;;
