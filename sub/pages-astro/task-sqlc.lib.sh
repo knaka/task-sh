@@ -1,1 +1,0 @@
-../lib/task-sqlc.lib.sh
