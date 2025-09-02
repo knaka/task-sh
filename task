@@ -30,7 +30,11 @@ do
   test "$SH" = /bin/dash && test -e /etc/debian_version && continue
   # Avoid using Bash on macOS because it is locked to version 3.* and buggy.
   test "$SH" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist && continue
-  test -x "$SH" && exec "$SH" "$script_file_path" "$@"
+  if test -x "$SH"
+  then
+    export SH
+    exec "$SH" "$script_file_path" "$@"
+  fi
 done
 echo "No appropriate shell found." >&2
 exit 1
