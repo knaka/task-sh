@@ -24,13 +24,13 @@ else
 fi
 export TASKS_DIR
 script_file_path="$TASKS_DIR"/"$ARG0BASE".sh
-for sh in /bin/dash /bin/ash /bin/bash
+for SH in /bin/dash /bin/ash /bin/bash
 do
   # Avoid using Dash on Debian because it is built with --disable-lineno option.
-  test "$sh" = /bin/dash && test -e /etc/debian_version && continue
+  test "$SH" = /bin/dash && test -e /etc/debian_version && continue
   # Avoid using Bash on macOS because it is locked to version 3.* and buggy.
-  test "$sh" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist && continue
-  test -x "$sh" && exec "$sh" "$script_file_path" "$@"
+  test "$SH" = "/bin/bash" && test -e /System/Library/CoreServices/SystemVersion.plist && continue
+  test -x "$SH" && exec "$SH" "$script_file_path" "$@"
 done
 echo "No appropriate shell found." >&2
 exit 1
