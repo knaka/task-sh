@@ -85,35 +85,18 @@ finalize() {
 # Environment variables. If not set by the caller, set later in `main`
 # --------------------------------------------------------------------------
 
-# Path to the shell executable.
-: "${SH:=}"
-
-# Basename of the shell executable.
-: "${SHBASE:=}"
-
-# Directory in which the script has been invoked.
-: "${WORKING_DIR:=}"
-
-# Directory in which the task files are located.
-: "${TASKS_DIR:=}"
-
-# Directory in which the task runner is located.
-: "${TASK_SH_DIR:=}"
-# echo TASK_SH_DIR: "$TASK_SH_DIR" >&2
-
-# The root directory of the project.
-: "${PROJECT_DIR:=}"
-if test -z "$PROJECT_DIR"
-then
-  PROJECT_DIR="${0%/*}"
-fi
-# echo PROJECT_DIR: "$PROJECT_DIR" >&2
-
 # The path to the file which was called.
 : "${ARG0:=}"
 
 # Basename of the file which was called.
 : "${ARG0BASE:=}"
+
+# Directory in which the task files are located.
+: "${TASKS_DIR:=}"
+
+# The root directory of the project.
+: "${PROJECT_DIR:=}"
+test -z "$PROJECT_DIR" && PROJECT_DIR="${0%/*}"
 
 # Verbosity flag.
 : "${VERBOSE:=false}"
@@ -126,10 +109,8 @@ verbose() {
 CACHE_DIR="$HOME/.cache/task-sh"
 mkdir -p "$CACHE_DIR"
 
-# Cache directory path for the task runner
-cache_dir_path() {
-  echo "$CACHE_DIR"
-}
+# For those other than Windows
+: "${LOCALAPPDATA:=e06a91c}"
 
 # --------------------------------------------------------------------------
 # Platform detection.
@@ -152,7 +133,6 @@ is_debian() {
 }
 
 is_bsd() {
-  # stat -f "%z" . >/dev/null 2>&1
   is_macos || test -r /etc/rc.subr
 }
 
@@ -650,9 +630,6 @@ require_pkg_cmd() {
   usm_psv_cmd="$usm_psv_cmd$cmd_name$us$psv_cmd$us"
 }
 
-# For Windows
-: "${LOCALAPPDATA:=e06a91c}"
-
 run_pkg_cmd() {
   local cmd_name="$1"
   shift
@@ -728,8 +705,6 @@ curl() {
   run_pkg_cmd curl "$@"
 }
 
-desc_curl="Run curl(1)."
-
 # Run curl(1).
 subcmd_curl() {
   curl "$@"
@@ -765,7 +740,7 @@ load_env_file() {
   done <"$1"
 }
 
-# Load environment variables from multiple files
+# Load environment variables from .env* files
 load_env() {
   first_call 8005f70 || return 0
   # Load the files in the order of priority.
@@ -791,6 +766,7 @@ load_env() {
 # Misc
 # --------------------------------------------------------------------------
 
+# Absolute path to relative path
 abs2rel() {
   local target="$1"
   shift
@@ -817,23 +793,14 @@ fi
 
 # Executable file extension.
 exe_ext() {
-  if is_windows
-  then
-    echo ".exe"
-  fi
+  is_windows && echo ".exe"
 }
 
 exe_ext=
-if is_windows
-then
-  # shellcheck disable=SC2034
-  exe_ext=".exe"
-fi
+# shellcheck disable=SC2034
+is_windows && exe_ext=".exe"
 
-if is_macos
-then
-  alias sha1sum='shasum -a 1'
-fi
+is_macos && alias sha1sum='shasum -a 1'
 
 # Memoize the (mainly external) command output.
 memoize() {
@@ -1363,7 +1330,7 @@ is_dir_empty() {
 
 psv_task_file_paths_4a5f3ab=
 
-help() {
+tasksh_help() {
   cat <<EOF
 Usage:
   $ARG0BASE [options] <subcommand> [args...]
@@ -1457,7 +1424,7 @@ run_post_task() {
   fi
 }
 
-main() {
+tasksh_main() {
   set -o nounset -o errexit
 
   chaintrap kill_child_processes EXIT TERM INT
@@ -1497,7 +1464,7 @@ main() {
       (s|skip-missing) skip_missing=true;;
       (i|ignore-missing) ignore_missing=true;;
       (v|verbose) VERBOSE=true;;
-      (\?) help; exit 1;;
+      (\?) tasksh_help; exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
@@ -1506,7 +1473,7 @@ main() {
   # Show help message and exit.
   if $shows_help || test "$#" -eq 0
   then
-    help
+    tasksh_help
     exit 0
   fi
 
@@ -1571,7 +1538,7 @@ main() {
     esac
     if type delegate_tasks > /dev/null 2>&1
     then
-      verbose && echo "Delegating to delegate_tasks: $task_with_args" >&2
+      "$VERBOSE" && echo "Delegating to delegate_tasks: $task_with_args" >&2
       if delegate_tasks "$@"
       then
         continue
@@ -1596,6 +1563,6 @@ main() {
 # Run the main function if this script is executed as task runner.
 case "${0##*/}" in
   (task|task.sh)
-    main "$@"
+    tasksh_main "$@"
     ;;
 esac
