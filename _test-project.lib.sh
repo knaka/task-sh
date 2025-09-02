@@ -442,3 +442,7 @@ test_memoize() {
     end_memoize
   fi
 }
+
+test_task_sh_help() (
+  invoke ./task | grep -q 'Run curl'
+)

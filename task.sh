@@ -85,6 +85,9 @@ finalize() {
 # Environment variables. If not set by the caller, set later in `main`
 # --------------------------------------------------------------------------
 
+# The path to the shell executable which is running the script.
+: "${SH:=/bin/sh}"
+
 # The path to the file which was called.
 : "${ARG0:=}"
 
