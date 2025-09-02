@@ -152,14 +152,6 @@ EOF
   fi
 }
 
-task_install() {
-  push_dir "$PROJECT_DIR"
-  mkdir -p "$task_bin_dir_path"
-  rm -f "$task_bin_dir_path"/*
-  install_task_bin js httpd httpd-mini
-  pop_dir
-}
-
 # [args...] Build client.
 task_client__foo__build() (
   printf "Building client: "
@@ -235,55 +227,13 @@ subcmd_newer() {
   newer "$@"
 }
 
-task_task_sh__copy() (
-  chdir_script
-  for dest in */task.sh
-  do
-    cp task.sh "$dest"
-  done
-)
-
-task_hello1() {
-  while true
-  do
-    echo hello1
-    sleep 1
-  done
-}
-
-task_hello2() (
-  while true
-  do
-    echo hello2
-    sleep 1
-  done
-)
-
 # [test_names...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
 subcmd_test() {
   echo "Running tests with shell ${SH}."
   subcmd_task__test "$@"
 }
 
-# Run all tests in sub directories. This can take a long time if the environment is not set up.
-task_all__test() {
-  local some_failed=false
-  local i
-  for i in js/ tools/ ./
-  do
-    echo "Testing $i"
-    cd "$i" || exit 1
-    if ! "$SH" task.sh test --all
-    then
-      some_failed=true
-    fi
-    cd ..
-  done
-  $some_failed && return 1
-  return 0
-}
-
-# [dir1] [dir2] Check for modifications of task files in two directories.
+# [dir1 dir2] Check for modifications of task files in two directories.
 subcmd_modcheck() {
   local add_pattern='{\+.*\+\}'
   local rem_pattern='\[\-.*\-\]'
