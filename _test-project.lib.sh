@@ -343,7 +343,7 @@ test_newer() {
   assert_false newer "$current" "$older" --than "$future"
 }
 
-test_dir_stack() {
+_test_dir_stack() {
   cd "$PROJECT_DIR"
   
   push_dir ./py

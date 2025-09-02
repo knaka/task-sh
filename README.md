@@ -14,7 +14,6 @@
 * The entry point is `./task` on Linux and macOS, or `.\task.cmd` on Windows.
 * Task files (`task.sh` and `*.lib.sh`) can be stored in the top directory of the project or in the `./tasks/` directory. All the files are loaded when the task runner is invoked. All task script files should be placed in the same directory to ensure proper `source` functionality between scripts, so splitting them across directories is not recommended.
 * Project-specific tasks/subcommands are defined in `project.lib.sh`, while other library tasks/subcommands are stored in `*.lib.sh` files.
-* For subdirectories, the task runner supports subdirectory-specific project files using the pattern `<subdirectory-path>.project.lib.sh`. For example, tasks for the subdirectory `foo/bar/` would be defined in `foo.bar.project.lib.sh`.
 
 ## Shell Script Grammar
 

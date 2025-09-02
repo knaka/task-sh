@@ -4,7 +4,7 @@
 ## Running Tasks
 
 * The task runner is invoked with `./task` on Linux and macOS, or `.\task.cmd` on Windows.
-* On Windows, `task.cmd` installs BusyBox for Windows if not already installed and runs the scripts with it.
+* On Windows, `task.cmd` installs [BusyBox for Windows](https://frippery.org/busybox/) if not already installed and runs the scripts with it.
 * Running `./task` without arguments shows available tasks/subcommands.
 * Tasks `foo:bar` and `baz` are executed with `./task foo:bar baz[arg1,arg2]`. Arguments are passed in brackets.
 * The task runner is written in shell script and the task `foo:bar` is implemented as the shell script function `task_foo__bar`.
@@ -13,7 +13,7 @@
 ## Task Files and Directory Structure
 
 * The entry point is `./task` on Linux and macOS, or `.\task.cmd` on Windows.
-* Task files (`task.sh` and `*.lib.sh`) can be stored in the top directory of the project or in the `./tasks/` directory. All task script files should be placed in the same directory to ensure proper `source` functionality between scripts, so splitting them across directories is not recommended.
+* Task files (`task.sh` and `*.lib.sh`) can be stored in the top directory of the project or in the `./tasks/` directory. All the files are loaded when the task runner is invoked. All task script files should be placed in the same directory to ensure proper `source` functionality between scripts, so splitting them across directories is not recommended.
 * Project-specific tasks/subcommands are defined in `project.lib.sh`, while other library tasks/subcommands are stored in `*.lib.sh` files.
 
 ## Shell Script Grammar
