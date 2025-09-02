@@ -2,7 +2,7 @@
 # shellcheck shell=sh
 test "${sourced_5268aba-}" = true && return 0; sourced_5268aba=true
 
-. ./task-pages.lib.sh
+. ./pages.lib.sh
 
 # Launch the Wrangler Pages development server.
 task_pages__dev() {

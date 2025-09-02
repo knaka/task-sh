@@ -2,7 +2,7 @@
 # shellcheck shell=sh
 "${sourced_090d237-false}" && return 0; sourced_090d237=true
 
-. ./task-python.lib.sh
+. ./python.lib.sh
 
 # ansible · PyPI https://pypi.org/project/ansible/#history
 ansible_version_6e3d355=11.8.0

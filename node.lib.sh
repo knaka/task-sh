@@ -3,7 +3,7 @@
 "${sourced_e6646fd-false}" && return 0; sourced_e6646fd=true
 
 . ./task.sh
-. ./task-volta.lib.sh
+. ./volta.lib.sh
 
 export PATH="$PROJECT_DIR/node_modules/.bin:$PATH"
 

@@ -3,7 +3,7 @@
 test "${guard_926c124+set}" = set && return 0; guard_926c124=x
 set -o nounset -o errexit
 
-. ./task-node.lib.sh
+. ./node.lib.sh
 
 : "${astro_project_dir_0135e32:=$PROJECT_DIR}"
 

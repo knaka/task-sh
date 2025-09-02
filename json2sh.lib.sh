@@ -3,12 +3,12 @@ test "${guard_5c3f500+set}" = set && return 0; guard_5c3f500=-
 
 . ./task.sh
 
-if test -r ./task-volta.lib.sh && test -r ./json2sh.mjs
+if test -r ./volta.lib.sh && test -r ./json2sh.mjs
 then
-  . ./task-volta.lib.sh
-elif test -r ./task-jq.lib.sh
+  . ./volta.lib.sh
+elif test -r ./jq.lib.sh
 then
-  . ./task-jq.lib.sh
+  . ./jq.lib.sh
 else
   echo "No appropriate JSON parser found." >&2
   exit 1

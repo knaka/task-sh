@@ -3,7 +3,7 @@
 "${sourced_e080e29-false}" && return 0; sourced_e080e29=true
 
 . ./task.sh
-. ./task-go.lib.sh
+. ./go.lib.sh
 
 go_install_cmd_run() {
   local pkg_ver="$1"

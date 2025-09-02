@@ -4,7 +4,7 @@ set -o nounset -o errexit
 test "${guard_a543be5+set}" = set && return 0; guard_a543be5=x
 
 . ./task.sh
-. ./task-pgclt.lib.sh
+. ./pgclt.lib.sh
 
 subcmd_pg_ctl() (
   subcmd_pg__run pg_ctl "$@"

@@ -2,11 +2,11 @@
 # shellcheck shell=sh
 test "${sourced_ce1c863-}" = true && return 0; sourced_ce1c863=true
 
-. ./task-yq.lib.sh
-. ./task-sqldef.lib.sh
-. ./task-sqlite3.lib.sh
-. ./task-node.lib.sh
-. ./task-cloudflare.lib.sh
+. ./yq.lib.sh
+. ./sqldef.lib.sh
+. ./sqlite3.lib.sh
+. ./node.lib.sh
+. ./cloudflare.lib.sh
 
 db_schema_path_d4253e5="$TASKS_DIR/schema.sql"
 

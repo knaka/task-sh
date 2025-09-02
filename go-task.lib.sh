@@ -4,7 +4,7 @@ set -o nounset -o errexit
 test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
 
 . ./task.sh
-. ./task-go.lib.sh
+. ./go.lib.sh
 
 # delegate_tasks() (
 #   cd "$TASKS_DIR"

@@ -5,7 +5,7 @@
 # React Router (formerly Remix) https://reactrouter.com/
 
 . ./task.sh
-. ./task-node.lib.sh
+. ./node.lib.sh
 
 rr_project_dir_3376d5a="$PROJECT_DIR"
 

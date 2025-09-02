@@ -17,7 +17,7 @@ test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 #   exit 1
 # fi
 
-. ./task-docker.lib.sh
+. ./docker.lib.sh
 
 repl_usage() {
   echo "exit: Exit the program."
@@ -310,7 +310,7 @@ subcmd_modcheck() {
       continue
     fi
     case "${file1_path##*/}" in
-      (task-prj.lib.sh|task-project.lib.sh) continue;;
+      (prj.lib.sh|project.lib.sh) continue;;
     esac
     local file2_path
     file2_path="$dir2_path"/"$(basename "$file1_path")"

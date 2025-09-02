@@ -5,7 +5,7 @@ test "${sourced_8a52dac-}" = true && return 0; sourced_8a52dac=true
 set -o nounset -o errexit
 
 . ./task.sh
-. ./task-astro.lib.sh
+. ./astro.lib.sh
 
 # Launch the Astro development server.
 task_astro__dev() {

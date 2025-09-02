@@ -3,7 +3,7 @@ test "${guard_1c4f762+set}" = set && return 0; guard_1c4f762=-
 
 # sqldef/sqldef: Idempotent schema management for MySQL, PostgreSQL, and more https://github.com/sqldef/sqldef
 
-. ./task-gorun.lib.sh
+. ./gorun.lib.sh
 
 # Tags · sqldef/sqldef https://github.com/sqldef/sqldef/tags
 : "${sqldef_version:=v0.17.29}"

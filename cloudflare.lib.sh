@@ -2,8 +2,8 @@
 # shellcheck shell=sh
 "${sourced_4bfdf93-false}" && return 0; sourced_4bfdf93=true
 
-. ./task-node.lib.sh
-. ./task-yq.lib.sh
+. ./node.lib.sh
+. ./yq.lib.sh
 
 : "${wrangler_toml_path:=$PROJECT_DIR/wrangler.toml}"
 

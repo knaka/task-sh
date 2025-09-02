@@ -3,8 +3,8 @@
 test "${sourced_ca6b512-}" = true && return 0; sourced_ca6b512=true
 
 . ./task.sh
-. ./task-node.lib.sh
-. ./task-javy.lib.sh
+. ./node.lib.sh
+. ./javy.lib.sh
 
 # Currently, the published WASM on sqlc.dev does not support SQLite3.
 # Builds the gen-typescript plugin.

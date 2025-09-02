@@ -3,7 +3,7 @@
 test "${sourced_78b9c2d-}" = true && return 0; sourced_78b9c2d=true
 
 . ./task.sh
-. ./ifsv.lib.sh
+. ./_ifsv.lib.sh
 
 sum_75e35a9() {
   local sum=0

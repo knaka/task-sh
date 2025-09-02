@@ -2,7 +2,7 @@
 test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
 
 . ./task.sh
-. ./task-json2sh.lib.sh
+. ./json2sh.lib.sh
 
 # Shows my IP address for testing.
 task_my_ip_addr() {

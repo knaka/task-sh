@@ -3,7 +3,7 @@
 test "${sourced_6b40fea-}" = true && return 0; sourced_6b40fea=true
 
 . ./task.sh
-. ./task-node.lib.sh
+. ./node.lib.sh
 
 : "${pages_wrangler_toml_path_b0f864e:=$PROJECT_DIR/wrangler.toml}"
 
@@ -37,7 +37,7 @@ subcmd_pages__wrangler() {
 # Deployment
 # --------------------------------------------------------------------------
 
-. ./task-yq.lib.sh
+. ./yq.lib.sh
 
 pages_build_output_dir() {
   memoize subcmd_yq --exit-status eval '.pages_build_output_dir' "$pages_wrangler_toml_path_b0f864e"

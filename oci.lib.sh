@@ -3,8 +3,8 @@
 "${sourced_2583e35-false}" && return 0; sourced_2583e35=true
 
 . ./task.sh
-. ./task-python.lib.sh
-. ./task-jq.lib.sh
+. ./python.lib.sh
+. ./jq.lib.sh
 
 # oci-cli · PyPI https://pypi.org/project/oci-cli/#history
 oci_cli_version_9a020e5=3.63.2

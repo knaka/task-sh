@@ -4,8 +4,8 @@ set -o nounset -o errexit
 test "${guard_91ccbee+set}" = set && return 0; guard_91ccbee=x
 
 . ./task.sh
-. ./task-pgclt.lib.sh
-. ./task-pgsvr.lib.sh
+. ./pgclt.lib.sh
+. ./pgsvr.lib.sh
 
 # ------------------------------------------------------------------------------
 

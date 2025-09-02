@@ -2,7 +2,7 @@
 # shellcheck shell=sh
 test "${sourced_880b3c0-}" = true && return 0; sourced_880b3c0=true
 
-. ./task-node.lib.sh
+. ./node.lib.sh
 
 # [password] Generate a bcrypt hash for the given password.
 subcmd_bcrypt__hash() {
