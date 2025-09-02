@@ -14,8 +14,7 @@ set_sqldef_version() {
 
 . ./task.sh
 
-# Idempotent SQLite3 DB schema management by SQL.
-subcmd_sqlite3def() {
+sqlite3def() {
   # shellcheck disable=SC2016
   run_fetched_cmd \
     --name="sqlite3def" \
@@ -26,6 +25,11 @@ subcmd_sqlite3def() {
     --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/sqlite3def_${os}_${arch}${ext}' \
     -- \
     "$@"
+}
+
+# Idempotent SQLite3 DB schema management by SQL.
+subcmd_sqlite3def() {
+  sqlite3def "$@"
 }
 
 . ./gorun.lib.sh
