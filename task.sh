@@ -498,6 +498,7 @@ run_fetched_cmd() {
       IFS="$ifs_saved"
     fi
     local url="$(eval echo "$url_template")"
+    init_temp_dir
     local out_file_path="$TEMP_DIR"/"$name""$ext"
     if ! curl --fail --location "$url" --output "$out_file_path"
     then
