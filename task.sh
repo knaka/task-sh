@@ -694,7 +694,7 @@ run_pkg_cmd() {
   return 1
 }
 
-desc_devinstall="Install necessary packages for this development environment."
+# Install necessary packages for this development environment.
 task_devinstall() {
   if is_macos
   then
@@ -1363,68 +1363,6 @@ is_dir_empty() {
 
 psv_task_file_paths_4a5f3ab=
 
-desc_subcmds="List subcommands."
-task_subcmds() (
-  lines="$(
-    (
-      IFS="|"
-      # shellcheck disable=SC2086
-      sed -E -n -e 's/^subcmd_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths_4a5f3ab
-    ) | while read -r name desc
-    do
-      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
-    done
-    if type delegate_tasks >/dev/null 2>&1 && delegate_tasks subcmds >/dev/null 2>&1
-    then
-      delegate_tasks subcmds
-    fi
-  )"
-  max_name_len="$(
-    echo "$lines" \
-    | while read -r name _
-    do
-      echo "${#name}"
-    done \
-    | sort -nr \
-    | head -1
-  )"
-  echo "$lines" | while read -r name desc
-  do
-    printf "%-${max_name_len}s  %s\n" "$name" "$desc"
-  done | sort
-)
-
-desc_tasks="List tasks."
-task_tasks() (
-  lines="$(
-    (
-      IFS="|"
-      # shellcheck disable=SC2086
-      sed -E -n -e 's/^task_([[:alnum:]_]+)\(\) *[{(] *(# *(.*))?/\1 \3/p' $psv_task_file_paths_4a5f3ab
-    ) | while read -r name desc
-    do
-      echo "$(echo "$name" | sed -E -e 's/__/:/g')" "$desc"
-    done
-    if type delegate_tasks >/dev/null 2>&1 && delegate_tasks tasks >/dev/null 2>&1
-    then
-      delegate_tasks tasks
-    fi
-  )"
-  max_name_len="$(
-    echo "$lines" \
-    | while read -r name _
-    do
-      echo "${#name}"
-    done \
-    | sort -nr \
-    | head -1
-  )"
-  echo "$lines" | while read -r name desc
-  do
-    printf "%-${max_name_len}s  %s\n" "$name" "$desc"
-  done | sort
-)
-
 help() {
   cat <<EOF
 Usage:
@@ -1494,7 +1432,7 @@ EOF
   done
 }
 
-desc_task__exec="Execute a command in task.sh context."
+# Execute a command in task.sh context.
 subcmd_task__exec() {
   backup_shell_flags
   set +o errexit
@@ -1526,7 +1464,6 @@ main() {
 
   export PROJECT_DIR="$(realpath "$PROJECT_DIR")"
   export TASKS_DIR="$(realpath "$TASKS_DIR")"
-  echo "2ad01c1: PROJECT_DIR=$PROJECT_DIR, TASKS_DIR=$TASKS_DIR" >&2
   # Load all task files in the tasks directory. All task files are sourced in the $TASKS directory context.
   push_dir "$TASKS_DIR"
   local path
