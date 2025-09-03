@@ -7,52 +7,61 @@
 
 # Add git-subtree to this project.
 subcmd_subtree__add() {
-  if test "$#" -lt 2
-  then
-    cat <<EOF >&2
-Usage: subtree:add <target_dir> <repository> [<branch>]
-
-Adds a subtree from the specified branch of <repository> to the current repository. If no branch is specified, automatically detects and uses "main" or "master" from the repository.
-EOF
-    return 1
-  fi
   local toplevel="$(git rev-parse --show-toplevel)"
   if test "$(realpath "$toplevel")" != "$(realpath "$PWD")"
   then
     echo "Execute this command from the top-level directory of the git worktree." >&2
     return 1
   fi
-  local target_dir="$1"
-  shift
-  if test -e "$target_dir"
+  if test "$#" -eq 1
   then
-    echo "\"$target_dir\" already exists. Aborting." >&2
-    return 1
-  fi
-  local repository="$1"
-  shift
-  local branch
-  if test "$#" -gt 0
+    local name="$1"
+    local info=
+    info="$(subtree_info "$name")"
+    local repository="$(echo "$info" | yq ".repository")"
+    local branch="$(echo "$info" | yq ".branch")"
+    local prefix="$(echo "$info" | yq ".prefix")"
+    git subtree add --prefix "$prefix" "$repository" "$branch"
+  elif test "$#" -ge 2
   then
-    branch="$1"
-    shift
-  else
-    echo "Detecting the main branch for \"$repository\" ..." >&2
-    local refs="$(git ls-remote "$repository")"
-    if echo "$refs" | grep -q 'refs/heads/main$'
+    local prefix="$1"
+    if test -e "$prefix"
     then
-      branch=main
-    elif echo "$refs" | grep -q 'refs/heads/master$'
-    then
-      branch=master
-    else
-      echo "No \"main\" or \"master\" branch found in \"$repository\"" >&2
-      exit 1
+      echo "\"$prefix\" already exists. Aborting." >&2
+      return 1
     fi
+    local repository="$2"
+    local branch
+    if test "$#" -gt 2
+    then
+      branch="$3"
+    else
+      echo "Detecting the main branch for \"$repository\" ..." >&2
+      local refs="$(git ls-remote "$repository")"
+      if echo "$refs" | grep -q 'refs/heads/main$'
+      then
+        branch=main
+      elif echo "$refs" | grep -q 'refs/heads/master$'
+      then
+        branch=master
+      else
+        echo "No \"main\" or \"master\" branch found in \"$repository\"" >&2
+        exit 1
+      fi
+    fi
+    git subtree add --prefix "$prefix" "$repository" "$branch"
+    touch .subtree.yaml
+    local subtree_alias="$(basename "$prefix")"
+    yq --inplace ". += [{\"prefix\": \"$prefix\", \"alias\": \"$subtree_alias\", \"repository\": \"$repository\", \"branch\": \"$branch\"}]" .subtree.yaml
+  else
+    cat <<EOF >&2
+Usage: subtree:add <target_dir> <repository> [<branch>]
+   or: subtree:add <prefix|alias>
+
+Adds a subtree from the specified branch of <repository> to the current repository and records the repository and branch to .subtree.yaml. If no branch is specified, automatically detects and uses "main" or "master" from the repository. If only the prefix|alias is specified, repository and branch are picked from the configuration in .subtree.yaml.
+EOF
+    return 0
   fi
-  git subtree add --prefix "$target_dir" "$repository" "$branch"
-  touch .subtree.yaml
-  yq --inplace ".\"$target_dir\".repository = \"$repository\" | .\"$target_dir\".branch = \"$branch\"" .subtree.yaml
 }
 
 # Remove git-subtree from this project.
@@ -65,10 +74,12 @@ subcmd_subtree__remove() {
 
 subtree() {
   local git_subcmd="$1"
-  local target_dir="$2"
-  local repository="$(yq ".\"$target_dir\".repository" .subtree.yaml)"
-  local branch="$(yq ".\"$target_dir\".branch" .subtree.yaml)"
-  # echo debug - cmd: "$git_subcmd", target_dir: "$target_dir", repository: "$repository", branch: "$branch" >&2
+  local name="$2"
+  local info=
+  info="$(subtree_info "$name")"
+  local target_dir="$(echo "$info" | yq ".prefix")"
+  local repository="$(echo "$info" | yq ".repository")"
+  local branch="$(echo "$info" | yq ".branch")"
   git subtree "$git_subcmd" --prefix "$target_dir" "$repository" "$branch"
 }
 
@@ -80,4 +91,24 @@ subcmd_subtree__push() {
 # Pull subtree changes from remote repository.
 subcmd_subtree__pull() {
   subtree pull "$@"
+}
+
+subtree_info() {
+  local name="$1"
+  local info="$(yq ".[] | select(.prefix == \"$name\" or .alias == \"$name\")" .subtree.yaml)"
+  if test -z "$info"
+  then
+    echo "\"$name\" is not a valid subtree. Aborting." >&2
+    return 1
+  fi
+  echo "$info"
+}
+
+# Show information about a subtree.
+subcmd_subtree__info() {
+  local name="$1"
+  local info=
+  info="$(subtree_info "$name")"
+  local target_dir="$(echo "$info" | yq ".prefix")"
+  git log --grep="git-subtree-dir: $target_dir"
 }

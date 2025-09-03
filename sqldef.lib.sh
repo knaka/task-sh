@@ -1,35 +1,52 @@
-#!/bin/sh
-test "${guard_1c4f762+set}" = set && return 0; guard_1c4f762=-
+#!/usr/bin/env sh
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_3cd56df-false}" && return 0; sourced_3cd56df=true
 
 # sqldef/sqldef: Idempotent schema management for MySQL, PostgreSQL, and more https://github.com/sqldef/sqldef
 
-. ./gorun.lib.sh
-
 # Tags · sqldef/sqldef https://github.com/sqldef/sqldef/tags
-: "${sqldef_version:=v0.17.29}"
+: "${sqldef_version_c9fe5d4:=v2.0.10}"
 
 set_sqldef_version() {
-  sqldef_version="$1"
+  sqldef_version_c9fe5d4="$1"
 }
 
-# Idempotent PostgreSQL DB schema management by SQL.
-subcmd_psqldef() {
-  subcmd_gorun github.com/sqldef/sqldef/cmd/psqldef@"$sqldef_version" "$@"
-}
+. ./task.sh
 
-# Idempotent MySQL DB schema management by SQL.
-subcmd_mysqldef() {
-  subcmd_gorun github.com/sqldef/sqldef/cmd/mysqldef@"$sqldef_version" "$@"
+sqlite3def() {
+  # shellcheck disable=SC2016
+  run_fetched_cmd \
+    --name="sqlite3def" \
+    --ver="$sqldef_version_c9fe5d4" \
+    --os-map="$goos_map" \
+    --arch-map="$goarch_map" \
+    --ext=".zip" \
+    --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/sqlite3def_${os}_${arch}${ext}' \
+    -- \
+    "$@"
 }
 
 # Idempotent SQLite3 DB schema management by SQL.
 subcmd_sqlite3def() {
-  subcmd_gorun github.com/sqldef/sqldef/cmd/sqlite3def@"$sqldef_version" "$@"
+  sqlite3def "$@"
+}
+
+. ./gorun.lib.sh
+
+# Idempotent PostgreSQL DB schema management by SQL.
+subcmd_psqldef() {
+  subcmd_gorun github.com/sqldef/sqldef/cmd/psqldef@"$sqldef_version_c9fe5d4" "$@"
+}
+
+# Idempotent MySQL DB schema management by SQL.
+subcmd_mysqldef() {
+  subcmd_gorun github.com/sqldef/sqldef/cmd/mysqldef@"$sqldef_version_c9fe5d4" "$@"
 }
 
 # Idempotent MSSQL DB schema management by SQL.
 subcmd_mssqldef() {
-  subcmd_gorun github.com/sqldef/sqldef/cmd/mssqldef@"$sqldef_version" "$@"
+  subcmd_gorun github.com/sqldef/sqldef/cmd/mssqldef@"$sqldef_version_c9fe5d4" "$@"
 }
 
 # Old version for Windows can need Docker to work.

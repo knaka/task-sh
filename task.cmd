@@ -25,38 +25,24 @@ if not exist !cmd_path! (
   echo Downloading BusyBox for Windows. >&2
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b !ERRORLEVEL!
 )
-
 set "ARG0=%~f0"
 set "ARG0BASE=%~n0"
-set saved_pwd=%CD%
-set initial_dir=%~dp0
-@REM Remove trailing backslash from initial directory path if present
-if "!initial_dir:~-1!"=="\" set "initial_dir=!initial_dir:~0,-1!"
-@REM Change to the initial directory where the script is located
-cd /d "!initial_dir!" || exit /b 1
-set "PROJECT_DIR=%CD%"
-set script_file_path=
-:search_loop
-if exist "!ARG0BASE!.sh" (
-  set "script_file_path=%CD%\!ARG0BASE!.sh"
-  goto found_script
+set "PROJECT_DIR=%~dp0"
+if not exist "!PROJECT_DIR!" (
+  set "PROJECT_DIR=%CD%"
 )
-if exist "tasks\!ARG0BASE!.sh" (
-  set "script_file_path=%CD%\tasks\!ARG0BASE!.sh"
-  goto found_script
+set TASKS_DIR=
+if exist "!PROJECT_DIR!\!ARG0BASE!.sh" (
+  set TASKS_DIR=!PROJECT_DIR!
+) else if exist "!PROJECT_DIR!tasks\!ARG0BASE!.sh" (
+  set TASKS_DIR=!PROJECT_DIR!tasks
+) else (
+  echo Cannot find script file for !ARG0! >&2
+  exit /b 1
 )
-set parent_dir=%CD%
-cd ..
-if "%CD%"=="!parent_dir!" (
-  goto script_not_found
-)
-goto search_loop
-:script_not_found
-echo Cannot find script file for !ARG0! >&2
-exit /b 1
-:found_script
-set "TASK_SH_DIR=%CD%"
-cd /d "!saved_pwd!" || exit /b 1
+set "script_file_path=!TASKS_DIR!\!ARG0BASE!.sh"
 set BB_GLOBBING=0
+@REM Virtual shell path of BusyBox Ash
+set SH=/bin/sh
 !cmd_path! sh "!script_file_path!" %* || exit /b !ERRORLEVEL!
 endlocal
