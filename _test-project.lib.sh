@@ -5,7 +5,7 @@
 test "${guard_8842fe8+set}" = set && return 0; guard_8842fe8=x
 set -o nounset -o errexit
 
-. ./assert.lib.sh
+. ./_assert.lib.sh
 . ./task.sh
 
 toupper_4c7e44e() {

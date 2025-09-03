@@ -3,7 +3,7 @@
 test "${guard_82b9af4+set}" = set && return 0; guard_82b9af4=x
 set -o nounset -o errexit
 
-. ./assert.lib.sh
+. ./_assert.lib.sh
 . ./task.sh
 
 # While `local` is undefined in POSIX shell, it is available on Ubuntu (dash alias), MacOS (bash alias) and Windows BusyBox (ash alias).
