@@ -5,26 +5,20 @@
 . ./task.sh
 . ./yq.lib.sh
 
-before_each_906801f() {
-  local git_top="$(git rev-parse --show-toplevel)"
+# Called before `subtree:*` tasks/subcommands by the task runner.
+before_subtree() {
+  local git_top
+  git_top="$(git rev-parse --show-toplevel)"
   test "$(realpath "$git_top")" = "$(realpath "$PWD")" && return 0
-  finalize
   cd "$git_top"
   # shellcheck disable=SC2209
-  INVOCATION_MODE=exec invoke ./task "$TASK_NAME" "$@"
+  INVOCATION_MODE=exec invoke ./task "$@"
   # Not reached
   return 1
 }
 
 # Add git-subtree to this project.
 subcmd_subtree__add() {
-  before_each_906801f "$@"
-  local toplevel="$(git rev-parse --show-toplevel)"
-  if test "$(realpath "$toplevel")" != "$(realpath "$PWD")"
-  then
-    echo "Execute this command from the top-level directory of the git worktree." >&2
-    return 1
-  fi
   if test "$#" -eq 1
   then
     local name="$1"
@@ -70,7 +64,7 @@ subcmd_subtree__add() {
 Usage: subtree:add <target_dir> <repository> [<branch>]
    or: subtree:add <prefix|alias>
 
-Adds a subtree from the specified branch of <repository> to the current repository and records the repository and branch to .subtree.yaml. If no branch is specified, automatically detects and uses "main" or "master" from the repository. If only the prefix|alias is specified, repository and branch are picked from the configuration in .subtree.yaml.
+Adds a subtree from the specified branch of <repository> to the current repository and records the repository and branch in .subtree.yaml. If no branch is specified, it automatically detects and uses "main" or "master" from the repository. If only the prefix|alias is specified, the repository and branch are retrieved from the configuration in .subtree.yaml.
 EOF
     return 0
   fi
@@ -78,7 +72,6 @@ EOF
 
 # Remove git-subtree from this project.
 subcmd_subtree__remove() {
-  before_each_906801f "$@"
   local target_dir="$1"
   git rm -rf "$target_dir"
   touch .subtree.yaml
@@ -98,18 +91,15 @@ subtree() {
 
 # Push subtree changes to remote repository.
 subcmd_subtree__push() {
-  before_each_906801f "$@"
   subtree push "$@"
 }
 
 # Pull subtree changes from remote repository.
 subcmd_subtree__pull() {
-  before_each_906801f "$@"
   subtree pull "$@"
 }
 
 subtree_info() {
-  before_each_906801f "$@"
   local name="$1"
   local info="$(yq ".[] | select(.prefix == \"$name\" or .alias == \"$name\")" .subtree.yaml)"
   if test -z "$info"
@@ -122,7 +112,6 @@ subtree_info() {
 
 # Show information about a subtree.
 subcmd_subtree__info() {
-  before_each_906801f "$@"
   local name="$1"
   local info=
   info="$(subtree_info "$name")"

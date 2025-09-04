@@ -1023,10 +1023,10 @@ kill_child_processes() {
 # Invoke command with proper executable extension, with the specified invocation mode.
 #
 # Invocation mode can be specified via INVOCATION_MODE environment variable:
+#   INVOCATION_MODE=standard: (Default) Run the command in the current process.
 #   INVOCATION_MODE=exec: Replace the process with the command.
-#   INVOCATION_MODE=exec-sub: Replace the process with the command, without calling cleanups.
+#   INVOCATION_MODE=exec-direct: Replace the process with the command, without calling cleanups.
 #   INVOCATION_MODE=background: Run the command in the background.
-#   INVOCATION_MODE=standard: Run the command in the current process.
 invoke() {
   local invocation_mode="${INVOCATION_MODE:-standard}"
   if test $# -eq 0
@@ -1083,7 +1083,7 @@ invoke() {
       finalize
       exec "$@"
       ;;
-    (exec-sub) exec "$@";;
+    (exec-direct) exec "$@";;
     (background) command "$@" &;;
     (standard)
       command "$@"
@@ -1412,6 +1412,48 @@ subcmd_task__exec() {
   restore_shell_flags
 }
 
+# Call the task
+call_task() {
+  local func_name="$1"
+  shift
+  local task_name=
+  case "$func_name" in
+    (task_*) task_name="${func_name#task_}";;
+    (subcmd_*) task_name="${func_name#subcmd_}";;
+  esac
+  local prefix
+  prefix="$task_name"
+  while :
+  do
+    if type "before_$prefix" >/dev/null 2>&1
+    then
+      "$VERBOSE" && echo "Calling before function:" "before_$prefix" "$func_name" "$@" >&2
+      "before_$prefix" "$func_name" "$@"
+    fi
+    case "$prefix" in
+      (*__*) ;;
+      (*) break;;
+    esac
+    prefix="${prefix%__*}"
+  done
+  "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
+  "$func_name" "$@"
+  prefix="$task_name"
+  while :
+  do
+    if type "after_$prefix" >/dev/null 2>&1
+    then
+      "$VERBOSE" && echo "Calling after function:" "after_$prefix" "$func_name" "$@" >&2
+      "after_$prefix" "$func_name" "$@"
+    fi
+    case "$prefix" in
+      (*__*) ;;
+      (*) break;;
+    esac
+    prefix="${prefix%__*}"
+  done
+}
+
 tasksh_main() {
   set -o nounset -o errexit
 
@@ -1451,7 +1493,9 @@ tasksh_main() {
       (h|help) shows_help=true;;
       (s|skip-missing) skip_missing=true;;
       (i|ignore-missing) ignore_missing=true;;
-      (v|verbose) VERBOSE=true;;
+      (v|verbose)
+        export VERBOSE=true
+        ;;
       (\?) tasksh_help; exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -1475,10 +1519,10 @@ tasksh_main() {
     if alias subcmd_"$subcmd" >/dev/null 2>&1
     then
       # shellcheck disable=SC2294
-      eval subcmd_"$subcmd" "$@"
+      eval call_task subcmd_"$subcmd" "$@"
       exit $?
     fi
-    subcmd_"$subcmd" "$@"
+    call_task subcmd_"$subcmd" "$@"
     exit $?
   fi
   # Called by not subcmd name but by function name.
@@ -1487,7 +1531,7 @@ tasksh_main() {
       if type "$subcmd" >/dev/null 2>&1
       then
         shift
-        "$subcmd" "$@"
+        call_task "$subcmd" "$@"
         exit $?
       fi
       ;;
@@ -1511,14 +1555,14 @@ tasksh_main() {
     if type task_"$task_name" >/dev/null 2>&1
     then
       # shellcheck disable=SC2086
-      task_"$task_name" $args
+      call_task task_"$task_name" $args
       continue
     fi
     # Called not by task name but task function name.
     case "$task_name" in
       (task_*)
         # shellcheck disable=SC2086
-        "$task_name" $args
+        call_task "$task_name" $args
         continue
         ;;
     esac
