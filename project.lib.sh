@@ -479,3 +479,28 @@ task_key() {
   key="$(get_key)"
   printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
 }
+
+task_foo() {
+  if test "$#" -eq 0
+  then
+    echo Foo Called
+  else
+    echo Foo Called: "$@"
+  fi
+}
+
+before_baz() {
+  echo Before Baz
+}
+
+subcmd_baz() {
+  echo Baz "$*"
+}
+
+task_bar() {
+  echo Bar Called
+  call_task task_foo
+  call_task subcmd_baz hoge
+  call_task subcmd_baz hoge fuga
+  call_task subcmd_baz hoge
+}

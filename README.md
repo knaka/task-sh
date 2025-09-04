@@ -8,6 +8,7 @@
 * Tasks `foo:bar` and `baz` are executed with `./task foo:bar baz[arg1,arg2]`. Arguments are passed in brackets.
 * The task runner is written in shell script and the task `foo:bar` is implemented as the shell function `task_foo__bar`.
 * Subcommand `qux` is executed as `./task qux arg1 arg2` and is implemented as the shell function `subcmd_qux`.
+* To call a task from another task/subcommand, calling them via `call_task` avoids multiple calls and calls before/after hooks, while calling them directly simply calls the function.
 
 ## Before/After Hooks
 

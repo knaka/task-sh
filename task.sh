@@ -1412,14 +1412,26 @@ subcmd_task__exec() {
   restore_shell_flags
 }
 
-# Call the task
+usv_called_task_7ef15a7="$us"
+
+# Call the task/subcommand. If the unique task (including the arguments) is already called before, this returns immediately. Calls before/after hooks accordingly.
 call_task() {
   local func_name="$1"
   shift
   local task_name=
   case "$func_name" in
-    (task_*) task_name="${func_name#task_}";;
+    (task_*)
+      local cmd_with_args="$func_name $*"
+      case "$usv_called_task_7ef15a7" in
+        (*"$us$cmd_with_args$us"*)
+          return 0
+          ;;
+      esac
+      usv_called_task_7ef15a7="$usv_called_task_7ef15a7$cmd_with_args$us"
+      task_name="${func_name#task_}"
+      ;;
     (subcmd_*) task_name="${func_name#subcmd_}";;
+    (*) return 1;;
   esac
   local prefix
   prefix="$task_name"
