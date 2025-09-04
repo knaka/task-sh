@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
+
+# Executes the shell script with the same name but with a `.sh` extension in the same directory or in the `./tasks/` directory.
+
 set -o nounset -o errexit
 
 export ARG0="$0"
