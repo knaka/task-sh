@@ -5,8 +5,20 @@
 . ./task.sh
 . ./yq.lib.sh
 
+before_each_906801f() {
+  local git_top="$(git rev-parse --show-toplevel)"
+  test "$(realpath "$git_top")" = "$(realpath "$PWD")" && return 0
+  finalize
+  cd "$git_top"
+  # shellcheck disable=SC2209
+  INVOCATION_MODE=exec invoke ./task "$TASK_NAME" "$@"
+  # Not reached
+  return 1
+}
+
 # Add git-subtree to this project.
 subcmd_subtree__add() {
+  before_each_906801f "$@"
   local toplevel="$(git rev-parse --show-toplevel)"
   if test "$(realpath "$toplevel")" != "$(realpath "$PWD")"
   then
@@ -66,6 +78,7 @@ EOF
 
 # Remove git-subtree from this project.
 subcmd_subtree__remove() {
+  before_each_906801f "$@"
   local target_dir="$1"
   git rm -rf "$target_dir"
   touch .subtree.yaml
@@ -85,15 +98,18 @@ subtree() {
 
 # Push subtree changes to remote repository.
 subcmd_subtree__push() {
+  before_each_906801f "$@"
   subtree push "$@"
 }
 
 # Pull subtree changes from remote repository.
 subcmd_subtree__pull() {
+  before_each_906801f "$@"
   subtree pull "$@"
 }
 
 subtree_info() {
+  before_each_906801f "$@"
   local name="$1"
   local info="$(yq ".[] | select(.prefix == \"$name\" or .alias == \"$name\")" .subtree.yaml)"
   if test -z "$info"
@@ -106,6 +122,7 @@ subtree_info() {
 
 # Show information about a subtree.
 subcmd_subtree__info() {
+  before_each_906801f "$@"
   local name="$1"
   local info=
   info="$(subtree_info "$name")"

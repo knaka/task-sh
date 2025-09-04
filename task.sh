@@ -1412,22 +1412,6 @@ subcmd_task__exec() {
   restore_shell_flags
 }
 
-run_pre_task() {
-  if type pre_"$1" > /dev/null 2>&1
-  then
-    echo "Running pre-task for $1" >&2
-    pre_"$1"
-  fi
-}
-
-run_post_task() {
-  if type post_"$1" > /dev/null 2>&1
-  then
-    echo "Running post-task for $1" >&2
-    post_"$1"
-  fi
-}
-
 tasksh_main() {
   set -o nounset -o errexit
 
@@ -1482,61 +1466,59 @@ tasksh_main() {
   fi
 
   # Execute the subcommand and exit.
-  subcmd="$(echo "$1" | sed -r -e 's/:/__/g')"
-  if type subcmd_"$subcmd" > /dev/null 2>&1
+  local subcmd="$1"
+  TASK_NAME="$subcmd"
+  subcmd="$(echo "$subcmd" | sed -r -e 's/:/__/g')"
+  if type subcmd_"$subcmd" >/dev/null 2>&1
   then
     shift
-    if alias subcmd_"$subcmd" > /dev/null 2>&1
+    if alias subcmd_"$subcmd" >/dev/null 2>&1
     then
-      # run_pre_task subcmd_"$subcmd"
       # shellcheck disable=SC2294
       eval subcmd_"$subcmd" "$@"
-      # run_post_task subcmd_"$subcmd"
       exit $?
     fi
-    # run_pre_task subcmd_"$subcmd"
     subcmd_"$subcmd" "$@"
     exit $?
   fi
+  # Called by not subcmd name but by function name.
   case "$subcmd" in
     (subcmd_*)
-      if type "$subcmd" > /dev/null 2>&1
+      if type "$subcmd" >/dev/null 2>&1
       then
-        # run_pre_task "$subcmd"
         shift
         "$subcmd" "$@"
-        # run_post_task "$subcmd"
         exit $?
       fi
       ;;
   esac
 
   # Run tasks.
+  local task_with_args
   for task_with_args in "$@"
   do
-    task_name="$task_with_args"
+    local task_name="$task_with_args"
     args=""
     case "$task_with_args" in
+      # Task with arguments.
       (*\[*)
         task_name="${task_with_args%%\[*}"
         args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
         ;;
     esac
+    TASK_NAME="$task_name"
     task_name="$(echo "$task_name" | sed -r -e 's/:/__/g')"
-    if type task_"$task_name" > /dev/null 2>&1
+    if type task_"$task_name" >/dev/null 2>&1
     then
-      # run_pre_task "task_$task_name"
       # shellcheck disable=SC2086
       task_"$task_name" $args
-      # run_post_task "task_$task_name"
       continue
     fi
+    # Called not by task name but task function name.
     case "$task_name" in
       (task_*)
-        # run_pre_task "$task_name"
         # shellcheck disable=SC2086
         "$task_name" $args
-        # run_post_task "$task_name"
         continue
         ;;
     esac
