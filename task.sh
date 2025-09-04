@@ -1334,6 +1334,7 @@ is_dir_empty() {
 
 psv_task_file_paths_4a5f3ab=
 
+# Show task-sh help
 tasksh_help() {
   cat <<EOF
 Usage:
@@ -1346,14 +1347,13 @@ Options:
   -v, --verbose          Verbose mode.
 EOF
 
-  local ifs_saved="$IFS"
-  IFS="|"
   # shellcheck disable=SC2086
   lines="$(
+    IFS="|"
     awk '
       /^#/ { 
-        comment = $0
-        gsub(/^#+[ ]*/, "", comment)
+        desc = $0
+        gsub(/^#+[ ]*/, "", desc)
         next
       }
       /^(task_|subcmd_)[[:alnum:]_]()/ { 
@@ -1364,16 +1364,15 @@ EOF
         name = func_name
         sub(/^[^_]+_/, "", name)
         gsub(/__/, ":", name)
-        print type " " name " " comment
-        comment = ""
+        print type " " name " " desc
+        desc = ""
         next
       }
       {
-        comment = "" 
+        desc = ""
       }
     ' $psv_task_file_paths_4a5f3ab
   )"
-  IFS="$ifs_saved"
   
   local i
   for i in subcmd task
@@ -1395,9 +1394,9 @@ EOF
       | sort -nr \
       | head -1
     )"
-    echo "$lines" | while read -r t name desc
+    echo "$lines" | while read -r type name desc
     do
-      test "$t" = "$i" || continue
+      test "$type" = "$i" || continue
       printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
     done | sort
   done
@@ -1442,11 +1441,11 @@ call_task() {
       "$VERBOSE" && echo "Calling before function:" "before_$prefix" "$func_name" "$@" >&2
       "before_$prefix" "$func_name" "$@"
     fi
+    test -z "$prefix" && break
     case "$prefix" in
-      (*__*) ;;
-      (*) break;;
+      (*__*) prefix="${prefix%__*}";;
+      (*) prefix=;;
     esac
-    prefix="${prefix%__*}"
   done
   "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
   "$func_name" "$@"

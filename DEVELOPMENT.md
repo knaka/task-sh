@@ -2,7 +2,7 @@
 
 ## Testing
 
-To run all tests in `test-*.lib.sh`:
+To run all tests in `_test-*.lib.sh`:
 ```bash
 ./task test
 ```
