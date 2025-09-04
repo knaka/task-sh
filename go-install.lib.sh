@@ -5,6 +5,7 @@
 . ./task.sh
 . ./go.lib.sh
 
+# Run executable package of Go with arguments. If the env var $SETUP_PATH_ONLY is set, this prepends the path to the command and returns.
 run_go_pkg() {
   local pkg_name_ver="$1"
   shift
@@ -17,6 +18,11 @@ run_go_pkg() {
   if ! command -v "$cmd_path" >/dev/null 2>&1
   then
     GOBIN="$app_dir_path" go install "$pkg_name_ver"
+  fi
+  if test "${SETUP_PATH_ONLY+set}" = set
+  then
+    export PATH="$app_dir_path:$PATH"
+    return 0
   fi
   invoke "$cmd_path" "$@"
 }
