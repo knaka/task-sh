@@ -1441,11 +1441,11 @@ call_task() {
       "$VERBOSE" && echo "Calling before function:" "before_$prefix" "$func_name" "$@" >&2
       "before_$prefix" "$func_name" "$@"
     fi
+    test -z "$prefix" && break
     case "$prefix" in
-      (*__*) ;;
-      (*) break;;
+      (*__*) prefix="${prefix%__*}";;
+      (*) prefix=;;
     esac
-    prefix="${prefix%__*}"
   done
   "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
   "$func_name" "$@"
