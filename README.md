@@ -20,6 +20,7 @@
   - `before_foo` / `after_foo`
 * Hook functions receive the original function name as the first argument, followed by the task arguments.
 * Before hooks are called in order from most specific to least specific, then the task runs, then after hooks are called in the same order.
+* When `task_foo__bar__baz` is provided as a library function, `before_foo__bar__baz` would not be defined in the library. Users can create the before/after hooks to customize the function as project-specific.
 
 ## Task Files and Directory Structure
 
