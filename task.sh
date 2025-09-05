@@ -7,10 +7,6 @@
 # Constants
 # --------------------------------------------------------------------------
 
-# Return code when a delegate task does not provide the task
-# shellcheck disable=SC2034
-rc_delegate_task_not_found=10
-
 # Return code when a test is skipped
 # shellcheck disable=SC2034
 rc_test_skipped=11
@@ -1590,19 +1586,6 @@ tasksh_main() {
         continue
         ;;
     esac
-    if type delegate_tasks > /dev/null 2>&1
-    then
-      "$VERBOSE" && echo "Delegating to delegate_tasks: $task_with_args" >&2
-      if delegate_tasks "$@"
-      then
-        continue
-      else
-        if ! test $? -eq "$rc_delegate_task_not_found"
-        then
-          exit 1
-        fi
-      fi
-    fi
     if ! $skip_missing
     then
       echo "Unknown task: $task_with_args" >&2
