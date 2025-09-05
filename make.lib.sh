@@ -17,10 +17,7 @@ subcmd_make() {
   make "$@"
 }
 
-# Print make(1) sub-help
-# Add this in user's project-specific task file like this:
-#   add_sub_help show_make_help
-show_make_help() {
+print_sub_help_5314bbc() {
   cat <<EOF
 Subcommand "make":
   Usage: ${ARG0BASE} make [options] [targets...]
@@ -31,4 +28,9 @@ EOF
   do
     printf "    %s\n" "$target"
   done
+}
+
+# Add sub-help for "make" sub-command
+add_sub_help_for_make() {
+  add_sub_help print_sub_help_5314bbc
 }
