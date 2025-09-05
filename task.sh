@@ -1332,6 +1332,13 @@ is_dir_empty() {
 # Main.
 # --------------------------------------------------------------------------
 
+sub_helps_e4c531b=""
+
+# Add a function to print a sub help section
+add_sub_help() {
+  sub_helps_e4c531b="$sub_helps_e4c531b$1 "
+}
+
 psv_task_file_paths_4a5f3ab=
 
 # Show task-sh help
@@ -1399,6 +1406,12 @@ EOF
       test "$type" = "$i" || continue
       printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
     done | sort
+  done
+  local sub_help
+  for sub_help in $sub_helps_e4c531b
+  do
+    echo
+    "$sub_help"
   done
 }
 
