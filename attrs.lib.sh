@@ -2,6 +2,8 @@
 # shellcheck shell=sh
 test "${sourced_3299e88-}" = true && return 0; sourced_3299e88=true
 
+. ./task.sh
+
 # Set the extra attributes of the file/directory.
 set_path_attr() {
   local path="$1"

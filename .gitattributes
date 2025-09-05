@@ -7,3 +7,5 @@
 *.png binary
 *.gz binary
 *.jar binary
+*.bmp binary
+
