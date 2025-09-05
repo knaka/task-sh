@@ -1,6 +1,7 @@
+@REM Executes the shell script with the same name but with a `.sh` extension instead of `.cmd` extension in the same directory or in the `.\tasks\` directory using BusyBox which is installed if it does not exist.
+
 @echo off
 setlocal enabledelayedexpansion
-
 @REM BusyBox for Windows https://frippery.org/busybox/index.html
 @REM Release Notes https://frippery.org/busybox/release-notes/index.html
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
