@@ -97,7 +97,14 @@ subcmd_npm__install() {
   npm_depinstall "$@"
 }
 
-run_node_modules_bin() { # Run the bin file in the node_modules.
+# Run the bin file in the node_modules/.bin.
+run_node_modules_cmd() {
+  npm_depinstall
+  "$@"
+}
+
+# Run the bin file in the node_modules.
+run_node_modules_bin() {
   local pkg="$1"
   shift
   local bin_path="$1"
