@@ -106,3 +106,21 @@ set_local_node_env() {
   npm_depinstall
   pop_dir || exit 1
 }
+
+print_sub_help_0f6c9a3() {
+  cat <<EOF
+Subcommand "npm":
+  Usage:
+    ${ARG0BASE} npm <lifecycle_command> [-- <args>]
+    ${ARG0BASE} npm run <custom_command> [-- <args>]
+
+  Commands:
+EOF
+  IFS=
+  npm run | sed 's/^/    /'
+}
+
+# Add sub-help for "npm" sub-command
+add_sub_help_for_npm() {
+  add_sub_help print_sub_help_0f6c9a3
+}
