@@ -108,7 +108,6 @@ set_local_node_env() {
 }
 
 print_sub_help_0f6c9a3() {
-  local indent="$1"
   cat <<EOF
 Subcommand "npm":
   Usage:
@@ -118,7 +117,7 @@ Subcommand "npm":
   Commands:
 EOF
   IFS=
-  npm run | sed "s/^/$indent  /"
+  npm run | sed "s/^/    /"
 }
 
 # Add sub-help for "npm" sub-command

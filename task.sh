@@ -1407,7 +1407,7 @@ EOF
   for sub_help in $sub_helps_e4c531b
   do
     echo
-    "$sub_help" "  "
+    "$sub_help"
   done
 }
 
