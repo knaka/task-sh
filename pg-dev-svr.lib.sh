@@ -1,7 +1,6 @@
-#!/bin/sh
-set -o nounset -o errexit
-
-test "${guard_91ccbee+set}" = set && return 0; guard_91ccbee=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_4d4e0b6-false}" && return 0; sourced_4d4e0b6=true
 
 . ./task.sh
 . ./pgclt.lib.sh

@@ -1,6 +1,6 @@
-#!/bin/sh
-test "${guard_8986b2e+set}" = set && return 0; guard_8986b2e=x
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_9e5d44a-false}" && return 0; sourced_9e5d44a=true
 
 . ./task.sh
 

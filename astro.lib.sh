@@ -1,7 +1,6 @@
-#!/bin/sh
-# shellcheck disable=SC3043
-test "${guard_926c124+set}" = set && return 0; guard_926c124=x
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_73228fa-false}" && return 0; sourced_73228fa=true
 
 . ./node.lib.sh
 

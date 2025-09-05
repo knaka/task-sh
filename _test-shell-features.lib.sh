@@ -1,7 +1,6 @@
-#!/bin/sh
-# shellcheck disable=SC3043
-test "${guard_82b9af4+set}" = set && return 0; guard_82b9af4=x
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_79f1cd8-false}" && return 0; sourced_79f1cd8=true
 
 . ./_assert.lib.sh
 . ./task.sh

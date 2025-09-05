@@ -1,7 +1,6 @@
-#!/bin/sh
-set -o nounset -o errexit
-
-test "${guard_75b2210+set}" = set && return 0; guard_75b2210=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_e5206b3-false}" && return 0; sourced_e5206b3=true
 
 subcmd_plantuml() (
   # Releases · plantuml/plantuml https://github.com/plantuml/plantuml/releases

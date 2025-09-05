@@ -1,9 +1,7 @@
-#!/bin/sh
-set -o nounset -o errexit
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_dfcd90e-false}" && return 0; sourced_dfcd90e=true
 
-test "${guard_97694a1+set}" = set && return 0; guard_97694a1=-
-
-# shellcheck source=tasks/task.sh
 . ./task.sh
 
 # if test "${GITHUB_ACTIONS:-}" != "true"

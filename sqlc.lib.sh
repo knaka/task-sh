@@ -1,5 +1,6 @@
-#!/bin/sh
-test "${guard_572d642+set}" = set && return 0; guard_572d642=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_efa1e56-false}" && return 0; sourced_efa1e56=true
 
 # sqlc-dev/sqlc: Generate type-safe code from SQL https://github.com/sqlc-dev/sqlc
 

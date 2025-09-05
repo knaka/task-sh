@@ -1,7 +1,6 @@
-#!/bin/sh
-set -o nounset -o errexit
-
-test "${guard_473dd0b+set}" = set && return 0; guard_473dd0b=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_cc19152-false}" && return 0; sourced_cc19152=true
 
 . ./task.sh
 
@@ -98,7 +97,7 @@ java_home() (
 )
 
 set_java_env() {
-  test "${guard_282af03+set}" = set && return 0; guard_282af03=x
+  first_call f30261c || return 0
   JAVA_HOME="$(java_home)"
   export JAVA_HOME
   PATH="$JAVA_HOME"/bin:"$PATH"

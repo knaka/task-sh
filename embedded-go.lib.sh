@@ -1,5 +1,6 @@
-#!/bin/sh
-test "${guard_54039c5+set}" = set && return 0; guard_54039c5=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_f82c335-false}" && return 0; sourced_f82c335=true
 
 . ./task.sh
 

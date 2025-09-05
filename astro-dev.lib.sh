@@ -1,8 +1,6 @@
-#!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-test "${sourced_8a52dac-}" = true && return 0; sourced_8a52dac=true
-set -o nounset -o errexit
+"${sourced_62b683f-false}" && return 0; sourced_62b683f=true
 
 . ./task.sh
 . ./astro.lib.sh

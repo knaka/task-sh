@@ -1,7 +1,6 @@
-#!/bin/sh
-set -o nounset -o errexit
-
-test "${guard_c16da21+set}" = set && return 0; guard_c16da21=x
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_79b411d-false}" && return 0; sourced_79b411d=true
 
 . ./task.sh
 . ./go.lib.sh

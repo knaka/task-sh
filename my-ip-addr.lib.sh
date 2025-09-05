@@ -1,5 +1,6 @@
-#!/bin/sh
-test "${guard_29a20a9+set}" = set && return 0; guard_29a20a9=-
+# vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
+# shellcheck shell=sh
+"${sourced_342d010-false}" && return 0; sourced_342d010=true
 
 . ./task.sh
 . ./json2sh.lib.sh
