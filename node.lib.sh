@@ -62,7 +62,7 @@ subcmd_npm() {
 subcmd_npx() {
   set_node_env
   invoke npx "$@"
-} 
+}
 
 # Run Node.js.
 subcmd_node() {
@@ -175,4 +175,39 @@ EOF
 # Add sub-help for "npm" sub-command
 add_sub_help_for_npm() {
   add_sub_help print_sub_help_0f6c9a3
+}
+
+run_npm_pkg() {
+  # Releases · nodejs/node https://github.com/nodejs/node/releases
+  local node_version=24
+  OPTIND=1; while getopts hvsi-: OPT
+  do
+    if test "$OPT" = "-"
+    then
+      # Extract long option name.
+      # shellcheck disable=SC2031
+      OPT="${OPTARG%%=*}"
+      # Extract long option argument.
+      # shellcheck disable=SC2031
+      OPTARG="${OPTARG#"$OPT"}"
+      OPTARG="${OPTARG#=}"
+    fi
+    case "$OPT" in
+      (node-version) node_version="$OPTARG";;
+      (\?) tasksh_help; exit 1;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  local package_spec="$1"
+  shift
+  test "$#" -ge 1 && test "$1" = "--" && shift
+
+  volta run --quiet --node="$node_version" npm --progress=false exec --yes --prefer-offline "$package_spec" -- "$@"
+}
+
+# [package_spec [--] [cmd_opt...]] Run NPM package
+subcmd_npm__pkg__run() {
+  run_npm_pkg "$@"
 }
