@@ -177,9 +177,11 @@ add_sub_help_for_npm() {
   add_sub_help print_sub_help_0f6c9a3
 }
 
+node_version_default_23ecb49=24
+
 run_npm_pkg() {
   # Releases · nodejs/node https://github.com/nodejs/node/releases
-  local node_version=24
+  local node_version="$node_version_default_23ecb49"
   OPTIND=1; while getopts hvsi-: OPT
   do
     if test "$OPT" = "-"
@@ -200,6 +202,7 @@ run_npm_pkg() {
   done
   shift $((OPTIND-1))
 
+  test -z "$node_version" && node_version="$node_version_default_23ecb49"
   local package_spec="$1"
   shift
   test "$#" -ge 1 && test "$1" = "--" && shift
