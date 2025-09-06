@@ -6,9 +6,9 @@
 . ./json2sh.lib.sh
 
 my_ip_addr() {
-  eval "$(curl --silent --fail --output - http://api.myip.com/ | json2sh)"
+  eval "$(curl --silent --fail --output - http://api.myip.com/ | json2sh --local --prefix="result__")"
   # shellcheck disable=SC2154
-  echo "My IP Address is $json__ip."
+  echo "My IP Address is $result__ip."
 }
 
 # Shows my IP address.
