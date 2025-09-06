@@ -5,18 +5,13 @@
 . ./task.sh
 . ./json2sh.lib.sh
 
-# Shows my IP address for testing.
+my_ip_addr() {
+  eval "$(curl --silent --fail --output - http://api.myip.com/ | json2sh)"
+  # shellcheck disable=SC2154
+  echo "My IP Address is $json__ip."
+}
+
+# Shows my IP address.
 task_my_ip_addr() {
-  local cache_file_path
-  cache_file_path="$TEMP_DIR"/9fa603e
-  if subcmd_curl --fail --output "$cache_file_path" http://api.myip.com/
-  then
-    # shellcheck disable=SC2119
-    eval "$(subcmd_json2sh <"$cache_file_path")"
-    # shellcheck disable=SC2154
-    echo "My IP Address: $json__ip"
-    exit 0
-  fi
-  echo "Failed to get my IP address." >&2
-  exit 1
+  my_ip_addr
 }

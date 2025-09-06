@@ -3,41 +3,25 @@
 "${sourced_a5dd01a-false}" && return 0; sourced_a5dd01a=true
 
 . ./task.sh
+. ./jq.lib.sh
 
-if test -r ./volta.lib.sh && test -r ./json2sh.mjs
-then
-  . ./volta.lib.sh
-elif test -r ./jq.lib.sh
-then
-  . ./jq.lib.sh
-else
-  echo "No appropriate JSON parser found." >&2
-  exit 1
-fi
+json2sh() {
+  # shellcheck disable=SC2016
+  jq -r '
+    def to_sh(prefix):
+      to_entries[] |
+        (.key | gsub("[-\\.]"; "_")) as $shell_key |
+        if (.value | type == "object") then
+          .value | to_sh("\(prefix)\($shell_key)__")
+        else
+          "\(prefix)\($shell_key)=\"\(.value)\""
+        end
+    ;
+    to_sh("json__")
+  '
+}
 
-# Convert JSON to shell script.
-subcmd_json2sh() (
-  if command -v subcmd_volta >/dev/null 2>&1 && test -r ./json2sh.mjs
-  then
-    subcmd_volta run node json2sh.mjs "$@"
-  elif command -v subcmd_jq >/dev/null 2>&1
-  then
-    # shellcheck disable=SC2016
-    subcmd_jq -r '
-def to_sh(prefix):
-  to_entries[] |
-  .key as $k |
-  ($k | gsub("[-\\.]"; "_")) as $keyForShell |
-  if (.value | type == "object") then
-    .value | to_sh("\(prefix)\($keyForShell)__")
-  else
-    "\(prefix)\($keyForShell)=\"\(.value)\""
-  end;
-
-to_sh("json__")
-'
-  else
-    echo "No appropriate JSON parser found." >&2
-    exit 1
-  fi
-)
+# Convert JSON object to shell variable assignment expressions.
+subcmd_json2sh() {
+  json2sh
+}
