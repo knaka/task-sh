@@ -7,7 +7,7 @@
 . ./task.sh
 
 # Releases · sqlc-dev/sqlc https://github.com/sqlc-dev/sqlc/releases
-sqlc_version_0d37f4b="1.28.0"
+sqlc_version_0d37f4b="1.30.0"
 
 set_sqlc_version() {
   sqlc_version_0d37f4b="$1"
