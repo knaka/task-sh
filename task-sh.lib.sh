@@ -44,7 +44,10 @@ subcmd_task__install() {
     "$VERBOSE" && echo "${indent}Local SHA:" "$local_sha"
     if test -n "$last_sha"
     then
-      if test "$last_sha" = "$local_sha"
+      if test -z "$local_sha"
+      then
+        :
+      elif test "$last_sha" = "$local_sha"
       then
         echo "\"$name\" is up to date, Skipping." >&2
         continue
