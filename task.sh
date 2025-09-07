@@ -3,30 +3,52 @@
 # shellcheck shell=sh
 "${sourced_897a0c7-false}" && return 0; sourced_897a0c7=true
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Constants
-# --------------------------------------------------------------------------
 
 # Return code when a test is skipped
 # shellcheck disable=SC2034
-rc_test_skipped=11
+rc_test_skipped=10
 
-# --------------------------------------------------------------------------
-# Basic functions
-# --------------------------------------------------------------------------
+# ==========================================================================
+# Environment variables. If not set by the caller, set later in `tasksh_main`
+
+# The path to the shell executable which is running this script.
+: "${SH:=/bin/sh}"
+
+# The path to the file which was called.
+: "${ARG0:=}"
+
+# Basename of the file which was called.
+: "${ARG0BASE:=}"
+
+# Directory in which the task files are located.
+: "${TASKS_DIR:=}"
+
+# The root directory of the project.
+: "${PROJECT_DIR:=${0%/*}}"
+
+# Verbosity flag.
+: "${VERBOSE:=false}"
+
+# Cache directory path for the task runner
+: "${CACHE_DIR:=$HOME/.cache/task-sh}"
+mkdir -p "$CACHE_DIR"
+
+# For platforms other than Windows
+: "${LOCALAPPDATA:=/}"
+
+# ==========================================================================
+# Basic
 
 # Guard against multiple calls. $1 is a unique ID
 first_call() {
-  if eval "test \"\${called_$1-}\" = true"
-  then
-    return 1
-  fi
+  eval "\${called_$1-false}" && return 1
   eval "called_$1=true"
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Temporary directory and cleaning up
-# --------------------------------------------------------------------------
 
 TEMP_DIR=
 unset TEMP_DIR
@@ -43,24 +65,24 @@ readonly stmts_file_id=523f163
 
 # Chain traps to avoid overwriting the previous trap.
 chaintrap() {
-  local stmts="$1"
+  local stmts_new="$1"
   shift 
   init_temp_dir
   # Base name of the script file containing the statements to be called during finalization
   local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
-  local stmts_bak_file="$TEMP_DIR"/347803f
+  local stmts_old_file="$TEMP_DIR"/347803f
   local sigspec
   for sigspec in "$@"
   do
     local stmts_file="$stmts_file_base"-"$sigspec"
     if test -f "$stmts_file"
     then
-      cp "$stmts_file" "$stmts_bak_file"
+      cp "$stmts_file" "$stmts_old_file"
     else
-      touch "$stmts_bak_file"
+      touch "$stmts_old_file"
     fi
-    echo "{ $stmts; };" >"$stmts_file"
-    cat "$stmts_bak_file" >>"$stmts_file"
+    echo "{ $stmts_new; };" >"$stmts_file"
+    cat "$stmts_old_file" >>"$stmts_file"
     # shellcheck disable=SC2064 # "Use single quotes, otherwise this expands now rather than when signalled."
     # shellcheck disable=SC2154 # "var is referenced but not assigned."
     trap "rc=\$?; test -r '$stmts_file' && . '$stmts_file'; rm -fr '$TEMP_DIR'; exit \$rc" "$sigspec"
@@ -69,7 +91,7 @@ chaintrap() {
 
 # Call the finalization function before `exec` which does not call trap function.
 finalize() {
-  test "${TEMP_DIR+set}" != set && return 0
+  test "${TEMP_DIR+set}" = set || return 0
   local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_file="$stmts_file_base"-EXIT
   # shellcheck disable=SC1090 # "Can't follow non-constant source. Use a directive to specify location"
@@ -77,43 +99,8 @@ finalize() {
   rm -fr "$TEMP_DIR"
 }
 
-# --------------------------------------------------------------------------
-# Environment variables. If not set by the caller, set later in `main`
-# --------------------------------------------------------------------------
-
-# The path to the shell executable which is running the script.
-: "${SH:=/bin/sh}"
-
-# The path to the file which was called.
-: "${ARG0:=}"
-
-# Basename of the file which was called.
-: "${ARG0BASE:=}"
-
-# Directory in which the task files are located.
-: "${TASKS_DIR:=}"
-
-# The root directory of the project.
-: "${PROJECT_DIR:=}"
-test -z "$PROJECT_DIR" && PROJECT_DIR="${0%/*}"
-
-# Verbosity flag.
-: "${VERBOSE:=false}"
-
-verbose() {
-  "$VERBOSE"
-}
-
-# Cache directory path for the task runner
-CACHE_DIR="$HOME/.cache/task-sh"
-mkdir -p "$CACHE_DIR"
-
-# For those other than Windows
-: "${LOCALAPPDATA:=e06a91c}"
-
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Platform detection.
-# --------------------------------------------------------------------------
 
 is_linux() {
   test -d /proc -o -d /sys
@@ -139,9 +126,8 @@ is_alpine() {
   test -f /etc/alpine-release
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Binary - text encoding/decoding.
-# --------------------------------------------------------------------------
 
 oct_dump() {
   if test $# -eq 0
@@ -196,9 +182,8 @@ hex_restore() {
   xargs printf "%s\n" | "$@" '{ printf("%c", int("0x" $1)) }'
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # IFS manipulation.
-# --------------------------------------------------------------------------
 
 # shellcheck disable=SC2034
 readonly unit_sep=""
@@ -277,9 +262,8 @@ pop_ifs() {
   fi
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Directory stack.
-# --------------------------------------------------------------------------
 
 psv_dirs_4c15d80=
 
@@ -306,36 +290,8 @@ pop_dir() {
   cd "$dir" || return 1
 }
 
-# --------------------------------------------------------------------------
-# Shell flags. Not nested.
-# --------------------------------------------------------------------------
-
-shell_flags_c225b8f=
-
-# Backup the current shell flags.
-backup_shell_flags() {
-  if test -n "$shell_flags_c225b8f"
-  then
-    # Fails to save the state if it was already saved. Does not support nesting.
-    return 1
-  fi
-  shell_flags_c225b8f="$(set +o)"
-}
-
-# Restore the shell flags saved by `backup_shell_flags`.
-restore_shell_flags() {
-  if test -z "$shell_flags_c225b8f"
-  then
-    # Fails to restore the state if it was not previously saved.
-    return 1
-  fi
-  eval "$shell_flags_c225b8f"
-  shell_flags_c225b8f=
-}
-
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Map (associative array) functions. "IFS-Separated Map"
-# --------------------------------------------------------------------------
 
 # Put a value in an associative array implemented as a property list.
 ifsm_put() {
@@ -343,6 +299,7 @@ ifsm_put() {
   local value="$3"
   # shellcheck disable=SC2086
   set -- $1
+  # First char of IFS
   local delim="${IFS%"${IFS#?}"}"
   while test $# -gt 0
   do
@@ -369,6 +326,7 @@ ifsm_get() {
 ifsm_keys() {
   # shellcheck disable=SC2086
   set -- $1
+  # First char of IFS
   local delim="${IFS%"${IFS#?}"}"
   while test $# -gt 0
   do
@@ -381,6 +339,7 @@ ifsm_keys() {
 ifsm_values() {
   # shellcheck disable=SC2086
   set -- $1
+  # First char of IFS
   local delim="${IFS%"${IFS#?}"}"
   while test $# -gt 0
   do
@@ -389,10 +348,10 @@ ifsm_values() {
   done
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Fetch and run a command from an archive
-# --------------------------------------------------------------------------
 
+# Canonicalize `uname -s` result
 uname_s() {
   local os_name="$(uname -s)"
   case "$os_name" in
@@ -569,21 +528,20 @@ archive_ext_map=\
 "Windows .zip "\
 ""
 
-# --------------------------------------------------------------------------
-# Package command registration
-# --------------------------------------------------------------------------
+# ==========================================================================
+# Package command management.
 
 # Map: command name -> Homebrew package ID
-usm_brew_id=
+usm_brew_ids=
 
 # Map: command name -> WinGet package ID
-usm_winget_id=
+usm_winget_ids=
 
 # Map: command name -> Debian package ID
-usm_deb_id=
+usm_deb_ids=
 
 # Map: command name -> pipe-separated vector of commands
-usm_psv_cmd=
+usm_psv_cmds=
 
 # Register a command with optional package IDs for various package managers.
 # This function maps a command name to package IDs for installation via different package managers.
@@ -617,34 +575,35 @@ require_pkg_cmd() {
 
   # Last argument is treated as the command name.
   local cmd_name=
-  local psv_cmd=
+  local psv_cmds=
   local cmd
   for cmd in "$@"
   do
     cmd_name="$cmd"
-    psv_cmd="$psv_cmd$cmd|"
+    psv_cmds="$psv_cmds$cmd|"
   done
-  test -n "$brew_id" && usm_brew_id="$usm_brew_id$cmd_name$us$brew_id$us"
-  test -n "$winget_id" && usm_winget_id="$usm_winget_id$cmd_name$us$winget_id$us"
-  test -n "$deb_id" && usm_deb_id="$usm_deb_id$cmd_name$us$deb_id$us"
-  usm_psv_cmd="$usm_psv_cmd$cmd_name$us$psv_cmd$us"
+  test -n "$brew_id" && usm_brew_ids="$usm_brew_ids$cmd_name$us$brew_id$us"
+  test -n "$winget_id" && usm_winget_ids="$usm_winget_ids$cmd_name$us$winget_id$us"
+  test -n "$deb_id" && usm_deb_ids="$usm_deb_ids$cmd_name$us$deb_id$us"
+  usm_psv_cmds="$usm_psv_cmds$cmd_name$us$psv_cmds$us"
 }
 
+# Run registered, package provided command. If the command is not found, print the instruction to install them.
 run_pkg_cmd() {
   local cmd_name="$1"
   shift
-  local saved_IFS="$IFS"; IFS="|"
+  local saved_ifs="$IFS"; IFS="|"
   local cmd
-  for cmd in $(IFS="$us" ifsm_get "$usm_psv_cmd" "$cmd_name")
+  for cmd in $(IFS="$us" ifsm_get "$usm_psv_cmds" "$cmd_name")
   do
     if which "$cmd" >/dev/null
     then
-      IFS="$saved_IFS"
+      IFS="$saved_ifs"
       invoke "$cmd" "$@"
       return $?
     fi
   done
-  IFS="$saved_IFS"
+  IFS="$saved_ifs"
   echo "Command not found: $cmd_name." >&2
   echo >&2
   if is_macos
@@ -655,7 +614,7 @@ run_pkg_cmd() {
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
     # shellcheck disable=SC2086
-    printf " %s" $(ifsm_values "$usm_brew_id") >&2
+    printf " %s" $(ifsm_values "$usm_brew_ids") >&2
     IFS="$saved_ifs"
   elif is_windows
   then
@@ -663,7 +622,7 @@ run_pkg_cmd() {
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
     # shellcheck disable=SC2086
-    printf " %s" $(ifsm_values "$usm_winget_id") >&2
+    printf " %s" $(ifsm_values "$usm_winget_ids") >&2
     IFS="$saved_ifs"
   fi
   echo >&2
@@ -678,7 +637,7 @@ task_devinstall() {
     set - brew install
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
-    set -- "$@" $(ifsm_values "$usm_brew_id")
+    set -- "$@" $(ifsm_values "$usm_brew_ids")
     IFS="$saved_ifs"
     invoke "$@"
   elif is_windows
@@ -686,15 +645,14 @@ task_devinstall() {
     set - winget install
     local saved_ifs="$IFS"; IFS="$us"
     # shellcheck disable=SC2046
-    set -- "$@" $(ifsm_values "$usm_winget_id")
+    set -- "$@" $(ifsm_values "$usm_winget_ids")
     IFS="$saved_ifs"
     invoke "$@"
   fi
 }
 
-# --------------------------------------------------------------------------
-# Fetching
-# --------------------------------------------------------------------------
+# ==========================================================================
+# curl(1) // curl https://curl.se/
 
 # curl(1) is available on macOS and Windows as default.
 require_pkg_cmd \
@@ -710,11 +668,8 @@ subcmd_curl() {
   curl "$@"
 }
 
-# --------------------------------------------------------------------------
-# jq(1)
-# --------------------------------------------------------------------------
-
-# jqlang/jq: Command-line JSON processor https://github.com/jqlang/jq
+# ==========================================================================
+# jq(1) // jqlang/jq: Command-line JSON processor https://github.com/jqlang/jq
 
 jq_prefer_pkg_ec51165=false
 
@@ -758,9 +713,8 @@ subcmd_jq() {
   jq "$@"
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Environment variable management
-# --------------------------------------------------------------------------
 
 # Load environment variables from the specified file.
 load_env_file() {
@@ -810,9 +764,8 @@ load_env() {
   load_env_file "$PROJECT_DIR"/.env
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Misc
-# --------------------------------------------------------------------------
 
 # Absolute path to relative path
 abs2rel() {
@@ -840,10 +793,6 @@ then
 fi
 
 # Executable file extension.
-exe_ext() {
-  is_windows && echo ".exe"
-}
-
 exe_ext=
 # shellcheck disable=SC2034
 is_windows && exe_ext=".exe"
@@ -1193,6 +1142,7 @@ prompt() {
   printf "%s" "$response"
 }
 
+# Print a message and get confirmation.
 prompt_confirm() {
   local message="${1:-Text}"
   local default="${2:-n}"
@@ -1372,9 +1322,8 @@ is_dir_empty() {
   return 1
 }
 
-# --------------------------------------------------------------------------
-# Install/Update
-# --------------------------------------------------------------------------
+# ==========================================================================
+# Install/Update task-sh task scripts.
 
 # REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
 github_tree_api_base="https://api.github.com/repos/knaka/task-sh/git/trees"
@@ -1484,9 +1433,8 @@ task_task__update() {
   subcmd_task__install task task.cmd "$@"
 }
 
-# --------------------------------------------------------------------------
+# ==========================================================================
 # Main.
-# --------------------------------------------------------------------------
 
 sub_helps_e4c531b=""
 
@@ -1509,34 +1457,34 @@ Options:
   -h, --help             Display this help and exit.
   -v, --verbose          Verbose mode.
 EOF
-
   # shellcheck disable=SC2086
   lines="$(
     IFS="|"
-    awk '
-      /^#/ { 
-        desc = $0
-        gsub(/^#+[ ]*/, "", desc)
-        next
-      }
-      /^(task_|subcmd_)[[:alnum:]_]()/ { 
-        func_name = $1
-        sub(/\(\).*$/, "", func_name)
-        type = func_name
-        sub(/_.*$/, "", type)
-        name = func_name
-        sub(/^[^_]+_/, "", name)
-        gsub(/__/, ":", name)
-        print type " " name " " desc
-        desc = ""
-        next
-      }
-      {
-        desc = ""
-      }
-    ' $psv_task_file_paths_4a5f3ab
+    awk \
+      '
+        /^#/ { 
+          desc = $0
+          gsub(/^#+[ ]*/, "", desc)
+          next
+        }
+        /^(task_|subcmd_)[[:alnum:]_]()/ { 
+          func_name = $1
+          sub(/\(\).*$/, "", func_name)
+          type = func_name
+          sub(/_.*$/, "", type)
+          name = func_name
+          sub(/^[^_]+_/, "", name)
+          gsub(/__/, ":", name)
+          print type " " name " " desc
+          desc = ""
+          next
+        }
+        {
+          desc = ""
+        }
+      ' \
+      $psv_task_file_paths_4a5f3ab
   )"
-  
   local i
   for i in subcmd task
   do
@@ -1573,11 +1521,11 @@ EOF
 
 # Execute a command in task.sh context.
 subcmd_task__exec() {
-  backup_shell_flags
+  local saved_shell_flags="$(set +o)"
   set +o errexit
   "$@"
   echo "Exit status: $?" >&2
-  restore_shell_flags
+  eval "$saved_shell_flags"
 }
 
 usv_called_task_7ef15a7="$us"

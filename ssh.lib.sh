@@ -5,5 +5,5 @@
 . ./task.sh
 
 subcmd_ssh() {
-  ssh"$(exe_ext)" "$@"
+  ssh"$exe_ext" "$@"
 }

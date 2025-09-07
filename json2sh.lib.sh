@@ -44,22 +44,22 @@ json2sh() {
     --arg prefix "$prefix" \
     --arg local_decl "$local_decl" \
     --arg delim "$delim" \
-  '
-    def to_sh(prefix):
-      to_entries[]
-      | if .key | type == "number" then 
-          .key | tostring
-        else 
-          .key | gsub("[-\\.]"; "_")
-        end as $shell_key
-      | if .value | type == "object" or type == "array" then
-          .value | to_sh("\(prefix)\($shell_key)\($delim)")
-        else
-          "\($local_decl)\(prefix)\($shell_key)=\"\(.value)\""
-        end
-    ;
-    to_sh($prefix)
-  '
+    '
+      def to_sh(prefix):
+        to_entries[]
+        | if .key | type == "number" then 
+            .key | tostring
+          else 
+            .key | gsub("[-\\.]"; "_")
+          end as $shell_key
+        | if .value | type == "object" or type == "array" then
+            .value | to_sh("\(prefix)\($shell_key)\($delim)")
+          else
+            "\($local_decl)\(prefix)\($shell_key)=\"\(.value)\""
+          end
+      ;
+      to_sh($prefix)
+    '
 }
 
 # Convert JSON object to shell variable assignment expressions.

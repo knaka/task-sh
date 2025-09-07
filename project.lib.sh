@@ -33,11 +33,11 @@ task_repl() {
       (exit) break;;
       ("") repl_usage;;
       (*)
-        backup_shell_flags
+        local saved_shell_flags="$(set +o)"
         set +o errexit
         eval "$line"
         echo "exit status: $?" >&2
-        restore_shell_flags
+        eval "$saved_shell_flags"
         ;;
     esac
   done
@@ -480,27 +480,12 @@ task_key() {
   printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
 }
 
+foo() {
+  first_call  || return 0
+  echo first
+}
+
 task_foo() {
-  if test "$#" -eq 0
-  then
-    echo Foo Called
-  else
-    echo Foo Called: "$@"
-  fi
-}
-
-before_baz() {
-  echo Before Baz
-}
-
-subcmd_baz() {
-  echo Baz "$*"
-}
-
-task_bar() {
-  echo Bar Called
-  call_task task_foo
-  call_task subcmd_baz hoge
-  call_task subcmd_baz hoge fuga
-  call_task subcmd_baz hoge
+  foo
+  foo
 }

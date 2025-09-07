@@ -71,7 +71,7 @@ subcmd_task__test() (
     then
       continue
     fi
-    verbose && echo Reading test file: "$test_file_path" >&2
+    "$VERBOSE" && echo Reading test file: "$test_file_path" >&2
     # shellcheck disable=SC1090
     . "$test_file_path"
     psv_test_file_paths="$psv_test_file_paths$test_file_path|"
@@ -102,7 +102,7 @@ subcmd_task__test() (
   fi
   some_failed=false
   log_file_path="$TEMP_DIR"/485d347
-  verbose && echo "Running tests: $*" >&2
+  "$VERBOSE" && echo "Running tests: $*" >&2
   for test_name in "$@"
   do
     if ! LC_ALL=C type "test_$test_name" 2>/dev/null | grep -q -E -e 'function$'
@@ -110,7 +110,7 @@ subcmd_task__test() (
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    backup_shell_flags
+    local saved_shell_flags="$(set +o)"
     # Not to exit when each test fails.
     set +o errexit
     call_test "test_$test_name" > "$log_file_path" 2>&1
@@ -119,7 +119,7 @@ subcmd_task__test() (
     if test "$result" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL" >&2
-      if verbose
+      if "$VERBOSE"
       then
         while IFS= read -r line
         do
@@ -137,7 +137,7 @@ subcmd_task__test() (
       done <"$log_file_path"
       some_failed=true
     fi
-    restore_shell_flags
+    eval "$saved_shell_flags"
   done
   if $some_failed
   then

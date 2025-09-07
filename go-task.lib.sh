@@ -7,7 +7,7 @@
 
 # delegate_tasks() (
 #   cd "$TASKS_DIR"
-#   cmd_file=build/60f20fa"$(exe_ext)"
+#   cmd_file=build/60f20fa"$exe_ext"
 #   task_go_files=task.go
 #   for task_go_file in task-*.go
 #   do
