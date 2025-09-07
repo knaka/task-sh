@@ -1351,7 +1351,7 @@ subcmd_task__install() {
   "$VERBOSE" && echo "Latest commit of \"$main_branch\" is \"$latest_commit\"." >&2
   if ! test -r "$state_path"
   then
-    echo '{}' > "$state_path"
+    echo '{}' >"$state_path"
   fi
   local file
   local name
