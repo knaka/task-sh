@@ -316,7 +316,7 @@ shell_flags_c225b8f=
 backup_shell_flags() {
   if test -n "$shell_flags_c225b8f"
   then
-    # Fails to save the state if it was already saved. Does not nest.
+    # Fails to save the state if it was already saved. Does not support nesting.
     return 1
   fi
   shell_flags_c225b8f="$(set +o)"
@@ -326,7 +326,7 @@ backup_shell_flags() {
 restore_shell_flags() {
   if test -z "$shell_flags_c225b8f"
   then
-    # Fails to restore the state if it was not saved.
+    # Fails to restore the state if it was not previously saved.
     return 1
   fi
   eval "$shell_flags_c225b8f"
@@ -498,7 +498,7 @@ run_fetched_cmd() {
     local out_file_path="$TEMP_DIR"/"$name""$ext"
     if ! curl --fail --location "$url" --output "$out_file_path"
     then
-      echo Failed to download: "$url" >&2
+      echo "Failed to download: $url" >&2
       return 1
     fi
     local work_dir_path="$TEMP_DIR"/"$name"ec85463
@@ -649,7 +649,7 @@ run_pkg_cmd() {
   echo >&2
   if is_macos
   then
-    echo "Run \"devinstall\" task or the following command to install necessary packages for this development environment:" >&2
+    echo "Run the \"devinstall\" task or the following command to install necessary packages for this development environment:" >&2
     echo >&2
     printf "  brew install" >&2
     local saved_ifs="$IFS"; IFS="$us"
@@ -944,7 +944,7 @@ shell_name() {
         then
           echo "ash"
         else
-          echo "Cannot detect the shell: $path" >&2
+          echo "Cannot detect shell: $path" >&2
           return 1
         fi
         ;;
@@ -998,7 +998,7 @@ newer() {
     echo "No source files specified" >&2
     exit 1
   fi
-  # If the destination does not exist, it is considered newer than the destination.
+  # If the destination does not exist, sources are considered newer than the destination.
   if ! test -e "$dest"
   then
     echo "Destination does not exist: $dest" >&2
@@ -1036,7 +1036,7 @@ kill_child_processes() {
     do
       kill "%$jid" || :
       wait "%$jid" || :
-      echo Killed "%$jid" >&2
+      echo "Killed %$jid" >&2
     done <"$jids"
   elif is_macos
   then
@@ -1053,7 +1053,7 @@ kill_child_processes() {
       do
         kill "%$jid" || :
         wait "%$jid" || :
-        echo Killed "%$jid" >&2
+        echo "Killed %$jid" >&2
       done <"$jids"
     else
       pkill -P $$ || :
@@ -1388,6 +1388,12 @@ state_path="$PROJECT_DIR/.task-sh-state.json"
 
 # [<name>...] Install task-sh files.
 subcmd_task__install() {
+  local force=false
+  if test "$#" -gt 0 && test "$1" = "--force"
+  then
+    shift
+    force=true
+  fi
   local rc=0
   local resp
   local main_branch=main
@@ -1415,14 +1421,14 @@ subcmd_task__install() {
       local_sha="$(git hash-object "$file")"
     fi
     "$VERBOSE" && echo "${indent}Local SHA:" "$local_sha"
-    if test -n "$last_sha"
+    if ! "$force" && test -n "$last_sha"
     then
       if test -z "$local_sha"
       then
         :
       elif test "$last_sha" = "$local_sha"
       then
-        echo "\"$name\" is up to date, Skipping." >&2
+        echo "\"$name\" is up to date. Skipping." >&2
         continue
       else
         echo "\"$name\" is modified locally." >&2
@@ -1441,7 +1447,7 @@ subcmd_task__install() {
     node="$(echo "$resp" | jq -c --arg name "$name" '.tree[] | select(.path == $name)')"
     if test -z "$node"
     then
-      echo "\"$name\" does not exist on remote."
+      echo "\"$name\" does not exist on the remote repository."
       rc=1
       continue
     fi
@@ -1635,6 +1641,15 @@ tasksh_main() {
 
   export PROJECT_DIR="$(realpath "$PROJECT_DIR")"
   export TASKS_DIR="$(realpath "$TASKS_DIR")"
+
+  # Before loading task files, permit running task:install to fetch and overwrite existing task files even when they cannot be loaded because of errors or missing `source`d files.
+  if test "$#" -gt 0 && test "$1" = "task:install" -o "$1" = "subcmd_task__install"
+  then
+    shift
+    subcmd_task__install "$@"
+    return 0
+  fi
+
   # Load all task files in the tasks directory. All task files are sourced in the $TASKS directory context.
   push_dir "$TASKS_DIR"
   local path
