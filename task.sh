@@ -1370,28 +1370,18 @@ subcmd_task__install() {
       local_sha="$(git hash-object "$file")"
     fi
     "$VERBOSE" && echo "${indent}Local SHA:" "$local_sha"
-    if ! "$force" && test -n "$last_sha"
+    if test -n "$last_sha" -a -n "$local_sha" -a "$last_sha" != "$local_sha"
     then
-      if test -z "$local_sha"
-      then
-        :
-      elif test "$last_sha" = "$local_sha"
-      then
-        echo "\"$name\" is up to date. Skipping." >&2
-        continue
-      else
-        echo "\"$name\" is modified locally." >&2
-        rc=1
-        continue
-      fi
-    else
-      if test "$file" = "$name"
-      then
-        case "$file" in
-          (*/*) ;;
-          (*) file="$TASKS_DIR"/"$name"
-        esac
-      fi
+      echo "\"$name\" is modified locally." >&2
+      rc=1
+      continue
+    fi
+    if test "$file" = "$name"
+    then
+      case "$file" in
+        (*/*) ;;
+        (*) file="$TASKS_DIR"/"$name"
+      esac
     fi
     node="$(echo "$resp" | jq -c --arg name "$name" '.tree[] | select(.path == $name)')"
     if test -z "$node"
@@ -1402,6 +1392,11 @@ subcmd_task__install() {
     fi
     local new_sha
     new_sha="$(echo "$node" | jq -r .sha)"
+    if test -n "$local_sha" -a "$new_sha" = "$local_sha"
+    then
+      echo "\"$name\" is up to date. Skipping." >&2
+      continue
+    fi
     download_url="${github_download_url_base}/${latest_commit}/${name}"
     # shellcheck disable=SC2059
     printf "Downloading \"$download_url\" to \"$name\" ... " >&2
