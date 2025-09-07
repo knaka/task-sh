@@ -110,7 +110,7 @@ subcmd_task__test() (
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    local saved_shell_flags="$(set +o)"
+    saved_shell_flags="$(set +o)"
     # Not to exit when each test fails.
     set +o errexit
     call_test "test_$test_name" > "$log_file_path" 2>&1
