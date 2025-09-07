@@ -1452,7 +1452,7 @@ subcmd_task__install() {
     printf "Downloading \"$download_url\" to \"$name\" ... " >&2
     curl --silent --fail --output "$file" "$download_url"
     echo "done." >&2
-    local temp_json="$TEMP"/1caef61.json
+    local temp_json="$TEMP_DIR"/1caef61.json
     jq --arg name "$name" --arg sha "$new_sha" '.last_sha[$name] = $sha' "$state_path" >"$temp_json"
     cat "$temp_json" >"$state_path"
     mode="$(echo "$node" | jq -r .mode)"
