@@ -4,9 +4,49 @@
 
 . ./task.sh
 
-# REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
+github_blob_get() {
+  local owner=
+  local repos=
+  local file_sha=main
+  OPTIND=1; while getopts -: OPT
+  do
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
+    case "$OPT" in
+      (owner) owner="$OPTARG";;
+      (repos) repos="$OPTARG";;
+      (file-sha) file_sha="$OPTARG";;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
 
-tasksh_github_download_url_base="https://raw.githubusercontent.com/knaka/task-sh/%s/%s"
+  # REST API endpoints for Git blobs - GitHub Docs https://docs.github.com/en/rest/git/blobs?apiVersion=2022-11-28
+  local url="$(printf "https://api.github.com/repos/%s/%s/git/blobs/%s" "$owner" "$repos" "$file_sha")"
+  github_api_request "$url"
+}
+
+github_contents_get() {
+  local owner=
+  local repos=
+  local path=
+  local ref=
+  OPTIND=1; while getopts -: OPT
+  do
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
+    case "$OPT" in
+      (owner) owner="$OPTARG";;
+      (repos) repos="$OPTARG";;
+      (path) path="$OPTARG";;
+      (ref) ref="$OPTARG";;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  # REST API endpoints for repository contents - GitHub Docs https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28
+  local url="$(printf "https://api.github.com/repos/%s/%s/contents/%s?ref=%s" "$owner" "$repos" "$path" "$ref")"
+  github_api_request "$url"
+}
 
 # Usage:
 #   github_fetch ... /path/to/foo.js # -> ./foo.js

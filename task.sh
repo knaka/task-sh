@@ -11,7 +11,7 @@
 rc_test_skipped=10
 
 # ==========================================================================
-# Environment variables. If not set by the caller, set later in `tasksh_main`
+# Environment variables. If not set by the caller, they are set later in `tasksh_main`
 
 # The path to the shell executable which is running this script.
 : "${SH:=/bin/sh}"
@@ -216,7 +216,7 @@ set_ifs_newline() {
 readonly newline="
 "
 
-# To split path.
+# To split paths.
 set_ifs_slashes() {
   printf "/\\"
 }
@@ -545,7 +545,7 @@ usm_psv_cmds=
 
 # Register a command with optional package IDs for various package managers.
 # This function maps a command name to package IDs for installation via different package managers.
-# The rest arguments are treated as the command paths to be tried in order. The last argument is treated as the command name.
+# The remaining arguments are treated as the command paths to be tried in order. The last argument is treated as the command name.
 # Options:
 #   --brew-id=<id>    Package ID for Homebrew (macOS)
 #   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
@@ -588,7 +588,7 @@ require_pkg_cmd() {
   usm_psv_cmds="$usm_psv_cmds$cmd_name$us$psv_cmds$us"
 }
 
-# Run registered, package provided command. If the command is not found, print the instruction to install them.
+# Run registered, package-provided command. If the command is not found, print the instructions to install it.
 run_pkg_cmd() {
   local cmd_name="$1"
   shift
@@ -976,10 +976,10 @@ kill_child_processes() {
   if is_windows
   then
     # Windows BusyBox ash
-    # If the process is killed with pid, ash does not kill `exec`ed subprocesses.
+    # If the process is killed by PID, ash does not kill `exec`ed subprocesses.
     local jids
     jids="$TEMP_DIR"/jids
-    # ash provides “jobs pipe”.
+    # ash provides a "jobs pipe".
     jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
     while read -r jid
     do
@@ -996,7 +996,7 @@ kill_child_processes() {
     then
       local jids
       jids="$TEMP_DIR"/jids
-      # Bash provides “jobs pipe”.
+      # Bash provides a "jobs pipe".
       jobs | sed -E -e 's/^[^0-9]*([0-9]+).*Running *(.*)/\1/' >"$jids"
       while read -r jid
       do
@@ -1116,7 +1116,7 @@ get_key() {
     return
   fi
   local key
-  # Bash and BusyBox Ash provides `-s` (silent mode) option.
+  # Bash and BusyBox Ash provide the `-s` (silent mode) option.
   if test is_ash || is_bash
   then
     # shellcheck disable=SC3045
@@ -1218,7 +1218,7 @@ emph() {
 }
 
 # Sort version strings.
-# Version strings which are composed of three parts are sorted considering the third part as a patch version.
+# Version strings that are composed of three parts are sorted considering the third part as a patch version.
 # Long option `--version-sort` is specific to BSD sort(1).
 # shellcheck disable=SC2120
 sort_version() {
@@ -1234,7 +1234,7 @@ version_ge() {
   test "$(printf '%s\n' "$@" | sort_version -r | head -n 1)" = "$1"
 }
 
-# Left/Right-Word-Boundary regex incompatible with BSD sed // re_format(7) https://man.freebsd.org/cgi/man.cgi?query=re_format&sektion=7
+# Left/Right-Word-Boundary regex is incompatible with BSD sed // re_format(7) https://man.freebsd.org/cgi/man.cgi?query=re_format&sektion=7
 lwb='\<'
 rwb='\>'
 # shellcheck disable=SC2034
@@ -1325,13 +1325,84 @@ is_dir_empty() {
 # ==========================================================================
 # Install/Update task-sh task scripts.
 
-# REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
-tasksh_github_tree_api_base="https://api.github.com/repos/knaka/task-sh/git/trees"
+github_prepare_token() {
+  first_call b1929c9 || return 0
+  if test "${GITHUB_TOKEN+set}" = set
+  then
+    echo "Using existing \$GITHUB_TOKEN environment variable." >&2
+    return 0
+  fi
+  if command -v gh >/dev/null
+  then
+    if gh auth status >/dev/null
+    then
+      echo "Using GitHub token gh(1) provides." >&2
+      GITHUB_TOKEN="$(gh auth token)"
+      return 0
+    fi
+  fi
+  echo "Accessing GitHub API with anonymous access." >&2
+}
 
-# REST API endpoints for repository contents - GitHub Docs https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28
-# contents_api_base="https://api.github.com/repos/knaka/task-sh/contents/?ref="
+github_api_request() {
+  local url="$1"
+  github_prepare_token
+  set -- \
+    --silent \
+    --header "X-GitHub-Api-Version: 2022-11-28" \
+    --header "Accept: application/vnd.github+json" \
+    --fail
+  if test "${GITHUB_TOKEN+set}" = set
+  then
+    set -- "$@" --header "Authorization: Bearer $GITHUB_TOKEN"
+  fi
+  "$VERBOSE" && echo "Accessing GitHub API: $url"
+  curl "$@" "$url"
+}
 
-tasksh_github_download_url_base="https://raw.githubusercontent.com/knaka/task-sh"
+github_tree_get() {
+  local owner=
+  local repos=
+  local tree_sha=main
+  OPTIND=1; while getopts -: OPT
+  do
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
+    case "$OPT" in
+      (owner) owner="$OPTARG";;
+      (repos) repos="$OPTARG";;
+      (branch|tag|tree|tree-sha) tree_sha="$OPTARG";;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  # REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
+  local url="$(printf "https://api.github.com/repos/%s/%s/git/trees/%s" "$owner" "$repos" "$tree_sha")"
+  github_api_request "$url"
+}
+
+github_raw_fetch() {
+  local owner=
+  local repos=
+  local tree_sha=main
+  local path=
+  OPTIND=1; while getopts -: OPT
+  do
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
+    case "$OPT" in
+      (owner) owner="$OPTARG";;
+      (repos) repos="$OPTARG";;
+      (branch|tag|tree|tree-sha) tree_sha="$OPTARG";;
+      (path) path="$OPTARG";;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  path="${path#/}"
+  local url="$(printf "https://raw.githubusercontent.com/%s/%s/%s/%s" "$owner" "$repos" "$tree_sha" "$path")"
+  curl --fail --silent "$url"
+}
 
 state_path="$PROJECT_DIR/.task-sh-state.json"
 
@@ -1346,8 +1417,9 @@ subcmd_task__install() {
   local rc=0
   local resp
   local main_branch=main
-  resp="$(curl --silent --fail "${tasksh_github_tree_api_base}/${main_branch}")"
-  local latest_commit="$(echo "$resp" | jq -r .sha)"
+  # resp="$(curl --silent --fail "${tasksh_github_tree_api_base}/${main_branch}")"
+  resp="$(github_tree_get --owner="knaka" --repos="task-sh")"
+  local latest_commit="$(printf "%s" "$resp" | jq -r .sha)"
   "$VERBOSE" && echo "Latest commit of \"$main_branch\" is \"$latest_commit\"." >&2
   if ! test -r "$state_path"
   then
@@ -1386,21 +1458,20 @@ subcmd_task__install() {
     node="$(echo "$resp" | jq -c --arg name "$name" '.tree[] | select(.path == $name)')"
     if test -z "$node"
     then
-      echo "\"$name\" does not exist on the remote repository."
+      echo "\"$name\" does not exist in the remote repository."
       rc=1
       continue
     fi
     local new_sha
     new_sha="$(echo "$node" | jq -r .sha)"
-    if test -n "$local_sha" -a "$new_sha" = "$local_sha"
+    if ! "$force" && test -n "$local_sha" -a "$new_sha" = "$local_sha"
     then
       echo "\"$name\" is up to date. Skipping." >&2
       continue
     fi
-    download_url="${tasksh_github_download_url_base}/${latest_commit}/${name}"
     # shellcheck disable=SC2059
-    printf "Downloading \"$download_url\" to \"$name\" ... " >&2
-    curl --silent --fail --output "$file" "$download_url"
+    printf "Downloading \"$name\" to \"$name\" ... " >&2
+    github_raw_fetch --owner="knaka" --repos="task-sh" --tree-sha="$latest_commit" --path=/"$name" >"$file"
     echo "done." >&2
     local temp_json="$TEMP_DIR"/1caef61.json
     jq --arg name "$name" --arg sha "$new_sha" '.last_sha[$name] = $sha' "$state_path" >"$temp_json"
@@ -1585,7 +1656,7 @@ tasksh_main() {
   export PROJECT_DIR="$(realpath "$PROJECT_DIR")"
   export TASKS_DIR="$(realpath "$TASKS_DIR")"
 
-  # Before loading task files, permit running task:install to fetch and overwrite existing task files even when they cannot be loaded because of errors or missing `source`d files.
+  # Before loading task files, permit running task:install to fetch and overwrite existing task files even when they cannot be loaded due to errors or missing `source`d files.
   if test "$#" -gt 0 && test "$1" = "task:install" -o "$1" = "subcmd_task__install"
   then
     shift
@@ -1657,7 +1728,7 @@ tasksh_main() {
     call_task subcmd_"$subcmd" "$@"
     exit $?
   fi
-  # Called by not subcmd name but by function name.
+  # Called not by subcommand name but by function name.
   case "$subcmd" in
     (subcmd_*)
       if type "$subcmd" >/dev/null 2>&1
@@ -1690,7 +1761,7 @@ tasksh_main() {
       call_task task_"$task_name" $args
       continue
     fi
-    # Called not by task name but task function name.
+    # Called not by task name but by task function name.
     case "$task_name" in
       (task_*)
         # shellcheck disable=SC2086
