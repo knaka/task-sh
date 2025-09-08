@@ -65,7 +65,7 @@ subcmd_task__test() (
   psv_test_file_paths=
   # Source all the test functions in the test files.
   push_dir "$TASKS_DIR"
-  for test_file_path in "$PROJECT_DIR"/_test-*.sh
+  for test_file_path in "$TASKS_DIR"/_test-*.sh
   do
     if ! test -r "$test_file_path"
     then
