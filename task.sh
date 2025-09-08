@@ -1326,12 +1326,12 @@ is_dir_empty() {
 # Install/Update task-sh task scripts.
 
 # REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
-github_tree_api_base="https://api.github.com/repos/knaka/task-sh/git/trees"
+tasksh_github_tree_api_base="https://api.github.com/repos/knaka/task-sh/git/trees"
 
 # REST API endpoints for repository contents - GitHub Docs https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28
 # contents_api_base="https://api.github.com/repos/knaka/task-sh/contents/?ref="
 
-github_download_url_base="https://raw.githubusercontent.com/knaka/task-sh"
+tasksh_github_download_url_base="https://raw.githubusercontent.com/knaka/task-sh"
 
 state_path="$PROJECT_DIR/.task-sh-state.json"
 
@@ -1346,7 +1346,7 @@ subcmd_task__install() {
   local rc=0
   local resp
   local main_branch=main
-  resp="$(curl --silent --fail "${github_tree_api_base}/${main_branch}")"
+  resp="$(curl --silent --fail "${tasksh_github_tree_api_base}/${main_branch}")"
   local latest_commit="$(echo "$resp" | jq -r .sha)"
   "$VERBOSE" && echo "Latest commit of \"$main_branch\" is \"$latest_commit\"." >&2
   if ! test -r "$state_path"
@@ -1397,7 +1397,7 @@ subcmd_task__install() {
       echo "\"$name\" is up to date. Skipping." >&2
       continue
     fi
-    download_url="${github_download_url_base}/${latest_commit}/${name}"
+    download_url="${tasksh_github_download_url_base}/${latest_commit}/${name}"
     # shellcheck disable=SC2059
     printf "Downloading \"$download_url\" to \"$name\" ... " >&2
     curl --silent --fail --output "$file" "$download_url"
