@@ -692,6 +692,10 @@ set_jq_version() {
 }
 
 jq() {
+  if is_windows
+  then
+    set -- --binary "$@"
+  fi
   if "$jq_prefer_pkg_ec51165"
   then
     run_pkg_cmd jq "$@"
