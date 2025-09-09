@@ -514,7 +514,7 @@ goos_camel_map=\
 # shellcheck disable=SC2034
 goarch_map=\
 "x86_64 amd64 "\
-"aarch64 arm64 "\
+"arm64 arm64 "\
 "armv7l arm "\
 "i386 386 "\
 ""
