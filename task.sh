@@ -1347,7 +1347,7 @@ github_api_request() {
   then
     set -- "$@" --header "Authorization: Bearer $GITHUB_TOKEN"
   fi
-  "$VERBOSE" && echo "Accessing GitHub API: $url"
+  "$VERBOSE" && echo "Accessing GitHub API: $url" >&2
   curl "$@" "$url"
 }
 
@@ -1408,7 +1408,6 @@ subcmd_task__install() {
   local rc=0
   local resp
   local main_branch=main
-  # resp="$(curl --silent --fail "${tasksh_github_tree_api_base}/${main_branch}")"
   resp="$(github_tree_get --owner="knaka" --repos="task-sh")"
   local latest_commit="$(printf "%s" "$resp" | jq -r .sha)"
   "$VERBOSE" && echo "Latest commit of \"$main_branch\" is \"$latest_commit\"." >&2
@@ -1455,7 +1454,8 @@ subcmd_task__install() {
     fi
     local new_sha
     new_sha="$(echo "$node" | jq -r .sha)"
-    if ! "$force" && test -n "$local_sha" -a "$new_sha" = "$local_sha"
+    "$VERBOSE" && echo "${indent}Remote SHA:" "$new_sha" >&2
+    if ! "$force" && test -n "$local_sha" -a "$new_sha" = "$last_sha"
     then
       echo "\"$name\" is up to date. Skipping." >&2
       continue
