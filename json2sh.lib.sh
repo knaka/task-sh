@@ -39,6 +39,7 @@ json2sh() {
   done
   shift $((OPTIND-1))
 
+  # grep -v -e '^#' -e '^$' json2sh.jq
   # shellcheck disable=SC2016
   jq -r \
     --arg prefix "$prefix" \
@@ -47,18 +48,27 @@ json2sh() {
     '
       def to_sh(prefix):
         to_entries[]
-        | if .key | type == "number" then 
-            .key | tostring
-          else 
-            .key | gsub("[-\\.]"; "_")
-          end as $shell_key
+        | $ARGS.named.delim // "_" as $delim
+        | $ARGS.named.local_decl // "" as $local_decl
+        | (
+            # Convert key to shell-safe identifier
+            if .key | type == "number" then 
+              .key | tostring
+            else 
+              .key | gsub("[-\\.]"; "_")  # Replace hyphens and dots with underscores
+            end
+          ) as $shell_key
         | if .value | type == "object" or type == "array" then
+            # Recursively process nested objects/arrays
             .value | to_sh("\(prefix)\($shell_key)\($delim)")
           else
+            # Generate shell variable declaration for primitive values
             "\($local_decl)\(prefix)\($shell_key)=\"\(.value)\""
           end
       ;
-      to_sh($prefix)
+      .
+      | $ARGS.named.prefix // "json__" as $prefix
+      | to_sh($prefix)
     '
 }
 
