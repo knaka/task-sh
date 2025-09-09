@@ -48,7 +48,7 @@ json2sh() {
     '
       def to_sh(prefix):
         to_entries[]
-        | $ARGS.named.delim // "_" as $delim
+        | $ARGS.named.delim // "__" as $delim
         | $ARGS.named.local_decl // "" as $local_decl
         | (
             if .key | type == "number" then 
