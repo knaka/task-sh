@@ -397,15 +397,9 @@ run_fetched_cmd() {
   local rel_dir_template=.
   local print_dir=false
   local macos_remove_signature=false
-  OPTIND=1; while getopts _-: OPT
+  OPTIND=1; while getopts -: OPT
   do
-    if test "$OPT" = "-"
-    then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
       (name) name=$OPTARG;;
       (ver) ver=$OPTARG;;
@@ -419,7 +413,6 @@ run_fetched_cmd() {
       (rel-dir-template) rel_dir_template=$OPTARG;;
       (print-dir) print_dir=true;;
       (macos-remove-signature) macos_remove_signature=true;;
-      (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
@@ -554,15 +547,9 @@ require_pkg_cmd() {
   local brew_id=
   local deb_id=
   local winget_id=
-  OPTIND=1; while getopts _-: OPT
+  OPTIND=1; while getopts -: OPT
   do
-    if test "$OPT" = "-"
-    then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
       (brew-id) brew_id=$OPTARG;;
       (deb-id) deb_id=$OPTARG;;
@@ -1686,16 +1673,7 @@ tasksh_main() {
   ignore_missing=false
   OPTIND=1; while getopts hvsi-: OPT
   do
-    if test "$OPT" = "-"
-    then
-      # Extract long option name.
-      # shellcheck disable=SC2031
-      OPT="${OPTARG%%=*}"
-      # Extract long option argument.
-      # shellcheck disable=SC2031
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
       (h|help) shows_help=true;;
       (s|skip-missing) skip_missing=true;;
