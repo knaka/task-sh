@@ -21,7 +21,12 @@ oci_version_6eea079=2.157.0
 
 # Print the OCI client config as JSON considering OCI_PROFILE env var.
 oci_config() {
-  uv --quiet tool run --from "oci==$oci_version_6eea079" python3 -c 'import os, oci, json; print(json.dumps(oci.config.from_file(profile_name=os.environ.get("OCI_PROFILE", "DEFAULT")), indent=2))'
+  uv --quiet tool run \
+    --from "oci==$oci_version_6eea079" \
+    python3 -c '
+import os, oci, json
+print(json.dumps(oci.config.from_file(profile_name=os.environ.get("OCI_PROFILE", "DEFAULT")), indent=2))
+'
 }
 
 # Get a specific OCI config value.
