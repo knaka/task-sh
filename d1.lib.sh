@@ -204,7 +204,7 @@ subcmd_d1__local__files() {
 
 # Delete the local database.
 subcmd_d1__local__delete() {
-  push_ifs "$newline"
+  push_ifs "$newline_char"
   # shellcheck disable=SC2046
   set -- $(subcmd_d1__local__files)
   pop_ifs

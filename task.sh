@@ -213,7 +213,7 @@ set_ifs_newline() {
 }
 
 # shellcheck disable=SC2034
-readonly newline="
+readonly newline_char="
 "
 
 # To split paths.
@@ -758,6 +758,14 @@ load_env() {
 # ==========================================================================
 # Misc
 
+# shellcheck disable=SC2034
+escape_char=""
+
+strip_escape_sequences() {
+  # BusyBox sed(1) does not accept `\octal` or `\xhex`.
+  sed -E -e 's/'"$escape_char"'[[0-9;]*[JKmsu]//g'
+}
+
 # Absolute path to relative path
 abs2rel() {
   local target="$1"
@@ -1234,9 +1242,6 @@ then
   lwb='[[:<:]]'
   rwb='[[:>:]]'
 fi
-
-# BusyBox sed(1) does not accept `\octal` or `\xhex`.
-esc=""
 
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {

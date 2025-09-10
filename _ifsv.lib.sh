@@ -165,7 +165,7 @@ ifsv_sort() {
         "$@"
       fi
   )"
-  local saved_ifs="$IFS"; IFS="$newline"
+  local saved_ifs="$IFS"; IFS="$newline_char"
   # shellcheck disable=SC2086
   set -- $lines
   IFS="$saved_ifs"

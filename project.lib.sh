@@ -479,8 +479,3 @@ task_key() {
   key="$(get_key)"
   printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
 }
-
-foo() {
-  first_call  || return 0
-  echo first
-}
