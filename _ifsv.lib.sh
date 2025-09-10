@@ -158,7 +158,7 @@ ifsv_sort() {
   # shellcheck disable=SC2086
   local lines="$(
     printf "%s\n" $vec \
-      | if test "$#" -eq 0
+    | if test "$#" -eq 0
       then
         sort
       else

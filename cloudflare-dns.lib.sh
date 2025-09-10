@@ -24,8 +24,8 @@ cf_zone() {
   local zone_name="$1"
   memoize cf_zones \
   | jq --exit-status \
-    --arg zone_name "$zone_name" \
-    '.[] | select(.name == $zone_name)'
+      --arg zone_name "$zone_name" \
+      '.[] | select(.name == $zone_name)'
 }
 
 # Get Cloudflare DNS zone information
@@ -65,9 +65,9 @@ cf_dns_record() {
   local record_type="$3"
   cf_dns_records "$zone_name" \
   | jq --exit-status \
-    --arg record_name "$record_name" \
-    --arg record_type "$record_type" \
-    '.[] | select(.name == $record_name and .type == $record_type)'
+      --arg record_name "$record_name" \
+      --arg record_type "$record_type" \
+      '.[] | select(.name == $record_name and .type == $record_type)'
 }
 
 cf_a_record_ensure() {

@@ -338,9 +338,10 @@ d1_diff() {
   local current_schema_path="$TEMP_DIR"/13c81f9.sql
   d1_schema "$1" \
   | grep -Ev \
-    -e "^PRAGMA defer_foreign_keys=.*;$" \
-    -e "^DELETE FROM sqlite_sequence;$" \
-  >"$current_schema_path" || :
+      -e "^PRAGMA defer_foreign_keys=.*;$" \
+      -e "^DELETE FROM sqlite_sequence;$" \
+  >"$current_schema_path" \
+  || :
   sqlite3def --file="$db_schema_path_d4253e5" "$current_schema_path"
 }
 

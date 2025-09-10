@@ -139,31 +139,32 @@ EOF
     -e "s/^([[:digit:]]{3}) ([[:digit:]]{3}) ([[:digit:]]{3})$/case3${us}\1${us}\2${us}\3${us}/" -e t \
     -e "s/^(.*)$/nop${us}\1${us}/" <"$input_path" \
   | while IFS= read -r line
-  do
-    IFS="$us"
-    # shellcheck disable=SC2086
-    set -- $line
-    unset IFS
-    op="$1"
-    shift
-    case "$op" in
-      (case1)
-        echo "a: $1 $2 $3"
-        ;;
-      (case2)
-        echo "b: $1 $2 $3"
-        ;;
-      (case3)
-        echo "c: $1 $2 $3"
-        ;;
-      (nop)
-        echo "z: $1"
-        ;;
-      (*)
-        echo "Unhandled operation: $op" >&2
-        ;;
-    esac  
-  done >"$output_path"
+    do
+      IFS="$us"
+      # shellcheck disable=SC2086
+      set -- $line
+      unset IFS
+      op="$1"
+      shift
+      case "$op" in
+        (case1)
+          echo "a: $1 $2 $3"
+          ;;
+        (case2)
+          echo "b: $1 $2 $3"
+          ;;
+        (case3)
+          echo "c: $1 $2 $3"
+          ;;
+        (nop)
+          echo "z: $1"
+          ;;
+        (*)
+          echo "Unhandled operation: $op" >&2
+          ;;
+      esac  
+    done \
+  >"$output_path"
   
   expected_path="$TEMP_DIR"/expected.txt
   cat <<'EOF' >"$expected_path"
@@ -195,39 +196,40 @@ EOF
     -e "s/^(.*${is1}[[:alnum:]_]+${is2}.*)$/call${is1}\1${is1}/" -e t \
     -e "s/^(.*)$/nop${is1}\1${is1}/" <"$input_path" \
   | while IFS= read -r line
-  do
-    IFS="$is1"
-    # shellcheck disable=SC2086
-    set -- $line
-    unset IFS
-    op="$1"
-    shift
-    case "$op" in
-      (call)
-        for arg in "$@"
-        do 
-          case "$arg" in
-            (*${is2}*)
-              echo "$arg" | (
-                IFS="$is2" read -r cmd param
-                "$cmd" "$param"
-              )
-              ;;
-            (*)
-              printf "%s" "$arg"
-              ;;
-          esac
-        done
-        echo
-        ;;
-      (nop)
-        echo "$1"
-        ;;
-      (*)
-        echo "Unhandled operation: $op" >&2
-        ;;
-    esac
-  done >"$output_path"
+    do
+      IFS="$is1"
+      # shellcheck disable=SC2086
+      set -- $line
+      unset IFS
+      op="$1"
+      shift
+      case "$op" in
+        (call)
+          for arg in "$@"
+          do 
+            case "$arg" in
+              (*${is2}*)
+                echo "$arg" | (
+                  IFS="$is2" read -r cmd param
+                  "$cmd" "$param"
+                )
+                ;;
+              (*)
+                printf "%s" "$arg"
+                ;;
+            esac
+          done
+          echo
+          ;;
+        (nop)
+          echo "$1"
+          ;;
+        (*)
+          echo "Unhandled operation: $op" >&2
+          ;;
+      esac
+    done \
+  >"$output_path"
   # cat "$output_path" >&2
   expected_path="$TEMP_DIR"/expected.txt
   cat <<'EOF' >"$expected_path"
