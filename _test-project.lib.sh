@@ -445,6 +445,8 @@ test_task_sh_help() (
 )
 
 test_escape_sequence() {
-  assert_eq "foo${escape_char}[01mbar${escape_char}[00mbaz" "$(printf "foo\033[01mbar\033[00mbaz")"
+  # Color
   assert_eq "foobarbaz" "$(printf "foo\033[01mbar\033[00mbaz" | strip_escape_sequences)"
+  # Cursor move
+  assert_eq "$(printf "hoge\nfuga\nhare\n")" "$(printf "hoge\n\033[1Afuga\n\033[1Ahare\n" | strip_escape_sequences)"
 }

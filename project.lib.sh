@@ -479,3 +479,7 @@ task_key() {
   key="$(get_key)"
   printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
 }
+
+task_foo() {
+  strip_escape_sequences
+}

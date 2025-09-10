@@ -758,12 +758,10 @@ load_env() {
 # ==========================================================================
 # Misc
 
-# shellcheck disable=SC2034
-escape_char=""
-
 strip_escape_sequences() {
+  # ANSI escape code - Wikipedia https://en.wikipedia.org/wiki/ANSI_escape_code
   # BusyBox sed(1) does not accept `\octal` or `\xhex`.
-  sed -E -e 's/'"$escape_char"'[[0-9;]*[JKmsu]//g'
+  sed -E -e 's/\[[0-9;]*[ABCDEFGHJKSTmin]//g'
 }
 
 # Absolute path to relative path
