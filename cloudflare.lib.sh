@@ -5,6 +5,8 @@
 . ./node.lib.sh
 . ./yq.lib.sh
 
+# $CLOUDFLARE_ENV is originally an environment variable for the Vite plugin, but in this task runner, it is commonly used as a variable to specify the name of the deployment target environment for build, deploy, and other operations.
+# Cloudflare Environments · Cloudflare Workers docs https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/
 : "${CLOUDFLARE_ENV:=}"
 export CLOUDFLARE_ENV
 
@@ -12,7 +14,7 @@ export CLOUDFLARE_ENV
 init_cf_env_once() {
   # Do not overwrite.
   first_call 2dd68cb || return 0
-  # If other than "top" (empty string) empty is set, do not overwrite.
+  # If other than "top" (empty string) is set, do not overwrite.
   test -n "$CLOUDFLARE_ENV" && return 0
   case "$1" in
   # When an empty string is specified for the environment name, the top-level values (default values) are used. — Configuration - Wrangler · Cloudflare Workers docs https://developers.cloudflare.com/workers/wrangler/configuration/
@@ -59,7 +61,7 @@ task_cf__whoami() {
   wrangler whoami
 }
 
-# Check localy if the user is authenticated with Cloudflare.
+# Check locally if the user is authenticated with Cloudflare.
 task_cf__authenticated() {
   local config_file="$HOME"/.wrangler/config/default.toml
   ! test -r "$config_file" && return 1
