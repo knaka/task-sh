@@ -484,8 +484,3 @@ foo() {
   first_call  || return 0
   echo first
 }
-
-task_foo() {
-  foo
-  foo
-}

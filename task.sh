@@ -1235,6 +1235,9 @@ then
   rwb='[[:>:]]'
 fi
 
+# BusyBox sed(1) does not accept `\octal` or `\xhex`.
+esc=""
+
 # Print a menu item with emphasis if a character is prefixed with "&".
 menu_item() {
   echo "$1" | sed -E \
