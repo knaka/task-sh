@@ -5,6 +5,34 @@
 . ./node.lib.sh
 . ./yq.lib.sh
 
+: "${CLOUDFLARE_ENV:=}"
+export CLOUDFLARE_ENV
+
+# Set Cloudflare environment name once and not overwrite it.
+init_cf_env_once() {
+  # Do not overwrite.
+  first_call 2dd68cb || return 0
+  # If other than "top" (empty string) empty is set, do not overwrite.
+  test -n "$CLOUDFLARE_ENV" && return 0
+  case "$1" in
+  # When an empty string is specified for the environment name, the top-level values (default values) are used. — Configuration - Wrangler · Cloudflare Workers docs https://developers.cloudflare.com/workers/wrangler/configuration/
+    (""|prod|production)
+      CLOUDFLARE_ENV=""
+      ;;
+    (prev|preview)
+      CLOUDFLARE_ENV="preview"
+      ;;
+    (test)
+      CLOUDFLARE_ENV="test"
+      ;;
+    (*)
+      echo "Unknown environment name \"$1\"." >&2
+      exit 1
+      ;;
+  esac
+  export CLOUDFLARE_ENV
+}
+
 : "${wrangler_toml_path:=$PROJECT_DIR/wrangler.toml}"
 
 wrangler() {
