@@ -3,7 +3,6 @@
 test "${sourced_eb0c4bb-}" = true && return 0; sourced_eb0c4bb=true
 
 . ./task.sh
-. ./jq.lib.sh
 . ./node.lib.sh
 
 # Install Astro | Docs https://docs.astro.build/en/install-and-setup/

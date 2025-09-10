@@ -443,3 +443,8 @@ test_memoize() {
 test_task_sh_help() (
   invoke ./task | grep -q 'Run curl'
 )
+
+test_escape_sequence() {
+  assert_eq "foo${escape_char}[01mbar${escape_char}[00mbaz" "$(printf "foo\033[01mbar\033[00mbaz")"
+  assert_eq "foobarbaz" "$(printf "foo\033[01mbar\033[00mbaz" | strip_escape_sequences)"
+}

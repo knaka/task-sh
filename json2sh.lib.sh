@@ -2,8 +2,6 @@
 # shellcheck shell=sh
 "${sourced_a5dd01a-false}" && return 0; sourced_a5dd01a=true
 
-. ./jq.lib.sh
-
 # Convert JSON object or array to shell variable assignment expressions.
 # Usage: json2sh [--prefix=PREFIX] [--local]
 # Options:
