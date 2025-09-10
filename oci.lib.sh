@@ -4,7 +4,6 @@
 
 . ./task.sh
 . ./python.lib.sh
-. ./jq.lib.sh
 
 # oci-cli · PyPI https://pypi.org/project/oci-cli/#history
 oci_cli_version_9a020e5=3.63.2

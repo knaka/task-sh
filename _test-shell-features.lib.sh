@@ -119,3 +119,7 @@ test_trailing_empty_line() {
   )"
   assert_eq "foobarfoobazqux" "$s"
 }
+
+test_escape_sequence() {
+  assert_eq "foobarbaz" "$(printf "foo\033[01mbar\033[00mbaz\n" | sed -E 's/\x1b\[[0-9;]*[JKmsu]//g')"
+}
