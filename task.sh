@@ -397,7 +397,7 @@ run_fetched_cmd() {
   local rel_dir_template=.
   local print_dir=false
   local macos_remove_signature=false
-  OPTIND=1; while getopts -: OPT
+  OPTIND=1; while getopts _-: OPT
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
@@ -547,7 +547,7 @@ require_pkg_cmd() {
   local brew_id=
   local deb_id=
   local winget_id=
-  OPTIND=1; while getopts -: OPT
+  OPTIND=1; while getopts _-: OPT
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
@@ -1355,7 +1355,7 @@ github_tree_get() {
   local owner=
   local repos=
   local tree_sha=main
-  OPTIND=1; while getopts -: OPT
+  OPTIND=1; while getopts _-: OPT
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
@@ -1377,7 +1377,7 @@ github_raw_fetch() {
   local repos=
   local tree_sha=main
   local path=
-  OPTIND=1; while getopts -: OPT
+  OPTIND=1; while getopts _-: OPT
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
