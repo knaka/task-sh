@@ -177,7 +177,7 @@ subcmd_d1__prev__dump() {
 
 d1_schema() {
   local schema_file_path="$TEMP_DIR"/schema.sql 
-  wrangler d1 export --no-data "$@" --output="$schema_file_path" "$(subcmd_d1__name)" 1>&2
+  wrangler d1 export --env "$CLOUDFLARE_ENV" --no-data "$@" --output="$schema_file_path" "$(subcmd_d1__name)" 1>&2
   cat "$schema_file_path"
 }
 
@@ -279,16 +279,22 @@ subcmd_d1__test__files() {
 # Delete the local database.
 subcmd_d1__local__delete() {
   init_cf_env_once ""
+  local force=false
+  if test $# -gt 0 && test "$1" = "--force"
+  then
+    force=true
+  fi
   # shellcheck disable=SC2046
   set -- $(d1_local_files)
   if test $# -gt 0 && test -f "$1"
   then
-    if prompt_confirm "Do you really want to remove the database files?" "no"
+    if "$force" || prompt_confirm "Do you really want to remove the database files?" "no"
     then
       rm -f "$@"
       echo "The database files have been deleted." >&2
     else
       echo "The database files were not deleted." >&2
+      return 1
     fi
   else
     echo "No database file found." >&2
@@ -298,7 +304,7 @@ subcmd_d1__local__delete() {
 # Delete the local test database.
 subcmd_d1__test__delete() {
   init_cf_env_once "test"
-  subcmd_d1__local__delete
+  subcmd_d1__local__delete "$@"
 }
 
 # Delete the database.
@@ -314,13 +320,14 @@ subcmd_d1__delete() {
     wrangler d1 delete --env "$CLOUDFLARE_ENV" "$(subcmd_d1__name)"
   else
     echo "The ${s}database was not deleted." >&2
+    return 1
   fi
 }
 
 # Delete the preview database.
 subcmd_d1__prev__delete() {
   init_cf_env_once "preview"
-  subcmd_d1__delete
+  subcmd_d1__delete "$@"
 }
 
 # ==========================================================================
@@ -333,13 +340,19 @@ d1_diff() {
   | grep -Ev \
     -e "^PRAGMA defer_foreign_keys=.*;$" \
     -e "^DELETE FROM sqlite_sequence;$" \
-  >"$current_schema_path"
+  >"$current_schema_path" || :
   sqlite3def --file="$db_schema_path_d4253e5" "$current_schema_path"
 }
 
 # Show the difference between the local database and the schema file.
 subcmd_d1__local__diff() {
   init_cf_env_once ""
+  d1_diff --local
+}
+
+# Show the difference between the local test database and the schema file.
+subcmd_d1__test__diff() {
+  init_cf_env_once "test"
   d1_diff --local
 }
 
