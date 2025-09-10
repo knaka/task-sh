@@ -120,4 +120,5 @@ subcmd_task__test() {
     eval "$saved_shell_flags"
   done
   $some_failed && return 1
+  return 0
 }
