@@ -73,6 +73,7 @@ cf_dns_record() {
 cf_a_record_ensure() {
   local zone_name="$1"
   local record_name="$2"
+  local ip_address="$3"
   local zone_id
   zone_id="$(cf_zone_id "$zone_name")"
   local method="POST"
@@ -82,11 +83,11 @@ cf_a_record_ensure() {
     jq --null-input --compact-output \
       --arg record_type "A" \
       --arg record_name "$record_name" \
-      --arg public_ip "$(ip_address)" \
+      --arg ip_address "$ip_address" \
       '{
         type: $record_type,
         name: $record_name,
-        content: $public_ip,
+        content: $ip_address,
         ttl: 1,
         proxied: false
       }'
