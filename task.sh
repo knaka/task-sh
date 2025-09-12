@@ -1319,6 +1319,14 @@ is_dir_empty() {
   return 1
 }
 
+# [<file>] Read the file and print substituting environment variables.
+env_subst() {
+  local template_file="$1"
+  eval "cat <<EOF
+$(cat "$template_file")
+EOF"
+}
+
 # ==========================================================================
 # Install/Update task-sh task scripts.
 
