@@ -96,18 +96,12 @@ subcmd_npm__install() {
   npm_depinstall "$@"
 }
 
-# Run the bin file in the node_modules/.bin.
-run_node_modules_cmd() {
-  npm_depinstall
-  "$@"
-}
-
-# Run the bin file in the node_modules.
+# Run the bin file in the node_modules/.
 run_node_modules_bin() {
-  local pkg="$1"
+  local relpath="$1"
   shift
-  subcmd_npm__install
-  local p=./node_modules/"$pkg"
+  npm_depinstall
+  local p=./node_modules/"$relpath"
   if test -f "$p" && head -1 "$p" | grep -q -e '^#!.*node' -e "^#!/usr/bin/env node"
   then
     node "$p" "$@"
