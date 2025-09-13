@@ -6,6 +6,7 @@
 
 set -o nounset -o errexit
 
+export INITIAL_PWD="$PWD"
 export ARG0="$0"
 export ARG0BASE="${0##*/}"
 PROJECT_DIR="${0%/*}"

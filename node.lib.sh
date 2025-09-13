@@ -64,10 +64,14 @@ subcmd_npx() {
   invoke npx "$@"
 }
 
-# Run Node.js.
-subcmd_node() {
+node() {
   set_node_env
   invoke node "$@"
+}
+
+# Run Node.js.
+subcmd_node() {
+  node "$@"
 }
 
 last_check_path="$PROJECT_DIR"/node_modules/.npm_last_check
