@@ -44,16 +44,21 @@ subcmd_volta() {
 set_node_env() {
   first_call ae97cdf || return 0
   set_volta_env
+  # TODO: This must be done for each Node projects, not only once.
   PATH="$(dirname "$(volta which node)"):$PATH"
   export PATH
 }
 
 # ----------------------------------------------------------------------------
 
-# Run npm.
-subcmd_npm() {
+npm() {
   set_node_env
   invoke npm "$@"
+}
+
+# Run npm.
+subcmd_npm() {
+  npm "$@"
 }
 
 # Run npx.
