@@ -18,22 +18,12 @@ task_astro__dev() {
   then
     export ASTRO_DYNAMIC_PORT
   fi
-  local log_path
-  log_path="$TEMP_DIR"/astro-dev.log
-  INVOCATION_MODE=background astro --root "$astro_project_dir_0135e32" dev "$@" >"$log_path"
-  INVOCATION_MODE=background invoke tail -F "$log_path"
-  while true
-  do
-    sleep 1
-    if grep -q "watching for file changes" "$log_path" >/dev/null 2>&1
-    then
-      break
-    fi
-  done
+  INVOCATION_MODE=background astro --root "$astro_project_dir_0135e32" dev "$@"
+  wait_for_server "http://$host:$port"
   while true
   do
     menu \
-      "Open a &browser" \
+      "Open &browser http://$host:$port" \
       "&Clear console" \
       "E&xit"
     case "$(get_key)" in
