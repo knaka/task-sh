@@ -25,9 +25,11 @@ ansible_playbook() {
   uvx --quiet --from "ansible-core" --with "ansible==$ansible_version_6e3d355" ansible-playbook "$@"
 }
 
+alias ansible-playbook='ansible_playbook'
+
 # Run Ansible playbook command.
 subcmd_ansible_playbook() {
   ansible_playbook "$@"
 }
 
-alias subcmd_ansible-playbook=subcmd_ansible_playbook
+alias subcmd_ansible-playbook='subcmd_ansible_playbook'

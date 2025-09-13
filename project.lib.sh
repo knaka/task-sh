@@ -97,22 +97,22 @@ subcmd_diff() {
   local target_dir="${1}"
   find "${target_dir}" -type f -name "task*.sh" -maxdepth 1 \
   | while IFS= read -r theirs
-  do
-    base="$(basename "${theirs}")"
-    case "${base}" in
-      (task-prj*.sh) continue;;
-    esac
-    ours="$(find . -type f -name "${base}" -maxdepth 2 | head -n 1)"
-    if test -z "${ours}"
-    then
-      continue
-    fi
-    if ! diff -q "${ours}" "${theirs}"
-    then
-      echo "Different: ${ours} ${theirs}"
-      diff -u "${ours}" "${theirs}" || :
-    fi
-  done
+    do
+      base="$(basename "${theirs}")"
+      case "${base}" in
+        (task-prj*.sh) continue;;
+      esac
+      ours="$(find . -type f -name "${base}" -maxdepth 2 | head -n 1)"
+      if test -z "${ours}"
+      then
+        continue
+      fi
+      if ! diff -q "${ours}" "${theirs}"
+      then
+        echo "Different: ${ours} ${theirs}"
+        diff -u "${ours}" "${theirs}" || :
+      fi
+    done
 }
 
 # csv_projects_to_install=sh,go,js
@@ -298,10 +298,10 @@ task_dupcheck() {
   local log_path
   log_path="$TEMP_DIR"/dupcheck.log
   grep --extended-regexp --no-filename -e '^task_' -e '^subcmd_' ./*.sh \
-    | sed -E -e 's/^(task_|subcmd_)//' \
-    | sed -E -e 's/\(.*//' \
-    | sort | uniq -d | tee "$log_path" \
-    # nop
+  | sed -E -e 's/^(task_|subcmd_)//' \
+  | sed -E -e 's/\(.*//' \
+  | sort | uniq -d | tee "$log_path" \
+  # nop
   if test -s "$log_path"
   then
     return 1
@@ -478,4 +478,8 @@ task_key() {
   local key
   key="$(get_key)"
   printf "Key '%s' (0x%02x) pressed.\n" "$key" "'$key"
+}
+
+task_foo() {
+  strip_escape_sequences
 }

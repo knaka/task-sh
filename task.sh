@@ -760,12 +760,10 @@ load_env() {
 # ==========================================================================
 # Misc
 
-# shellcheck disable=SC2034
-escape_char=""
-
 strip_escape_sequences() {
+  # ANSI escape code - Wikipedia https://en.wikipedia.org/wiki/ANSI_escape_code
   # BusyBox sed(1) does not accept `\octal` or `\xhex`.
-  sed -E -e 's/'"$escape_char"'[[0-9;]*[JKmsu]//g'
+  sed -E -e 's/\[[0-9;]*[ABCDEFGHJKSTmin]//g'
 }
 
 # Absolute path to relative path
@@ -1590,7 +1588,13 @@ EOF
 subcmd_task__exec() {
   local saved_shell_flags="$(set +o)"
   set +o errexit
-  "$@"
+  if alias "$1" >/dev/null 2>&1
+  then
+    # shellcheck disable=SC2294
+    eval "$@"
+  else
+    "$@"
+  fi
   echo "Exit status: $?" >&2
   eval "$saved_shell_flags"
 }
@@ -1632,7 +1636,13 @@ call_task() {
     esac
   done
   "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
-  "$func_name" "$@"
+  if alias "$func_name" >/dev/null 2>&1
+  then
+    # shellcheck disable=SC2294
+    eval "$func_name" "$@"
+  else
+    "$func_name" "$@"
+  fi
   prefix="$task_name"
   while :
   do
@@ -1714,7 +1724,7 @@ tasksh_main() {
     if alias subcmd_"$subcmd" >/dev/null 2>&1
     then
       # shellcheck disable=SC2294
-      eval call_task subcmd_"$subcmd" "$@"
+      call_task subcmd_"$subcmd" "$@"
       exit $?
     fi
     call_task subcmd_"$subcmd" "$@"
