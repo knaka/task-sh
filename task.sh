@@ -1322,7 +1322,7 @@ is_dir_empty() {
   return 1
 }
 
-# [<file>] Read the file and print substituting environment variables.
+# [<file>] Read the file and print substituting environment variables. Unlike envsubst(1), this tries to expand undefined environment variables and fails for that.
 env_subst() {
   local template_file="$1"
   eval "cat <<EOF
