@@ -761,6 +761,41 @@ load_env() {
 # ==========================================================================
 # Misc
 
+# [regex replacement ...] Substitute text that matches regex patterns in stdin input. Takes pairs of regex/replacement arguments and applies them via sed(1).
+resubst() {
+  local sentinel=08ee2b1
+  set -- "$@" "$sentinel"
+  while test "$1" != "$sentinel"
+  do
+    set -- "$@" -e "s${us}$1${us}$2${us}g"
+    shift 2
+  done
+  shift
+  sed "$@"
+}
+
+wait_for_server() {
+  local url="$1"
+  echo "Waiting for server at $url to be ready ..."
+  local attempts=0
+  local max_attempts=60
+  while test $attempts -lt $max_attempts
+  do
+    if curl -s -o /dev/null -w "%{http_code}" "$url" | grep -q "200"
+    then
+      echo "✓ Server is ready at $url"
+      return 0
+    fi
+    attempts=$((attempts + 1))
+    if test $attempts -eq $max_attempts
+    then
+      echo "✗ Server at $url did not respond with 200 after $max_attempts seconds"
+      return 1
+    fi
+    sleep 1
+  done
+}
+
 strip_escape_sequences() {
   # ANSI escape code - Wikipedia https://en.wikipedia.org/wiki/ANSI_escape_code
   # BusyBox sed(1) does not accept `\octal` or `\xhex`.

@@ -12,7 +12,7 @@ set_remix_project_dir() {
 
 # Run remix.
 subcmd_remix() {
-  run_node_modules_bin @remix-run/dev dist/cli.js "$@" "$remix_project_dir_b4b3371"
+  run_node_modules_bin @remix-run/dev/dist/cli.js "$@" "$remix_project_dir_b4b3371"
 }
 
 # Build

@@ -50,8 +50,6 @@ set_node_env() {
 
 # ----------------------------------------------------------------------------
 
-export PATH="$PROJECT_DIR/node_modules/.bin:$PATH"
-
 # Run npm.
 subcmd_npm() {
   set_node_env
@@ -74,26 +72,23 @@ subcmd_node() {
   node "$@"
 }
 
-last_check_path="$PROJECT_DIR"/node_modules/.npm_last_check
+last_check_path=./node_modules/.npm_last_check
 
 npm_depinstall() {
-  push_dir "$PROJECT_DIR" || exit 1
-  ! test -f "$PROJECT_DIR"/package.json && return 1
+  ! test -f ./package.json && return 1
   while true
   do
     test "$#" -gt 0 && break
     first_call ac87fe4 || return 0
-    ! test -d "$PROJECT_DIR"/node_modules/ && break
-    ! test -f "$PROJECT_DIR"/package-lock.json && break
+    ! test -d ./node_modules/ && break
+    ! test -f ./package-lock.json && break
     ! test -f "$last_check_path" && break
-    newer "$PROJECT_DIR"/package.json --than "$last_check_path" && break
-    newer "$PROJECT_DIR"/package-lock.json --than "$last_check_path" && break
-    pop_dir || exit 1
+    newer ./package.json --than "$last_check_path" && break
+    newer ./package-lock.json --than "$last_check_path" && break
     return 0
   done
   subcmd_npm install "$@"
   touch "$last_check_path"
-  pop_dir || exit 1
 }
 
 # Install the npm packages if the package.json is modified.
@@ -111,13 +106,11 @@ run_node_modules_cmd() {
 run_node_modules_bin() {
   local pkg="$1"
   shift
-  local bin_path="$1"
-  shift
   subcmd_npm__install
-  local p="$PROJECT_DIR"/node_modules/"$pkg"/"$bin_path"
-  if test -f "$p" && head -1 "$p" | grep -q '^#!.*node'
+  local p=./node_modules/"$pkg"
+  if test -f "$p" && head -1 "$p" | grep -q -e '^#!.*node' -e "^#!/usr/bin/env node"
   then
-    subcmd_node "$p" "$@"
+    node "$p" "$@"
     return $?
   fi
   if is_windows

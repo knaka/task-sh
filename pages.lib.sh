@@ -29,7 +29,7 @@ set_pages_project_path() {
 subcmd_pages__wrangler() {
   # “ERROR Pages does not support custom paths for the `wrangler.toml` configuration file”, that's why we need to change the directory.
   push_dir "$pages_project_path"
-  run_node_modules_bin wrangler bin/wrangler.js "$@"
+  run_node_modules_bin wrangler/bin/wrangler.js "$@"
   pop_dir
 }
 

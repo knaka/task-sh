@@ -38,7 +38,7 @@ init_cf_env_once() {
 : "${wrangler_toml_path:=$PROJECT_DIR/wrangler.toml}"
 
 wrangler() {
-  run_node_modules_bin wrangler bin/wrangler.js "$@"
+  run_node_modules_bin wrangler/bin/wrangler.js "$@"
 }
 
 # Run the Cloudflare Wrangler command.

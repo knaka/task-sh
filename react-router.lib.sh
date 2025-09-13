@@ -13,12 +13,16 @@ set_rr_project_dir() {
   rr_project_dir_3376d5a="$1"
 }
 
-# Run `react-router`.
-subcmd_rr() {
-  run_node_modules_bin @react-router dev/bin.js "$@"
+react_router() {
+  run_node_modules_bin .bin/react-router "$@"
 }
 
-alias react-router=subcmd_rr
+# Run `react-router`.
+subcmd_rr() {
+  react_router "$@"
+}
+
+alias react-router=react_router
 
 alias subcmd_react-router=subcmd_rr
 
