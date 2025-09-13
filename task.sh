@@ -13,6 +13,8 @@ rc_test_skipped=10
 # ==========================================================================
 # Environment variables. If not set by the caller, they are set later in `tasksh_main`
 
+: "${ORIGINAL_DIR:=$PWD}"
+
 # The path to the shell executable which is running this script.
 : "${SH:=/bin/sh}"
 
