@@ -482,7 +482,7 @@ run_fetched_cmd() {
   then
     echo "$app_dir_path"
   else
-    PATH="$app_dir_path":$PATH "$cmd_path" "$@"
+    PATH="$app_dir_path":$PATH invoke "$cmd_path" "$@"
   fi
 }
 
