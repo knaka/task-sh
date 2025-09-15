@@ -92,7 +92,7 @@ npm_depinstall() {
     newer ./package-lock.json --than "$last_check_path" && break
     return 0
   done
-  subcmd_npm install "$@"
+  INVOCATION_MODE= npm install "$@"
   touch "$last_check_path"
 }
 
@@ -105,7 +105,7 @@ subcmd_npm__install() {
 run_node_modules_bin() {
   local relpath="$1"
   shift
-  npm_depinstall
+  INVOCATION_MODE="" npm_depinstall
   local p=./node_modules/"$relpath"
   if test -f "$p" && head -1 "$p" | grep -q -e '^#!.*node' -e "^#!/usr/bin/env node"
   then
