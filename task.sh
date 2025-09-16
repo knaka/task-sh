@@ -356,13 +356,15 @@ ifsm_values() {
 
 windows_exe_extensions=".exe .EXE .cmd .CMD .bat .BAT"
 
-# Invoke command with proper executable extension, with the specified invocation mode.
+# Invoke external command with proper executable extension, with the specified invocation mode.
 #
 # Invocation mode can be specified via INVOCATION_MODE environment variable:
 #   INVOCATION_MODE=standard: (Default) Run the command in the current process.
 #   INVOCATION_MODE=exec: Replace the process with the command.
 #   INVOCATION_MODE=exec-direct: Replace the process with the command, without calling cleanups.
 #   INVOCATION_MODE=background: Run the command in the background.
+#
+# Invocation mode can be specified also with `--invocation-mode=...` option. The option is excluded from final arguments which are passed to the external command.
 #
 # Command-specific invocation mode can be set using INVOCATION_MODE_<command> variables:
 #   INVOCATION_MODE_foo=background: Run external command `foo` in the background.
@@ -388,6 +390,19 @@ invoke() {
   then
     eval "invocation_mode=\"\${INVOCATION_MODE_$base}\""
   fi
+  local arg
+  for arg in "$@"
+  do
+    case "$arg" in
+      (--invocation-mode=*)
+        invocation_mode="${arg#--invocation-mode=}"
+        ;;
+      (*)
+        set -- "$@" "$arg"
+        ;;
+    esac
+    shift
+  done
   local cmd="$1"
   case "$1" in
     (*/*)
