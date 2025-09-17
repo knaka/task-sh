@@ -123,6 +123,6 @@ task_pg__status() {
 }
 
 # Launch PostgreSQL CLI client (psql).
-task_pg__cli() {
-  psql
+subcmd_pg__cli() {
+  psql "$@"
 }
