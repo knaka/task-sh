@@ -80,7 +80,7 @@ subcmd_node() {
 last_check_path=./node_modules/.npm_last_check
 
 npm_depinstall() {
-  ! test -f ./package.json && return 1
+  test -f ./package.json || return 1
   while true
   do
     test "$#" -gt 0 && break
@@ -92,7 +92,7 @@ npm_depinstall() {
     newer ./package-lock.json --than "$last_check_path" && break
     return 0
   done
-  INVOCATION_MODE= npm install "$@"
+  INVOCATION_MODE="" npm install "$@"
   touch "$last_check_path"
 }
 
@@ -105,25 +105,38 @@ subcmd_npm__install() {
 run_node_modules_bin() {
   local relpath="$1"
   shift
-  INVOCATION_MODE="" npm_depinstall
-  local p=./node_modules/"$relpath"
-  if test -f "$p" && head -1 "$p" | grep -q -e '^#!.*node' -e "^#!/usr/bin/env node"
-  then
-    node "$p" "$@"
-    return $?
-  fi
-  if is_windows
-  then
-    for ext in .exe .cmd .bat
-    do
-      if test -f "$p$ext"
-      then
-        p="$p$ext"
-        break
-      fi
-    done
-  fi
-  invoke "$p" "$@"
+  local dir
+  local rc
+  for dir in . "$PROJECT_DIR"
+  do
+    test -r "$dir"/package.json || continue
+    push_dir "$dir"
+    INVOCATION_MODE="" npm_depinstall
+    local p=./node_modules/"$relpath"
+    if test -f "$p" && head -1 "$p" | grep -q -e '^#!.*node' -e "^#!/usr/bin/env node"
+    then
+      node "$p" "$@"
+      rc="$?"
+      pop_dir
+      return "$rc"
+    fi
+    if is_windows
+    then
+      for ext in .exe .cmd .bat
+      do
+        if test -f "$p$ext"
+        then
+          p="$p$ext"
+          break
+        fi
+      done
+    fi
+    invoke "$p" "$@"
+    rc="$?"
+    pop_dir
+    return "$rc"
+  done
+  return 1
 }
 
 # Install the npm packages for development.

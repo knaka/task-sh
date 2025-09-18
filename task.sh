@@ -446,6 +446,7 @@ invoke() {
       fi
       ;;
   esac
+  "$VERBOSE" && echo "Launching $* in mode $invocation_mode, in $PWD." >&2
   case "$invocation_mode" in
     (exec)
       finalize
