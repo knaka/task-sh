@@ -13,17 +13,23 @@ set_sqldef_version() {
 
 . ./task.sh
 
-sqlite3def() {
+sqldef() {
+  local name="$1"
+  shift
   # shellcheck disable=SC2016
   run_fetched_cmd \
-    --name="sqlite3def" \
+    --name="$name" \
     --ver="$sqldef_version_c9fe5d4" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --ext=".zip" \
-    --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/sqlite3def_${os}_${arch}${ext}' \
+    --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/${name}_${os}_${arch}${ext}' \
     -- \
     "$@"
+}
+
+sqlite3def() {
+  sqldef sqlite3def "$@"
 }
 
 # Idempotent SQLite3 DB schema management by SQL.
@@ -32,16 +38,7 @@ subcmd_sqlite3def() {
 }
 
 psqldef() {
-  # shellcheck disable=SC2016
-  run_fetched_cmd \
-    --name="psqldef" \
-    --ver="$sqldef_version_c9fe5d4" \
-    --os-map="$goos_map" \
-    --arch-map="$goarch_map" \
-    --ext=".zip" \
-    --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/psqldef_${os}_${arch}${ext}' \
-    -- \
-    "$@"
+  sqldef psqldef "$@"
 }
 
 # Idempotent PostgreSQL DB schema management by SQL.
