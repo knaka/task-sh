@@ -662,6 +662,7 @@ usm_psv_cmds=
 #   --deb-id=<id>     Package ID for Debian/Ubuntu package manager
 #   --winget-id=<id>  Package ID for Windows Package Manager
 require_pkg_cmd() {
+  local name=
   local brew_id=
   local deb_id=
   local winget_id=
@@ -669,6 +670,7 @@ require_pkg_cmd() {
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
+      (name) name="$OPTARG";;
       (brew-id) brew_id=$OPTARG;;
       (deb-id) deb_id=$OPTARG;;
       (winget-id) winget_id=$OPTARG;;
@@ -687,6 +689,10 @@ require_pkg_cmd() {
     cmd_name="$cmd"
     psv_cmds="$psv_cmds$cmd|"
   done
+  if test -n "$name"
+  then
+    cmd_name="$name"
+  fi
   test -n "$brew_id" && usm_brew_ids="$usm_brew_ids$cmd_name$us$brew_id$us"
   test -n "$winget_id" && usm_winget_ids="$usm_winget_ids$cmd_name$us$winget_id$us"
   test -n "$deb_id" && usm_deb_ids="$usm_deb_ids$cmd_name$us$deb_id$us"

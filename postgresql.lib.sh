@@ -4,14 +4,23 @@
 
 . ./task.sh
 
+ver_5942f2c="16"
+
+set_postgresql_version() {
+  ver_5942f2c="$1"
+}
+
 for xb037ce6 in psql initdb pg_ctl
 do
   require_pkg_cmd \
-    --brew-id=postgresql@15 \
-    --winget-id=PostgreSQL.PostgreSQL.15 \
-    /usr/local/opt/postgresql@15/bin/"$xb037ce6" \
-    "C:/Program Files/PostgreSQL/15/bin/$xb037ce6.exe" \
-    "$xb037ce6"
+    --name="$xb037ce6" \
+    --brew-id=postgresql@"$ver_5942f2c" \
+    --winget-id=PostgreSQL.PostgreSQL."$ver_5942f2c" \
+    --deb-id=postgresql-"$ver_5942f2c" \
+    /usr/local/opt/postgresql@"$ver_5942f2c"/bin/"$xb037ce6" \
+    "C:/Program Files/PostgreSQL/$ver_5942f2c/bin/$xb037ce6.exe" \
+    /usr/lib/postgresql/"$ver_5942f2c"/bin/"$xb037ce6" \
+    #nop
 done
 
 initdb() {
