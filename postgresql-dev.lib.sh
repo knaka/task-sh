@@ -58,8 +58,8 @@ task_pg__create() {
   pg_create "$@"
 }
 
-# Delete PostgreSQL database cluster
-task_pg__delete() {
+# Drop PostgreSQL database cluster
+task_pg__drop() {
   if pg_ctl -D "$pgdata_dir_00ad1e3" status >/dev/null
   then
     echo "Server is working." >&2
@@ -120,6 +120,11 @@ task_pg__stop() {
 # Show PostgreSQL server status.
 task_pg__status() {
   pg_ctl -D "$pgdata_dir_00ad1e3" status
+}
+
+# Launch PostgreSQL CLI client (psql).
+subcmd_pg__psql() {
+  psql "$@"
 }
 
 # Launch PostgreSQL CLI client (psql).
