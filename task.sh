@@ -1720,12 +1720,14 @@ call_task() {
     esac
   done
   "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
+  rc=0
   if alias "$func_name" >/dev/null 2>&1
   then
     # shellcheck disable=SC2294
     eval "$func_name" "$@"
   else
     "$func_name" "$@"
+    rc="$?"
   fi
   prefix="$task_name"
   while :
@@ -1741,6 +1743,7 @@ call_task() {
     esac
     prefix="${prefix%__*}"
   done
+  return "$rc"
 }
 
 tasksh_main() {
