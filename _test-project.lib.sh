@@ -13,7 +13,7 @@ tolower_542075d() {
   printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-test_abs2rel() (
+test_abs2rel() {
   base="$TEMP_DIR"/foo/bar
   target="$TEMP_DIR"/foo/baz/qux.txt
   assert_eq "$(abs2rel "$target" "$base")" "../baz/qux.txt"
@@ -22,11 +22,9 @@ test_abs2rel() (
   mkdir -p "$base2"
   cd "$base2"
   assert_eq "$(abs2rel "$target")" "../../baz/qux.txt"
-)
+}
 
-test_version_comparison() (
-  set -o errexit
-
+test_version_comparison() {
   assert_true version_gt 1.0 0.9
   assert_true version_gt 1.1 1.0
   assert_true version_gt 1.1 1.0.9
@@ -87,11 +85,9 @@ v1.5.0-patch1
 EOF
   sort_version <"$TEMP_DIR"/versions.txt >"$TEMP_DIR"/actual.txt
   assert_eq "$(cat "$TEMP_DIR"/expected.txt)" "$(cat "$TEMP_DIR"/actual.txt)"
-)
+}
 
-test_menu_item() (
-  set -o errexit
-
+test_menu_item() {
   assert_match ".+S.+ave" "$(menu_item "&Save")"
   assert_match "E.+x.+it" "$(menu_item "E&xit")"
   assert_match "Save & E.+x.+it" "$(menu_item "Save && E&xit")"
@@ -100,28 +96,21 @@ test_menu_item() (
   assert_eq "Exit" "$(menu_item "Exit")"
   # shellcheck disable=SC2016
   assert_match '.+A.+dd \$100' "$(menu_item '&Add $100')"
-)
+}
 
-test_field() (
-  set -o errexit
-
+test_field() {
   assert_eq "foo" "$(echo "foo bar baz" | field 1)"
   assert_eq "bar" "$(echo "   foo      bar   baz  " | field 2)"
   assert_eq "baz" "$(printf "foo bar\nbaz qux\n" | field 3)"
-)
+}
 
-# Split the text.
-test_split() (
-  set -o errexit
-
+test_split() {
   assert_eq "foo,bar,baz" "$(echo "foo, bar,  baz" | sed -E -e "s/, *"/,/g)"
   assert_eq "foo${us}bar${us}baz" "$(echo "foo, bar,  baz" | sed -E -e "s/, */${us}/g")"
-)
+}
 
 # Parse with sed(1) and process the text.
-test_sed_usv() (
-  set -o errexit
-
+test_sed_usv() {
   input_path="$TEMP_DIR"/input.txt
   cat <<'EOF' >"$input_path"
 foo bar baz
@@ -178,12 +167,10 @@ z: 012 345 678 900
 EOF
 
   assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
-)
+}
 
 # Parse with sed(1) and execute the commands.
-test_sed_usv_global() (
-  set -o errexit
-
+test_sed_usv_global() {
   input_path="$TEMP_DIR"/input.txt
   cat <<'EOF' >"$input_path"
 foo toupper(bar) baz toupper(qux) HOGE tolower(FUGA)
@@ -237,12 +224,10 @@ foo BAR baz QUX HOGE fuga
 other lines
 EOF
   assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
-)
+}
 
 # Test IFS push/pop functions.
-test_ifs() (
-  set -o errexit
-
+test_ifs() {
   unset IFS
 
   push_ifs
@@ -258,21 +243,21 @@ test_ifs() (
 
   pop_ifs
   assert_true test "${IFS+set}" != set
-)
+}
 
-test_extra() (
+test_extra() {
   skip_unless_all
 
   echo "Executed extra test." >&2
-)
+}
 
-test_not_existing_task() (
+test_not_existing_task() {
   assert_false invoke ./task not_existing_task
   invoke ./task --ignore-missing not_existing_task 2>&1 | grep "Unknown task"
   invoke ./task --skip-missing not_existing_task
-)
+}
 
-test_dumper() (
+test_dumper() {
   # Busybox Awk does not support --version option.
   # awk --version 2>&1
   result="$(echo hello | hex_dump | hex_restore)"
@@ -282,7 +267,7 @@ test_dumper() (
 
   result="$(oct_restore "$(oct_dump "hello3")")"
   assert_eq "hello3" "$result"
-)
+}
 
 is_ci() {
   test "${CI+set}" = set
@@ -396,9 +381,9 @@ test_memoize() {
   assert_eq "foo hoge fuga" "$result"
 }
 
-test_task_sh_help() (
+test_task_sh_help() {
   invoke ./task | grep -q 'Run curl'
-)
+}
 
 test_escape_sequence() {
   # Color
@@ -407,7 +392,7 @@ test_escape_sequence() {
   assert_eq "$(printf "hoge\nfuga\nhare\n")" "$(printf "hoge\n\033[1Afuga\n\033[1Ahare\n" | strip_escape_sequences)"
 }
 
-test_resubst() (
+test_resubst() {
   expected="$TEMP_DIR/1f261a6"
   cat <<EOF >"$expected"
 hoge FOO fuga
@@ -422,4 +407,4 @@ hoge foo fuga
 hare bar hore
 EOF
   assert_eq "$(sha256sum "$expected" | field 1)" "$(sha256sum "$actual" | field 1)"
-)
+}

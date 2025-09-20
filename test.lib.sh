@@ -22,15 +22,9 @@ else
   BOLD=""
 fi
 
-# Call the test in a subshell exiting on error.
-call_test() (
-  set -o errexit
-  "$1"
-)
-
 should_test_all=${SHOULD_TEST_ALL:-false}
 
-# Skip the test unless all tests are run.
+# Skip this test unless all tests are being run.
 skip_unless_all() {
   $should_test_all && return 0
   return "$rc_test_skipped"
@@ -41,7 +35,7 @@ skip_if() {
   return 0
 }
 
-# [<test_name>...] Run shell-based tests for tasks. If no test names are provided, all tests are run.
+# Run shell-based tests for tasks. If no test names are provided, all tests are run.
 subcmd_task__test() {
   OPTIND=1; while getopts a-: OPT
   do
@@ -97,27 +91,31 @@ subcmd_task__test() {
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    local saved_shell_flags="$(set +o)"
+    local saved_flags="$(set +o)"
     # Do not exit when each test fails.
     set +o errexit
-    call_test "test_$test_name" >"$log_file_path" 2>&1
-    local result=$?
-    if test "$result" -eq 0
+    # Call the test in a subshell with `errexit` shell option without catching the result to make test function return immediately on error.
+    (
+      set -o errexit
+      "test_$test_name" >"$log_file_path" 2>&1
+    )
+    local rc=$?
+    eval "$saved_flags"
+    if test "$rc" -eq 0
     then
       printf "%sTest \"%s\" Passed%s\n" "$GREEN" "$test_name" "$NORMAL" >&2
       if "$VERBOSE"
       then
         sed -e 's/^/  /' <"$log_file_path" >&2
       fi
-    elif test "$result" -eq "$rc_test_skipped"
+    elif test "$rc" -eq "$rc_test_skipped"
     then
       printf "%sTest \"%s\" Skipped%s\n" "$YELLOW" "$test_name" "$NORMAL" >&2
     else
-      printf "%sTest \"%s\" Failed with RC %d%s\n" "$RED" "$test_name" "$result" "$NORMAL" >&2
+      printf "%sTest \"%s\" Failed with RC %d%s\n" "$RED" "$test_name" "$rc" "$NORMAL" >&2
       sed -e 's/^/  /' <"$log_file_path" >&2
       some_failed=true
     fi
-    eval "$saved_shell_flags"
   done
   $some_failed && return 1
   return 0
