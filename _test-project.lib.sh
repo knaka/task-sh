@@ -284,20 +284,6 @@ test_dumper() (
   assert_eq "hello3" "$result"
 )
 
-test_encoder() {
-  local result encoded decoded
-  result="$(echo hello | oct_encode | oct_decode)"
-  assert_eq "hello" "$result"
-
-  encoded="$(oct_encode "foo")"
-  decoded="$(oct_decode "$encoded")"
-  assert_eq "foo" "$decoded"
-
-  encoded="$(oct_encode "foo" "bar")"
-  decoded="$(oct_decode "$encoded")"
-  assert_eq "foo bar" "$decoded"
-}
-
 is_ci() {
   test "${CI+set}" = set
 }
@@ -361,31 +347,6 @@ _test_dir_stack() {
   pop_dir
 }
 
-args_restore_test() {
-  local before1 before2 before3
-  before1="$1"
-  before2="$2"
-  before3="$3"
-
-  local eval_args
-  eval_args="$(make_eval_args "$@")"
-
-  set --
-  assert_true test $# -eq 0
-
-  eval "set -- $eval_args"
-
-  assert_true test $# -eq 3
-
-  assert_eq "$before1" "$1"
-  assert_eq "$before2" "$2"
-  assert_eq "$before3" "$3"
-}
-
-test_args_restore() {
-  args_restore_test "hoge ' fuga" 'foo " bar' "$(printf "bar\nbaz")"
-}
-
 test_is_dir_empty() {
   local dir_path="$TEMP_DIR"/17f146e
 
@@ -433,13 +394,6 @@ test_memoize() {
   assert_eq "foo hoge fuga" "$result"
   result="$(memoize time_wasting_task hoge fuga)"
   assert_eq "foo hoge fuga" "$result"
-
-  if begin_memoize 3383e2e
-  then
-    echo "hello"
-    echo "world"
-    end_memoize
-  fi
 }
 
 test_task_sh_help() (
@@ -452,3 +406,20 @@ test_escape_sequence() {
   # Cursor move
   assert_eq "$(printf "hoge\nfuga\nhare\n")" "$(printf "hoge\n\033[1Afuga\n\033[1Ahare\n" | strip_escape_sequences)"
 }
+
+test_resubst() (
+  expected="$TEMP_DIR/1f261a6"
+  cat <<EOF >"$expected"
+hoge FOO fuga
+hare BAR hore
+EOF
+  actual="$TEMP_DIR/fde683d"
+  resubst \
+    foo FOO \
+    bar BAR \
+  <<EOF >"$actual"
+hoge foo fuga
+hare bar hore
+EOF
+  assert_eq "$(sha256sum "$expected" | field 1)" "$(sha256sum "$actual" | field 1)"
+)

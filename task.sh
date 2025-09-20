@@ -4,14 +4,16 @@
 "${sourced_897a0c7-false}" && return 0; sourced_897a0c7=true
 
 # ==========================================================================
-# Constants
+#region Constants
 
 # Return code when a test is skipped
 # shellcheck disable=SC2034
 rc_test_skipped=10
 
+#endregion
+
 # ==========================================================================
-# Environment variables. If not set by the caller, they are set later in `tasksh_main`
+#region Environment variables. If not set by the caller, they are set later in `tasksh_main`
 
 # The initial working directory when the script was started.
 : "${INITIAL_PWD:=$PWD}"
@@ -41,8 +43,10 @@ mkdir -p "$CACHE_DIR"
 # For platforms other than Windows
 : "${LOCALAPPDATA:=/}"
 
+#endregion
+
 # ==========================================================================
-# Basic
+#region Basic
 
 # Guard against multiple calls. $1 is a unique ID
 first_call() {
@@ -50,11 +54,12 @@ first_call() {
   eval "called_$1=true"
 }
 
-# ==========================================================================
-# Temporary directory and cleaning up
+#endregion
 
-TEMP_DIR=
-unset TEMP_DIR
+# ==========================================================================
+#region Temporary directory and cleaning up
+
+TEMP_DIR=; unset TEMP_DIR
 
 # Create a temporary directory and assign $TEMP_DIR env var
 init_temp_dir() {
@@ -102,8 +107,10 @@ finalize() {
   rm -fr "$TEMP_DIR"
 }
 
+#endregion
+
 # ==========================================================================
-# Platform detection.
+#region Platform detection
 
 is_linux() {
   test -d /proc -o -d /sys
@@ -117,6 +124,11 @@ is_windows() {
   test -d "c:/" -a ! -d /proc
 }
 
+# Executable file extension.
+exe_ext=
+# shellcheck disable=SC2034
+is_windows && exe_ext=".exe"
+
 is_debian() {
   test -f /etc/debian_version
 }
@@ -129,64 +141,10 @@ is_alpine() {
   test -f /etc/alpine-release
 }
 
-# ==========================================================================
-# Binary - text encoding/decoding.
-
-oct_dump() {
-  if test $# -eq 0
-  then
-    cat
-  else
-    printf "%s" "$*"
-  fi | od -A n -t o1 -v | xargs printf "%s "
-}
-
-oct_restore() {
-  if test $# -eq 0
-  then
-    cat
-  else
-    printf "%s" "$*"
-  fi | xargs printf '\\\\0%s\n' | xargs printf '%b'
-}
-
-oct_encode() {
-  if test $# -eq 0
-  then
-    cat
-  else
-    printf "%s" "$*"
-  fi | od -A n -t o1 -v | xargs printf "%s"
-}
-
-oct_decode() {
-  if test $# -eq 0
-  then
-    cat
-  else
-    printf "%s" "$*"
-  fi | sed 's/.../& /g' | xargs printf '\\\\0%s\n' | xargs printf '%b'
-}
-
-hex_dump() {
-  od -A n -t x1 -v | xargs printf "%s "
-}
-
-hex_restore() {
-  set -- awk
-  if command -v mawk >/dev/null 2>&1
-  then
-    set -- mawk
-  elif command -v gawk >/dev/null 2>&1
-  then
-    set -- gawk --non-decimal-data
-  fi
-  # shellcheck disable=SC2016
-  xargs printf "%s\n" | "$@" '{ printf("%c", int("0x" $1)) }'
-}
+#endregion
 
 # ==========================================================================
-# IFS manipulation.
+#region IFS manipulation
 
 # shellcheck disable=SC2034
 readonly unit_sep=""
@@ -232,41 +190,10 @@ set_ifs_blank() {
   printf ' \t'
 }
 
-csv_ifss_6b672ac=
-
-# Push IFS to the stack.
-push_ifs() {
-  if test "${IFS+set}" = set
-  then
-    csv_ifss_6b672ac="$(printf "%s" "$IFS" | oct_dump),$csv_ifss_6b672ac"
-  else
-    csv_ifss_6b672ac=",$csv_ifss_6b672ac"
-  fi
-  if test $# -gt 0
-  then
-    IFS="$1"
-  fi
-}
-
-# Pop IFS from the stack.
-pop_ifs() {
-  if test -z "$csv_ifss_6b672ac"
-  then
-    return 1
-  fi
-  local v
-  v="${csv_ifss_6b672ac%%,*}"
-  csv_ifss_6b672ac="${csv_ifss_6b672ac#*,}"
-  if test -n "$v"
-  then
-    IFS="$(printf "%s" "$v" | oct_restore)"
-  else
-    unset IFS
-  fi
-}
+#endregion
 
 # ==========================================================================
-# Directory stack.
+#region Directory stack
 
 psv_dirs_4c15d80=
 
@@ -293,8 +220,10 @@ pop_dir() {
   cd "$dir" || return 1
 }
 
+#endregion
+
 # ==========================================================================
-# Map (associative array) functions. "IFS-Separated Map"
+#region Map (associative array) functions. "IFS-Separated Map"
 
 # Put a value in an associative array implemented as a property list.
 ifsm_put() {
@@ -351,8 +280,10 @@ ifsm_values() {
   done
 }
 
+#endregion
+
 # ==========================================================================
-# Fetch and run a command from an archive
+#region Fetch and run a command from an archive
 
 windows_exe_extensions=".exe .EXE .cmd .CMD .bat .BAT"
 
@@ -639,8 +570,10 @@ archive_ext_map=\
 "Windows .zip "\
 ""
 
+#endregion
+
 # ==========================================================================
-# Package command management.
+#region Package command management
 
 # Map: command name -> Homebrew package ID
 usm_brew_ids=
@@ -762,8 +695,10 @@ task_devinstall() {
   fi
 }
 
+#endregion
+
 # ==========================================================================
-# curl(1) // curl https://curl.se/
+#region curl(1) // curl https://curl.se/
 
 # curl(1) is available on macOS and Windows as default.
 require_pkg_cmd \
@@ -779,8 +714,10 @@ subcmd_curl() {
   curl "$@"
 }
 
+#endregion
+
 # ==========================================================================
-# jq(1) // jqlang/jq: Command-line JSON processor https://github.com/jqlang/jq
+#region jq(1) // jqlang/jq: Command-line JSON processor https://github.com/jqlang/jq
 
 jq_prefer_pkg_ec51165=false
 
@@ -828,8 +765,10 @@ subcmd_jq() {
   jq "$@"
 }
 
+#endregion
+
 # ==========================================================================
-# Environment variable management
+#region .env* file management
 
 # Load environment variables from the specified file.
 load_env_file() {
@@ -879,21 +818,10 @@ load_env() {
   load_env_file "$PROJECT_DIR"/.env
 }
 
-# ==========================================================================
-# Misc
+#endregion
 
-# [regex replacement ...] Substitute text that matches regex patterns in stdin input. Takes pairs of regex/replacement arguments and applies them via sed(1).
-resubst() {
-  local sentinel=08ee2b1
-  set -- "$@" "$sentinel"
-  while test "$1" != "$sentinel"
-  do
-    set -- "$@" -e "s${us}$1${us}$2${us}g"
-    shift 2
-  done
-  shift
-  sed "$@"
-}
+# ==========================================================================
+#region Misc
 
 wait_for_server() {
   local url="$1"
@@ -948,11 +876,6 @@ then
   alias shuf='sort -R'
 fi
 
-# Executable file extension.
-exe_ext=
-# shellcheck disable=SC2034
-is_windows && exe_ext=".exe"
-
 is_macos && alias sha1sum='shasum -a 1'
 
 # Memoize the (mainly external) command output.
@@ -963,39 +886,6 @@ memoize() {
     "$@" >"$cache_file_path"
   fi
   cat "$cache_file_path"
-}
-
-# Memoize the output of a series of commands. If you would like to nest, use subprocess function or `memoize` function instead.
-#
-# Usage:
-#   foo() {
-#     begin_memoize 8701441 "$@" || return 0
-#
-#     echo hello
-#     sleep 3 # Takes long time.
-#     echo world
-#
-#     end_memoize
-#   }
-
-# Current cache file path for memoization.
-cache_file_path_cb3727b=
-
-begin_memoize() {
-  cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
-  if test -r "$cache_file_path_cb3727b"
-  then
-    cat "$cache_file_path_cb3727b"
-    return 1
-  fi
-  exec 9>&1
-  exec >"$cache_file_path_cb3727b"
-}
-
-end_memoize() {
-  exec 1>&9
-  exec 9>&-
-  cat "$cache_file_path_cb3727b"
 }
 
 # The path to the shell executable which is running the script.
@@ -1366,30 +1256,6 @@ then
   }
 fi
 
-# Encode positional parameters into a string that can be passed to `eval` to restore the positional parameters.
-#
-# Example:
-#   local eval_args="$(make_eval_args "$@")"
-#   set --
-#   eval "set -- $eval_args"
-make_eval_args() {
-  local arg
-  local first
-  # Quotation character inside parameter expansion confuses static analysis tools.
-  local quote="'"
-  for arg in "$@"
-  do
-    printf "'"
-    until test "$arg" = "${arg#*"$quote"}"
-    do
-      first="${arg%%"$quote"*}"
-      arg="${arg#*"$quote"}"
-      printf "%s'\"'\"'" "$first"
-    done
-    printf "%s' " "$arg"
-  done
-}
-
 # Check if a directory is empty.
 is_dir_empty() {
   if ! test -d "$1"
@@ -1411,8 +1277,23 @@ $(cat "$template_file")
 EOF"
 }
 
+# [regex replacement ...] Substitute text that matches regex patterns in stdin input. Takes pairs of regex/replacement arguments and applies them via sed(1).
+resubst() {
+  local step=2
+  local i=0 n=$(($# / step))
+  while test "$i" -lt "$n"
+  do
+    set -- "$@" -e "s${us}$1${us}$2${us}g"
+    shift $step
+    i=$((i + 1))
+  done
+  sed "$@"
+}
+
+#endregion
+
 # ==========================================================================
-# Install/Update task-sh task scripts.
+#region Install/Update task-sh task scripts
 
 github_prepare_token() {
   first_call b1929c9 || return 0
@@ -1520,7 +1401,7 @@ subcmd_task__install() {
     name="${file##*/}"
     "$VERBOSE" && echo "Name: \"$name\"."
     local indent="  "
-    local node mode last_sha download_url
+    local node mode last_sha
     local last_sha=
     last_sha="$(jq -r --arg name "$name" '.last_sha[$name] // ""' "$state_path")"
     "$VERBOSE" && echo "${indent}Last installed SHA:" "$last_sha"
@@ -1588,8 +1469,10 @@ task_task__update() {
   subcmd_task__install task task.cmd "$@"
 }
 
+#endregion
+
 # ==========================================================================
-# Main.
+#region Main
 
 sub_helps_e4c531b=""
 
@@ -1809,7 +1692,6 @@ tasksh_main() {
 
   # Execute the subcommand and exit.
   local subcmd="$1"
-  TASK_NAME="$subcmd"
   subcmd="$(echo "$subcmd" | sed -r -e 's/:/__/g')"
   if type subcmd_"$subcmd" >/dev/null 2>&1
   then
@@ -1848,7 +1730,6 @@ tasksh_main() {
         args="$(echo "$task_with_args" | sed -r -e 's/^.*\[//' -e 's/\]$//' -e 's/,/ /')"
         ;;
     esac
-    TASK_NAME="$task_name"
     task_name="$(echo "$task_name" | sed -r -e 's/:/__/g')"
     if type task_"$task_name" >/dev/null 2>&1
     then
@@ -1881,3 +1762,5 @@ case "${0##*/}" in
     tasksh_main "$@"
     ;;
 esac
+
+#endregion
