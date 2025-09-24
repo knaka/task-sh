@@ -5,6 +5,14 @@
 . ./_assert.lib.sh
 . ./task.sh
 
+is_ci() {
+  test "${CI+set}" = set
+}
+
+is_ci_macos() {
+  is_ci && is_macos
+}
+
 toupper_4c7e44e() {
   printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
@@ -396,9 +404,9 @@ test_memoize() {
   assert_eq "foo hoge fuga" "$result"
 }
 
-test_task_sh_help() (
+test_task_sh_help() {
   invoke ./task | grep -q 'Run curl'
-)
+}
 
 test_escape_sequence() {
   # Color
@@ -407,13 +415,13 @@ test_escape_sequence() {
   assert_eq "$(printf "hoge\nfuga\nhare\n")" "$(printf "hoge\n\033[1Afuga\n\033[1Ahare\n" | strip_escape_sequences)"
 }
 
-test_resubst() (
-  expected="$TEMP_DIR/1f261a6"
+test_resubst() {
+  local expected="$TEMP_DIR/1f261a6"
   cat <<EOF >"$expected"
 hoge FOO fuga
 hare BAR hore
 EOF
-  actual="$TEMP_DIR/fde683d"
+  local actual="$TEMP_DIR/fde683d"
   resubst \
     foo FOO \
     bar BAR \
@@ -422,4 +430,4 @@ hoge foo fuga
 hare bar hore
 EOF
   assert_eq "$(sha256sum "$expected" | field 1)" "$(sha256sum "$actual" | field 1)"
-)
+}
