@@ -402,7 +402,7 @@ invoke() {
 
 # Canonicalize `uname -s` result
 uname_s() {
-  local os_name="$(uname -s)"
+  local os_name; os_name="$(uname -s)"
   case "$os_name" in
     (Windows_NT|MINGW*|CYGWIN*) os_name="Windows" ;;
   esac
@@ -483,9 +483,9 @@ run_fetched_cmd() {
   then
     local ver="$ver"
     # shellcheck disable=SC2034
-    local os="$(map_os "$os_map")"
+    local os; os="$(map_os "$os_map")" || return $?
     # shellcheck disable=SC2034
-    local arch="$(map_arch "$arch_map")"
+    local arch; arch="$(map_arch "$arch_map")" || return $?
     if test -z "$ext" -a -n "$ext_map"
     then
       ext="$(map_os "$ext_map")"
@@ -494,7 +494,7 @@ run_fetched_cmd() {
     then
       IFS="$ifs_saved"
     fi
-    local url="$(eval echo "$url_template")"
+    local url; url="$(eval echo "$url_template")" || return $?
     init_temp_dir
     local out_file_path="$TEMP_DIR"/"$name""$ext"
     if ! curl --fail --location "$url" --output "$out_file_path"
@@ -513,7 +513,7 @@ run_fetched_cmd() {
     pop_dir
     if test -n "$ext"
     then
-      local rel_dir_path="$(eval echo "$rel_dir_template")"
+      local rel_dir_path; rel_dir_path="$(eval echo "$rel_dir_template")"
       mv "$work_dir_path"/"$rel_dir_path"/* "$app_dir_path"
     else
       mv "$out_file_path" "$cmd_path"
@@ -880,7 +880,8 @@ is_macos && alias sha1sum='shasum -a 1'
 
 # Memoize the (mainly external) command output.
 memoize() {
-  local cache_file_path="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
+  local cache_file_path
+  cache_file_path="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
   if ! test -r "$cache_file_path"
   then
     "$@" >"$cache_file_path"
@@ -1080,7 +1081,7 @@ browse() {
 get_key() {
   if is_linux || is_macos
   then
-    local saved_stty="$(stty -g)"
+    local saved_stty; saved_stty="$(stty -g)" || return $?
     stty -icanon -echo
     dd bs=1 count=1 2>/dev/null
     stty "$saved_stty"
@@ -1347,7 +1348,8 @@ github_tree_get() {
   shift $((OPTIND-1))
 
   # REST API endpoints for Git trees - GitHub Docs https://docs.github.com/en/rest/git/trees
-  local url="$(printf "https://api.github.com/repos/%s/%s/git/trees/%s" "$owner" "$repos" "$tree_sha")"
+  local url
+  url="$(printf "https://api.github.com/repos/%s/%s/git/trees/%s" "$owner" "$repos" "$tree_sha")"
   github_api_request "$url"
 }
 
@@ -1370,7 +1372,8 @@ github_raw_fetch() {
   shift $((OPTIND-1))
 
   path="${path#/}"
-  local url="$(printf "https://raw.githubusercontent.com/%s/%s/%s/%s" "$owner" "$repos" "$tree_sha" "$path")"
+  local url
+  url="$(printf "https://raw.githubusercontent.com/%s/%s/%s/%s" "$owner" "$repos" "$tree_sha" "$path")"
   curl --fail --silent "$url"
 }
 
@@ -1388,7 +1391,7 @@ subcmd_task__install() {
   local resp
   local main_branch=main
   resp="$(github_tree_get --owner="knaka" --repos="task-sh")"
-  local latest_commit="$(printf "%s" "$resp" | jq -r .sha)"
+  local latest_commit; latest_commit="$(printf "%s" "$resp" | jq -r .sha)"
   "$VERBOSE" && echo "Latest commit of \"$main_branch\" is \"$latest_commit\"." >&2
   if ! test -r "$state_path"
   then
@@ -1533,7 +1536,7 @@ EOF
     else
       echo "Tasks:"
     fi
-    local max_name_len="$(
+    local max_name_len; max_name_len="$(
       echo "$lines" \
       | while read -r t name _
       do
@@ -1559,7 +1562,7 @@ EOF
 
 # Execute a command in task.sh context.
 subcmd_task__exec() {
-  local saved_shell_flags="$(set +o)"
+  local saved_shell_flags; saved_shell_flags="$(set +o)"
   set +o errexit
   if alias "$1" >/dev/null 2>&1
   then
@@ -1640,8 +1643,10 @@ tasksh_main() {
 
   chaintrap kill_child_processes EXIT TERM INT
 
-  export PROJECT_DIR="$(realpath "$PROJECT_DIR")"
-  export TASKS_DIR="$(realpath "$TASKS_DIR")"
+  PROJECT_DIR="$(realpath "$PROJECT_DIR")"
+  export PROJECT_DIR
+  TASKS_DIR="$(realpath "$TASKS_DIR")"
+  export TASKS_DIR
 
   # Before loading task files, permit running task:install to fetch and overwrite existing task files even when they cannot be loaded due to errors or missing `source`d files.
   if test "$#" -gt 0 && test "$1" = "task:install" -o "$1" = "subcmd_task__install"
