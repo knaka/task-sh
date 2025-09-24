@@ -5,6 +5,14 @@
 . ./_assert.lib.sh
 . ./task.sh
 
+is_ci() {
+  test "${CI+set}" = set
+}
+
+is_ci_macos() {
+  is_ci && is_macos
+}
+
 toupper_4c7e44e() {
   printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
@@ -393,12 +401,12 @@ test_escape_sequence() {
 }
 
 test_resubst() {
-  expected="$TEMP_DIR/1f261a6"
+  local expected="$TEMP_DIR/1f261a6"
   cat <<EOF >"$expected"
 hoge FOO fuga
 hare BAR hore
 EOF
-  actual="$TEMP_DIR/fde683d"
+  local actual="$TEMP_DIR/fde683d"
   resubst \
     foo FOO \
     bar BAR \
