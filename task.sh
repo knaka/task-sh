@@ -46,17 +46,6 @@ mkdir -p "$CACHE_DIR"
 #endregion
 
 # ==========================================================================
-#region Basic
-
-# Guard against multiple calls. $1 is a unique ID
-first_call() {
-  eval "\${called_$1-false}" && return 1
-  eval "called_$1=true"
-}
-
-#endregion
-
-# ==========================================================================
 #region Temporary directory and cleaning up
 
 TEMP_DIR=; unset TEMP_DIR
@@ -75,8 +64,8 @@ readonly stmts_file_id=523f163
 chaintrap() {
   local stmts_new="$1"
   shift 
-  init_temp_dir
-  # Base name of the script file containing the statements to be called during finalization
+  init_temp_dir || return $?
+  # Basename of the script file containing the statements to be called during finalization
   local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_old_file="$TEMP_DIR"/347803f
   local sigspec
@@ -110,7 +99,18 @@ finalize() {
 #endregion
 
 # ==========================================================================
-#region Platform detection
+#region Utilities
+
+# Guard against multiple calls. $1 is a unique ID
+first_call() {
+  eval "\${called_$1-false}" && return 1
+  eval "called_$1=true"
+}
+
+#endregion
+
+# ==========================================================================
+#region Platform detection. Detect platform without using subprocesses whenever possible.
 
 is_linux() {
   test -d /proc -o -d /sys
@@ -195,7 +195,7 @@ set_ifs_blank() {
 # ==========================================================================
 #region Directory stack
 
-psv_dirs_4c15d80=
+psv_dirs_4c15d80=""
 
 # `pushd` alternative.
 push_dir() {
@@ -248,7 +248,7 @@ ifsm_get() {
   set -- $1
   while test $# -gt 0
   do
-    test "$1" = "$key" && printf "%s" "$2" && return
+    test "$1" = "$key" && printf "%s" "$2" && return 0
     shift 2
   done
   return 1
@@ -291,8 +291,8 @@ windows_exe_extensions=".exe .EXE .cmd .CMD .bat .BAT"
 #
 # Invocation mode can be specified via INVOCATION_MODE environment variable:
 #   INVOCATION_MODE=standard: (Default) Run the command in the current process.
-#   INVOCATION_MODE=exec: Replace the process with the command.
-#   INVOCATION_MODE=exec-direct: Replace the process with the command, without calling cleanups.
+#   INVOCATION_MODE=exec: Replace this process with the command.
+#   INVOCATION_MODE=exec-direct: Replace this process with the command, without calling cleanups.
 #   INVOCATION_MODE=background: Run the command in the background.
 #
 # Invocation mode can be specified also with `--invocation-mode=...` option. The option is excluded from final arguments which are passed to the external command.
@@ -437,7 +437,6 @@ run_fetched_cmd() {
   local ver=
   local cmd=
   local ifs=
-  local ifs_saved=
   local os_map=
   local arch_map=
   local ext=
@@ -471,21 +470,24 @@ run_fetched_cmd() {
   then
     cmd="$name"
   fi
-  if test -n "$ifs"
-  then
-    ifs_saved="$IFS"
-    IFS="$ifs"
-  fi
   local app_dir_path="$CACHE_DIR"/"$name"@"$ver"
   mkdir -p "$app_dir_path"
   local cmd_path="$app_dir_path"/"$cmd""$exe_ext"
   if ! command -v "$cmd_path" >/dev/null 2>&1
   then
+    local ifs_saved=
+    if test -n "$ifs"
+    then
+      ifs_saved="$IFS"
+      IFS="$ifs"
+    fi
     local ver="$ver"
+    local os
     # shellcheck disable=SC2034
-    local os; os="$(map_os "$os_map")" || return $?
+    os="$(map_os "$os_map")" || return $?
+    local arch
     # shellcheck disable=SC2034
-    local arch; arch="$(map_arch "$arch_map")" || return $?
+    arch="$(map_arch "$arch_map")" || return $?
     if test -z "$ext" -a -n "$ext_map"
     then
       ext="$(map_os "$ext_map")"
@@ -884,39 +886,13 @@ memoize() {
   cache_file_path="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
   if ! test -r "$cache_file_path"
   then
-    "$@" >"$cache_file_path"
+    "$@" >"$cache_file_path" || return $?
   fi
   cat "$cache_file_path"
 }
 
-# The path to the shell executable which is running the script.
-shell_path() {
-  begin_memoize d57754a "$@" || return 0
-
-  if test "${BASH+set}" = set
-  then
-    echo "$BASH"
-  elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
-  then
-    echo "$SHELL"
-  else
-    local path=
-    if test -e /proc/$$/exe
-    then
-      path="$(realpath /proc/$$/exe)" || return 1
-    else
-      path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
-    fi
-    echo "$path"
-  fi
-
-  end_memoize
-}
-
 # The implementation name of the shell which is running the script. Not "sh" but "bash", "ash", "dash", etc.
 shell_name() {
-  begin_memoize 09e4c0d "$@" || return 0
-
   if test "${BASH+set}" = set
   then
     echo "bash"
@@ -950,8 +926,6 @@ shell_name() {
         ;;
     esac
   fi
-
-  end_memoize
 }
 
 is_dash() {
@@ -1089,7 +1063,7 @@ get_key() {
   fi
   local key
   # Bash and BusyBox Ash provide the `-s` (silent mode) option.
-  if test is_ash || is_bash
+  if is_ash || is_bash
   then
     # shellcheck disable=SC3045
     read -rsn1 key
@@ -1443,7 +1417,7 @@ subcmd_task__install() {
       continue
     fi
     # shellcheck disable=SC2059
-    printf "Downloading \"$name\" to \"$name\" ... " >&2
+    printf "Downloading \"$name\" ... " >&2
     github_raw_fetch --owner="knaka" --repos="task-sh" --tree-sha="$latest_commit" --path=/"$name" >"$file"
     echo "done." >&2
     local temp_json="$TEMP_DIR"/1caef61.json
@@ -1603,7 +1577,7 @@ call_task() {
     if type "before_$prefix" >/dev/null 2>&1
     then
       "$VERBOSE" && echo "Calling before function:" "before_$prefix" "$func_name" "$@" >&2
-      "before_$prefix" "$func_name" "$@"
+      "before_$prefix" "$func_name" "$@" || return $?
     fi
     test -z "$prefix" && break
     case "$prefix" in
@@ -1612,14 +1586,12 @@ call_task() {
     esac
   done
   "$VERBOSE" && echo "Calling task function:" "$func_name" "$@" >&2
-  rc=0
   if alias "$func_name" >/dev/null 2>&1
   then
     # shellcheck disable=SC2294
-    eval "$func_name" "$@"
+    eval "$func_name" "$@" || return $?
   else
-    "$func_name" "$@"
-    rc="$?"
+    "$func_name" "$@" || return $?
   fi
   prefix="$task_name"
   while :
@@ -1627,7 +1599,7 @@ call_task() {
     if type "after_$prefix" >/dev/null 2>&1
     then
       "$VERBOSE" && echo "Calling after function:" "after_$prefix" "$func_name" "$@" >&2
-      "after_$prefix" "$func_name" "$@"
+      "after_$prefix" "$func_name" "$@" || return $?
     fi
     case "$prefix" in
       (*__*) ;;
@@ -1635,7 +1607,6 @@ call_task() {
     esac
     prefix="${prefix%__*}"
   done
-  return "$rc"
 }
 
 tasksh_main() {

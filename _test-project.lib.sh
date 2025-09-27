@@ -277,17 +277,33 @@ test_dumper() {
   assert_eq "hello3" "$result"
 }
 
-is_ci() {
-  test "${CI+set}" = set
-}
-
-is_ci_mac() {
-  is_ci && is_macos
-}
-
 test_killing() {
   skip_unless_all
   invoke ./task killng_test
+}
+
+# The path to the shell executable which is running the script.
+shell_path() {
+  begin_memoize d57754a "$@" || return 0
+
+  if test "${BASH+set}" = set
+  then
+    echo "$BASH"
+  elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    echo "$SHELL"
+  else
+    local path=
+    if test -e /proc/$$/exe
+    then
+      path="$(realpath /proc/$$/exe)" || return 1
+    else
+      path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+    fi
+    echo "$path"
+  fi
+
+  end_memoize
 }
 
 test_shell() {
@@ -415,4 +431,19 @@ hoge foo fuga
 hare bar hore
 EOF
   assert_eq "$(sha256sum "$expected" | field 1)" "$(sha256sum "$actual" | field 1)"
+}
+
+xc640743=0
+
+called_only_once() {
+  first_call ee68f48 || return 0
+  xc640743=$((xc640743 + 1))
+}
+
+test_called_only_once() {
+  assert_eq 0 "$xc640743"
+  called_only_once
+  assert_eq 1 "$xc640743"
+  called_only_once
+  assert_eq 1 "$xc640743"
 }
