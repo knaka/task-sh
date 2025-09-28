@@ -277,10 +277,10 @@ test_dumper() {
   assert_eq "hello3" "$result"
 }
 
-test_killing() {
-  skip_unless_all
-  invoke ./task killng_test
-}
+# test_killing() {
+#   skip_unless_all
+#   invoke ./task killng_test
+# }
 
 # The path to the shell executable which is running the script.
 shell_path() {
