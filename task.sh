@@ -891,6 +891,50 @@ memoize() {
   cat "$cache_file_path"
 }
 
+# Current cache file path for memoization.
+cache_file_path_cb3727b=
+
+begin_memoize() {
+  cache_file_path_cb3727b="$TEMP_DIR"/cache-"$(echo "$@" | sha1sum | cut -d' ' -f1)"
+  if test -r "$cache_file_path_cb3727b"
+  then
+    cat "$cache_file_path_cb3727b"
+    return 1
+  fi
+  exec 9>&1
+  exec >"$cache_file_path_cb3727b"
+}
+
+end_memoize() {
+  exec 1>&9
+  exec 9>&-
+  cat "$cache_file_path_cb3727b"
+}
+
+# The path to the shell executable which is running the script.
+shell_path() {
+  begin_memoize d57754a "$@" || return 0
+
+  if test "${BASH+set}" = set
+  then
+    echo "$BASH"
+  elif is_windows && test "${SHELL+set}" = set && test "$SHELL" = "/bin/sh" && "$SHELL" --help 2>&1 | grep -q "BusyBox"
+  then
+    echo "$SHELL"
+  else
+    local path=
+    if test -e /proc/$$/exe
+    then
+      path="$(realpath /proc/$$/exe)" || return 1
+    else
+      path="$(realpath "$(ps -p $$ -o comm=)")" || return 1
+    fi 
+    echo "$path"
+  fi
+
+  end_memoize
+}
+
 # The implementation name of the shell which is running the script. Not "sh" but "bash", "ash", "dash", etc.
 shell_name() {
   if test "${BASH+set}" = set
