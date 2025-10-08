@@ -24,9 +24,9 @@ subcmd_subtree__add() {
     local name="$1"
     local info=
     info="$(subtree_info "$name")"
-    local repository="$(echo "$info" | yq ".repository")"
-    local branch="$(echo "$info" | yq ".branch")"
-    local prefix="$(echo "$info" | yq ".prefix")"
+    local repository; repository="$(echo "$info" | yq ".repository")"
+    local branch; branch="$(echo "$info" | yq ".branch")"
+    local prefix; prefix="$(echo "$info" | yq ".prefix")"
     git subtree add --prefix "$prefix" "$repository" "$branch"
   elif test "$#" -ge 2
   then
@@ -43,7 +43,7 @@ subcmd_subtree__add() {
       branch="$3"
     else
       echo "Detecting the main branch for \"$repository\" ..." >&2
-      local refs="$(git ls-remote "$repository")"
+      local refs; refs="$(git ls-remote "$repository")"
       if echo "$refs" | grep -q 'refs/heads/main$'
       then
         branch=main
@@ -57,7 +57,7 @@ subcmd_subtree__add() {
     fi
     git subtree add --prefix "$prefix" "$repository" "$branch"
     touch .subtree.yaml
-    local subtree_alias="$(basename "$prefix")"
+    local subtree_alias; subtree_alias="$(basename "$prefix")"
     yq --inplace ". += [{\"prefix\": \"$prefix\", \"alias\": \"$subtree_alias\", \"repository\": \"$repository\", \"branch\": \"$branch\"}]" .subtree.yaml
   else
     cat <<EOF >&2
@@ -83,9 +83,9 @@ subtree() {
   local name="$2"
   local info=
   info="$(subtree_info "$name")"
-  local target_dir="$(echo "$info" | yq ".prefix")"
-  local repository="$(echo "$info" | yq ".repository")"
-  local branch="$(echo "$info" | yq ".branch")"
+  local target_dir; target_dir="$(echo "$info" | yq ".prefix")"
+  local repository; repository="$(echo "$info" | yq ".repository")"
+  local branch; branch="$(echo "$info" | yq ".branch")"
   git subtree "$git_subcmd" --prefix "$target_dir" "$repository" "$branch"
 }
 
@@ -101,7 +101,7 @@ subcmd_subtree__pull() {
 
 subtree_info() {
   local name="$1"
-  local info="$(yq ".[] | select(.prefix == \"$name\" or .alias == \"$name\")" .subtree.yaml)"
+  local info; info="$(yq ".[] | select(.prefix == \"$name\" or .alias == \"$name\")" .subtree.yaml)"
   if test -z "$info"
   then
     echo "\"$name\" is not a valid subtree. Aborting." >&2
@@ -115,6 +115,6 @@ subcmd_subtree__info() {
   local name="$1"
   local info=
   info="$(subtree_info "$name")"
-  local target_dir="$(echo "$info" | yq ".prefix")"
+  local target_dir; target_dir="$(echo "$info" | yq ".prefix")"
   git log --grep="git-subtree-dir: $target_dir"
 }
