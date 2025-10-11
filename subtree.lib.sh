@@ -78,7 +78,7 @@ subcmd_subtree__remove() {
   yq --inplace "del(.\"$target_dir\")" .subtree.yaml
 }
 
-subtree() {
+subtree_push_or_pull() {
   local git_subcmd="$1"
   local name="$2"
   local info=
@@ -91,12 +91,12 @@ subtree() {
 
 # Push subtree changes to remote repository.
 subcmd_subtree__push() {
-  subtree push "$@"
+  subtree_push_or_pull push "$@"
 }
 
 # Pull subtree changes from remote repository.
 subcmd_subtree__pull() {
-  subtree pull "$@"
+  subtree_push_or_pull pull "$@"
 }
 
 subtree_info() {
