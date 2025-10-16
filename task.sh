@@ -1557,18 +1557,20 @@ EOF
     local max_name_len; max_name_len="$(
       echo "$lines" \
       | while read -r t name _
-      do
-        test "$t" = "$i" || continue
-        echo "${#name}"
-      done \
+        do
+          test "$t" = "$i" || continue
+          echo "${#name}"
+        done \
       | sort -nr \
       | head -1
     )"
-    echo "$lines" | while read -r type name desc
-    do
-      test "$type" = "$i" || continue
-      printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
-    done | sort
+    echo "$lines" \
+    | while read -r type name desc
+      do
+        test "$type" = "$i" || continue
+        printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
+      done \
+    | sort
   done
   local sub_help
   for sub_help in $sub_helps_e4c531b
