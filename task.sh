@@ -1462,6 +1462,11 @@ subcmd_task__install() {
     fi
     # shellcheck disable=SC2059
     printf "Downloading \"$name\" ... " >&2
+    if test "$name" = "task.sh"
+    then
+      chaintrap "mv \"$file.new\" \"$file\"" EXIT
+      local file="$file.new"
+    fi
     github_raw_fetch --owner="knaka" --repos="task-sh" --tree-sha="$latest_commit" --path=/"$name" >"$file"
     echo "done." >&2
     local temp_json="$TEMP_DIR"/1caef61.json
