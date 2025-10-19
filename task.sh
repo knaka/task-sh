@@ -1462,6 +1462,12 @@ subcmd_task__install() {
     fi
     # shellcheck disable=SC2059
     printf "Downloading \"$name\" ... " >&2
+    if test "$name" = "task.sh"
+    then
+      "$VERBOSE" && Lazily replacing $file.new to $file.
+      chaintrap "mv \"$file.new\" \"$file\"" EXIT
+      local file="$file.new"
+    fi
     github_raw_fetch --owner="knaka" --repos="task-sh" --tree-sha="$latest_commit" --path=/"$name" >"$file"
     echo "done." >&2
     local temp_json="$TEMP_DIR"/1caef61.json
@@ -1476,18 +1482,23 @@ subcmd_task__install() {
 
 # Update task-sh files.
 task_task__update() {
-  local exclude=":$TASKS_DIR/project.lib.sh:"
-  set --
   local file
+  local excludes=":"
+  for file in "$TASKS_DIR"/project*.lib.sh
+  do
+    test -e "$file" || continue
+    excludes="$excludes:$file:"
+  done
+  set --
   for file in "$TASKS_DIR"/*.lib.sh "$TASKS_DIR"/task.sh
   do
     test -r "$file" || continue
-    case "$exclude" in
+    case "$excludes" in
       (*:$file:*) continue;;
     esac
     set -- "$@" "$file"
   done
-  subcmd_task__install task task.cmd "$@"
+  subcmd_task__install "$INITIAL_PWD"/task "$INITIAL_PWD"/task.cmd "$@"
 }
 
 #endregion

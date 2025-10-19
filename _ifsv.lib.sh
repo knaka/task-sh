@@ -155,8 +155,8 @@ ifsv_sort() {
   local vec="$1"
   shift
   test -z "$vec" && return
-  # shellcheck disable=SC2086
-  local lines="$(
+  local lines; lines="$(
+    # shellcheck disable=SC2086
     printf "%s\n" $vec \
     | if test "$#" -eq 0
       then
