@@ -1476,13 +1476,18 @@ subcmd_task__install() {
 
 # Update task-sh files.
 task_task__update() {
-  local exclude=":$TASKS_DIR/project.lib.sh:"
-  set --
   local file
+  local excludes=":"
+  for file in "$TASKS_DIR"/project*.lib.sh
+  do
+    test -e "$file" || continue
+    excludes="$excludes:$file:"
+  done
+  set --
   for file in "$TASKS_DIR"/*.lib.sh "$TASKS_DIR"/task.sh
   do
     test -r "$file" || continue
-    case "$exclude" in
+    case "$excludes" in
       (*:$file:*) continue;;
     esac
     set -- "$@" "$file"
