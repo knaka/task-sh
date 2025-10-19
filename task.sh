@@ -1487,7 +1487,7 @@ task_task__update() {
     esac
     set -- "$@" "$file"
   done
-  subcmd_task__install task task.cmd "$@"
+  subcmd_task__install "$INITIAL_PWD"/task "$INITIAL_PWD"/task.cmd "$@"
 }
 
 #endregion
