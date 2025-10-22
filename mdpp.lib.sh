@@ -6,7 +6,7 @@
 
 . ./task.sh
 
-mdpp_version_91a5418=v0.9.5
+mdpp_version_91a5418=v0.9.6
 
 set_mdpp_version() {
   mdpp_version_91a5418="$1"
