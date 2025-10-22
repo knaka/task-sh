@@ -1519,10 +1519,10 @@ psv_task_file_paths_4a5f3ab=
 tasksh_help() {
   cat <<EOF
 Usage:
-  $ARG0BASE [options] <subcommand> [args...]
-  $ARG0BASE [options] <task[arg1,arg2,...]> [tasks...]
+  $ARG0BASE [flags] <subcommand> [args...]
+  $ARG0BASE [flags] <task[arg1,arg2,...]> [tasks...]
 
-Options:
+Flags:
   -d, --directory=<dir>  Change directory before running tasks.
   -h, --help             Display this help and exit.
   -v, --verbose          Verbose mode.
@@ -1537,7 +1537,7 @@ EOF
           gsub(/^#+[ ]*/, "", desc)
           next
         }
-        /^(task_|subcmd_)[[:alnum:]_]()/ { 
+        /^(task_|subcmd_)[[:alnum:]_]()/ {
           func_name = $1
           sub(/\(\).*$/, "", func_name)
           type = func_name
@@ -1545,7 +1545,9 @@ EOF
           name = func_name
           sub(/^[^_]+_/, "", name)
           gsub(/__/, ":", name)
-          print type " " name " " desc
+          basename = FILENAME
+          sub(/^.*\//, "", basename)
+          print type " " name " " basename " " desc
           desc = ""
           next
         }
@@ -1576,12 +1578,18 @@ EOF
       | head -1
     )"
     echo "$lines" \
-    | while read -r type name desc
+    | sort \
+    | while read -r type name basename desc
       do
         test "$type" = "$i" || continue
-        printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
-      done \
-    | sort
+        case "${basename}" in
+          (project*.lib.sh)
+            printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc";;
+          (*)
+            printf "  %-${max_name_len}s  %s (%s)\n" "$name" "$desc"
+            ;;
+        esac
+      done
   done
   local sub_help
   for sub_help in $sub_helps_e4c531b
