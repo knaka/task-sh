@@ -1584,9 +1584,13 @@ EOF
         test "$type" = "$i" || continue
         case "${basename}" in
           (project*.lib.sh)
-            printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc";;
+            # printf '\033[4m%s\033[0m' "$1"
+            # printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc"
+            # printf "  \033[4m%-${max_name_len}s\033[0m  %s\n" "$name" "$desc"
+            printf "* %s %-${max_name_len}s  %s\n" "$name" "$desc"
+            ;;
           (*)
-            printf "  %-${max_name_len}s  %s (%s)\n" "$name" "$desc"
+            printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
             ;;
         esac
       done
