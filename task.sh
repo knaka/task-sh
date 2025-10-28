@@ -107,6 +107,10 @@ first_call() {
   eval "called_$1=true"
 }
 
+is_terminal() {
+  test -t 1
+}
+
 #endregion
 
 # ==========================================================================
@@ -1586,8 +1590,14 @@ EOF
           (project*.lib.sh)
             # printf '\033[4m%s\033[0m' "$1"
             # printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc"
-            # printf "  \033[4m%-${max_name_len}s\033[0m  %s\n" "$name" "$desc"
-            printf "* %-${max_name_len}s  %s\n" "$name" "$desc"
+            # underline
+            if is_terminal
+            then
+              printf "  \033[4m%-${max_name_len}s\033[0m  %s\n" "$name" "$desc"
+            else
+              # asterisk
+              printf "* %-${max_name_len}s  %s\n" "$name" "$desc"
+            fi
             ;;
           (*)
             printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
