@@ -1375,6 +1375,13 @@ github_tree_get() {
   github_api_request "$url"
 }
 
+# Fetch raw content of a file from a GitHub repository
+# Usage: github_raw_fetch [OPTIONS]
+# Options:
+#   --owner=OWNER         GitHub repository owner/organization
+#   --repos=REPOS         GitHub repository name
+#   --tree-sha=SHA        Tree SHA, branch name, or tag name (default: main). Aliases: --branch, --tag, --tree
+#   --path=PATH           Path to the file within the repository
 github_raw_fetch() {
   local owner=
   local repos=
