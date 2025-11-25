@@ -4,6 +4,7 @@
 
 . ./task.sh
 
+# todo: Add Windows package
 require_pkg_cmd \
   --deb-id=make \
   make
