@@ -126,6 +126,15 @@ subcmd_npm__upgrade() {
   fi
 }
 
+# List installed packages.
+subcmd_npm__list() {
+  if test $# -eq 0
+  then
+    set -- --all "$@"
+  fi
+  npm list "$@"
+}
+
 # Run the bin file in the node_modules/.
 run_node_modules_bin() {
   local relpath="$1"
