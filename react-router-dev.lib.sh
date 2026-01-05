@@ -12,8 +12,8 @@ rr_dev() {
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
-      (host) brew_id=$OPTARG;;
-      (port) deb_id=$OPTARG;;
+      (host) host=$OPTARG;;
+      (port) port=$OPTARG;;
       (\?) exit 1;;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
@@ -25,11 +25,6 @@ rr_dev() {
   fi
   set -- dev --host="$host" --port="$port" "$@"
   local url="http://$host:$port"
-  if ! test -t 0
-  then
-    react_router "$@"
-    return $?
-  fi
   react_router "$@" --invocation-mode=background </dev/null
   wait_for_server "$url"
   while :

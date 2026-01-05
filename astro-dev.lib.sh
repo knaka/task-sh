@@ -5,18 +5,31 @@
 . ./task.sh
 . ./astro.lib.sh
 
-# Launch the Astro development server.
-task_astro__dev() {
+astro_dev() {
   export APP_ENV=development
   export NODE_ENV="$APP_ENV"
   load_env
-  local host="${ASTRO_DEV_HOST:-127.0.0.1}"
-  local port="${ASTRO_DEV_PORT:-3000}"
-  set -- "$@" --host "$host"
-  set -- "$@" --port "$port"
-  if test "${ASTRO_DYNAMIC_PORT+set}" = set
+
+  local host=
+  local port=0
+  OPTIND=1; while getopts _-: OPT
+  do
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
+    case "$OPT" in
+      (host) host=$OPTARG;;
+      (port) port=$OPTARG;;
+      (*) echo "Unexpected option: $OPT" >&2; exit 1;;
+    esac
+  done
+  shift $((OPTIND-1))
+
+  if test -n "$host"
   then
-    export ASTRO_DYNAMIC_PORT
+    set -- "$@" --host "$host"
+  fi
+  if test "$port" -ne 0
+  then
+    set -- "$@" --port "$port"
   fi
   INVOCATION_MODE=background astro --root "$astro_project_dir_0135e32" dev "$@"
   wait_for_server "http://$host:$port"
@@ -33,4 +46,9 @@ task_astro__dev() {
       (*) ;;
     esac
   done
+}
+
+# Launch the Astro development server.
+task_astro__dev() {
+  astro_dev
 }
