@@ -56,6 +56,11 @@ npm() {
   invoke npm "$@"
 }
 
+npx() {
+  set_node_env
+  invoke npx "$@"
+}
+
 # Run npm.
 subcmd_npm() {
   npm "$@"
@@ -99,6 +104,26 @@ npm_depinstall() {
 # Install the npm packages if the package.json is modified.
 subcmd_npm__install() {
   npm_depinstall "$@"
+}
+
+# npm-check-updates - npm https://www.npmjs.com/package/npm-check-updates
+ncu() {
+  npx --yes --package="npm-check-updates" -- ncu "$@"
+}
+
+# Check for available package updates.
+subcmd_ncu() {
+  ncu "$@"
+}
+
+# Check and optionally upgrade packages. Without arguments, only checks for updates. With package names, upgrades the specified packages.
+subcmd_npm__upgrade() {
+  if test $# -eq 0
+  then
+    ncu
+  else
+    ncu --upgrade "$@"
+  fi
 }
 
 # Run the bin file in the node_modules/.
