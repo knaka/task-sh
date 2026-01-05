@@ -118,3 +118,8 @@ subcmd_subtree__info() {
   local target_dir="$(echo "$info" | yq ".prefix")"
   git log --grep="git-subtree-dir: $target_dir"
 }
+
+# List subtree-s.
+subcmd_subtree__list() {
+  cat .subtree.yaml
+}
