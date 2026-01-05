@@ -107,6 +107,10 @@ first_call() {
   eval "called_$1=true"
 }
 
+is_terminal() {
+  test -t 1
+}
+
 #endregion
 
 # ==========================================================================
@@ -1462,6 +1466,12 @@ subcmd_task__install() {
     fi
     # shellcheck disable=SC2059
     printf "Downloading \"$name\" ... " >&2
+    if test "$name" = "task.sh"
+    then
+      "$VERBOSE" && Lazily replacing $file.new to $file.
+      chaintrap "mv \"$file.new\" \"$file\"" EXIT
+      local file="$file.new"
+    fi
     github_raw_fetch --owner="knaka" --repos="task-sh" --tree-sha="$latest_commit" --path=/"$name" >"$file"
     echo "done." >&2
     local temp_json="$TEMP_DIR"/1caef61.json
@@ -1476,18 +1486,23 @@ subcmd_task__install() {
 
 # Update task-sh files.
 task_task__update() {
-  local exclude=":$TASKS_DIR/project.lib.sh:"
-  set --
   local file
+  local excludes=":"
+  for file in "$TASKS_DIR"/project*.lib.sh
+  do
+    test -e "$file" || continue
+    excludes="$excludes:$file:"
+  done
+  set --
   for file in "$TASKS_DIR"/*.lib.sh "$TASKS_DIR"/task.sh
   do
     test -r "$file" || continue
-    case "$exclude" in
+    case "$excludes" in
       (*:$file:*) continue;;
     esac
     set -- "$@" "$file"
   done
-  subcmd_task__install task task.cmd "$@"
+  subcmd_task__install "$INITIAL_PWD"/task "$INITIAL_PWD"/task.cmd "$@"
 }
 
 #endregion
@@ -1508,10 +1523,10 @@ psv_task_file_paths_4a5f3ab=
 tasksh_help() {
   cat <<EOF
 Usage:
-  $ARG0BASE [options] <subcommand> [args...]
-  $ARG0BASE [options] <task[arg1,arg2,...]> [tasks...]
+  $ARG0BASE [flags] <subcommand> [args...]
+  $ARG0BASE [flags] <task[arg1,arg2,...]> [tasks...]
 
-Options:
+Flags:
   -d, --directory=<dir>  Change directory before running tasks.
   -h, --help             Display this help and exit.
   -v, --verbose          Verbose mode.
@@ -1526,7 +1541,7 @@ EOF
           gsub(/^#+[ ]*/, "", desc)
           next
         }
-        /^(task_|subcmd_)[[:alnum:]_]()/ { 
+        /^(task_|subcmd_)[[:alnum:]_]()/ {
           func_name = $1
           sub(/\(\).*$/, "", func_name)
           type = func_name
@@ -1534,7 +1549,9 @@ EOF
           name = func_name
           sub(/^[^_]+_/, "", name)
           gsub(/__/, ":", name)
-          print type " " name " " desc
+          basename = FILENAME
+          sub(/^.*\//, "", basename)
+          print type " " name " " basename " " desc
           desc = ""
           next
         }
@@ -1557,18 +1574,36 @@ EOF
     local max_name_len; max_name_len="$(
       echo "$lines" \
       | while read -r t name _
-      do
-        test "$t" = "$i" || continue
-        echo "${#name}"
-      done \
+        do
+          test "$t" = "$i" || continue
+          echo "${#name}"
+        done \
       | sort -nr \
       | head -1
     )"
-    echo "$lines" | while read -r type name desc
-    do
-      test "$type" = "$i" || continue
-      printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
-    done | sort
+    echo "$lines" \
+    | sort \
+    | while read -r type name basename desc
+      do
+        test "$type" = "$i" || continue
+        case "${basename}" in
+          (project*.lib.sh)
+            # printf '\033[4m%s\033[0m' "$1"
+            # printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc"
+            # underline
+            if is_terminal
+            then
+              printf "  \033[4m%-${max_name_len}s\033[0m  %s\n" "$name" "$desc"
+            else
+              # asterisk
+              printf "* %-${max_name_len}s  %s\n" "$name" "$desc"
+            fi
+            ;;
+          (*)
+            printf "  %-${max_name_len}s  %s\n" "$name" "$desc"
+            ;;
+        esac
+      done
   done
   local sub_help
   for sub_help in $sub_helps_e4c531b
