@@ -15,7 +15,7 @@ astro_project_dir() {
 }
 
 astro() {
-  run_node_modules_bin astro/astro.js "$@"
+  run_node_modules_bin astro/astro.js --root "$astro_project_dir_0135e32" "$@"
 }
 
 # Execute Astro command
