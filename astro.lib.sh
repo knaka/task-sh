@@ -25,5 +25,5 @@ subcmd_astro() {
 
 # Build Astro application
 task_astro__build() {
-  astro --root "$astro_project_dir_0135e32" build "$@"
+  astro build "$@"
 }
