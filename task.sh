@@ -1593,15 +1593,13 @@ EOF
         case "${basename}" in
           # Emphasize project tasks/subcommands, not shared ones.
           (project*.lib.sh)
-            # printf '\033[4m%s\033[0m' "$1"
-            # printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc"
-            # underline
             if is_terminal
             then
+              # Underline
               local padding_len=$((max_name_len - ${#name}))
               printf "  \033[4m%s\033[0m%-${padding_len}s  %s\n" "$name" "" "$desc"
             else
-              # asterisk
+              # Asterisk
               printf "* %-${max_name_len}s  %s\n" "$name" "$desc"
             fi
             ;;
