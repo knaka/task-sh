@@ -1044,6 +1044,11 @@ newer() {
   test -n "$(find "$@" -newer "$dest" 2>/dev/null)"
 }
 
+# Returns true if any source file is older than the destination file.
+older() {
+  ! newer "$@"
+}
+
 # Kill child processes for each shell/platform.
 kill_child_processes() {
   if is_windows
