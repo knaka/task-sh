@@ -829,25 +829,29 @@ load_env() {
 # ==========================================================================
 #region Misc
 
+# Wait for one or more servers to respond with HTTP 200. Checks each URL sequentially with a 60-second timeout per URL.
 wait_for_server() {
-  local url="$1"
-  echo "Waiting for server at $url to be ready ..."
-  local attempts=0
+  local url
   local max_attempts=60
-  while test $attempts -lt $max_attempts
+  for url in "$@"
   do
-    if curl -s -o /dev/null -w "%{http_code}" "$url" | grep -q "200"
-    then
-      echo "✓ Server is ready at $url"
-      return 0
-    fi
-    attempts=$((attempts + 1))
-    if test $attempts -eq $max_attempts
-    then
-      echo "✗ Server at $url did not respond with 200 after $max_attempts seconds"
-      return 1
-    fi
-    sleep 1
+    echo "Waiting for server at $url to be ready ..." >&2
+    local attempts=0
+    while :
+    do
+      if curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null | grep -q "200"
+      then
+        echo "✓ Server is ready at $url" >&2
+        break
+      fi
+      attempts=$((attempts + 1))
+      if test $attempts -ge $max_attempts
+      then
+        echo "✗ Server at $url did not respond with 200 after $max_attempts seconds" >&2
+        return 1
+      fi
+      sleep 1
+    done
   done
 }
 
@@ -1038,6 +1042,11 @@ newer() {
     return 0
   fi
   test -n "$(find "$@" -newer "$dest" 2>/dev/null)"
+}
+
+# Returns true if any source file is older than the destination file.
+older() {
+  ! newer "$@"
 }
 
 # Kill child processes for each shell/platform.
@@ -1594,15 +1603,15 @@ EOF
       do
         test "$type" = "$i" || continue
         case "${basename}" in
+          # Emphasize project tasks/subcommands, not shared ones.
           (project*.lib.sh)
-            # printf '\033[4m%s\033[0m' "$1"
-            # printf "  \033[01m%-${max_name_len}s  %s\033[00m\n" "$name" "$desc"
-            # underline
             if is_terminal
             then
-              printf "  \033[4m%-${max_name_len}s\033[0m  %s\n" "$name" "$desc"
+              # Underline
+              local padding_len=$((max_name_len - ${#name}))
+              printf "  \033[4m%s\033[0m%-${padding_len}s  %s\n" "$name" "" "$desc"
             else
-              # asterisk
+              # Asterisk
               printf "* %-${max_name_len}s  %s\n" "$name" "$desc"
             fi
             ;;
