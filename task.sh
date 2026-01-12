@@ -1684,9 +1684,9 @@ call_task() {
   if alias "$func_name" >/dev/null 2>&1
   then
     # shellcheck disable=SC2294
-    eval "$func_name" "$@" || return $?
+    eval "$func_name" "$@"
   else
-    "$func_name" "$@" || return $?
+    "$func_name" "$@"
   fi
   prefix="$task_name"
   while :
