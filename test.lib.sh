@@ -39,7 +39,7 @@ subcmd_task__test() {
   local RED=""
   local GREEN=""
   local NORMAL=""
-  if test -t 1
+  if is_terminal
   then
     RED=$(printf "\033[31m")
     GREEN=$(printf "\033[32m")
