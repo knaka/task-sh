@@ -4,24 +4,6 @@
 
 . ./task.sh
 
-# shellcheck disable=SC2034
-if test -t 1
-then
-  RED=$(printf "\033[31m")
-  GREEN=$(printf "\033[32m")
-  YELLOW=$(printf "\033[33m")
-  MAGENTA=$(printf "\033[35m")
-  NORMAL=$(printf "\033[00m")
-  BOLD=$(printf "\033[01m")
-else
-  RED=""
-  GREEN=""
-  YELLOW=""
-  MAGENTA=""
-  NORMAL=""
-  BOLD=""
-fi
-
 should_test_all=${SHOULD_TEST_ALL:-false}
 
 # Skip this test unless all tests are being run.
@@ -53,6 +35,16 @@ subcmd_task__test() {
     esac
   done
   shift $((OPTIND-1))
+
+  local RED=""
+  local GREEN=""
+  local NORMAL=""
+  if test -t 1
+  then
+    RED=$(printf "\033[31m")
+    GREEN=$(printf "\033[32m")
+    NORMAL=$(printf "\033[00m")
+  fi
 
   local psv_test_file_paths=
   # Source all the test functions in the test files.
