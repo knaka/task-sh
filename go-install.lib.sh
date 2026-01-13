@@ -7,6 +7,21 @@
 
 # Run executable package of Go with arguments. If the env var $SETUP_PATH_ONLY is set, this prepends the path to the command and returns.
 run_go_pkg() {
+  local setup_path_only=false
+  test "${SETUP_PATH_ONLY+set}" = set && setup_path_only=true
+  local arg
+  for arg in "$@"
+  do
+    case "$arg" in
+      (--setup-path-only)
+        setup_path_only=true
+        ;;
+      (*)
+        set -- "$@" "$arg"
+        ;;
+    esac
+    shift
+  done
   local pkg_name_ver="$1"
   shift
   local cmd_ver="${pkg_name_ver##*/}"
@@ -19,7 +34,7 @@ run_go_pkg() {
   then
     GOBIN="$app_dir_path" go install "$pkg_name_ver"
   fi
-  if test "${SETUP_PATH_ONLY+set}" = set
+  if "$setup_path_only"
   then
     export PATH="$app_dir_path:$PATH"
     return 0

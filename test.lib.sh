@@ -10,8 +10,9 @@ should_test_all=${SHOULD_TEST_ALL:-false}
 skip_unless_all() {
   if $should_test_all
   then
-    return "$rc_test_skipped"
+    return 0
   fi
+  return "$rc_test_skipped"
 }
 
 skip_if() {
@@ -19,6 +20,10 @@ skip_if() {
   then
     return "$rc_test_skipped"
   fi
+}
+
+skip_unless() {
+  ! skip_if "$@"
 }
 
 # Run shell-based tests for tasks. If no test names are provided, all tests are run.
@@ -38,11 +43,13 @@ subcmd_task__test() {
 
   local RED=""
   local GREEN=""
+  local YELLOW=""
   local NORMAL=""
   if is_terminal
   then
     RED=$(printf "\033[31m")
     GREEN=$(printf "\033[32m")
+    YELLOW=$(printf "\033[33m")
     NORMAL=$(printf "\033[00m")
   fi
 

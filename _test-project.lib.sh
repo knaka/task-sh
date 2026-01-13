@@ -447,3 +447,12 @@ test_called_only_once() {
   called_only_once
   assert_eq 1 "$xc640743"
 }
+
+. ./goyacc.lib.sh
+
+test_go_install() {
+  skip_unless_all
+  echo "$PATH" | grep -q -v "goyacc@"
+  goyacc --setup-path-only
+  echo "$PATH" | grep -q "goyacc@"
+}
