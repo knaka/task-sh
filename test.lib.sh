@@ -26,13 +26,17 @@ should_test_all=${SHOULD_TEST_ALL:-false}
 
 # Skip this test unless all tests are being run.
 skip_unless_all() {
-  $should_test_all && return 0
-  return "$rc_test_skipped"
+  if $should_test_all
+  then
+    return "$rc_test_skipped"
+  fi
 }
 
 skip_if() {
-  "$@" && return "$rc_test_skipped"
-  return 0
+  if "$@"
+  then
+    return "$rc_test_skipped"
+  fi
 }
 
 # Run shell-based tests for tasks. If no test names are provided, all tests are run.
@@ -91,10 +95,11 @@ subcmd_task__test() {
       echo "Test not found: $test_name" >&2
       exit 1
     fi
-    local saved_flags="$(set +o)"
+    local saved_flags
+    saved_flags="$(set +o)"
     # Do not exit when each test fails.
     set +o errexit
-    # Call the test in a subshell with `errexit` shell option without catching the result to make test function return immediately on error.
+    # Run test in a subshell with errexit enabled. This allows the test to exit immediately on error while the parent shell continues to run subsequent tests.
     (
       set -o errexit
       "test_$test_name" >"$log_file_path" 2>&1

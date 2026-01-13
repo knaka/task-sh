@@ -25,7 +25,7 @@ repl_usage() {
 
 # Run a command in an Ubuntu Docker container.
 subcmd_docker__ubuntu__exec() {
-  task_docker__start__temp || return $?
+  task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file ubuntu.Dockerfile .)" "$@"
 }
 
@@ -36,7 +36,7 @@ task_docker__ubuntu__test() {
 
 # Run a command in a Debian Docker container.
 subcmd_docker__debian__exec() {
-  task_docker__start__temp || return $?
+  task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file debian.Dockerfile .)" "$@"
 }
 
@@ -47,7 +47,7 @@ task_docker__debian__test() {
 
 # Run a command in a BusyBox Docker container.
 subcmd_docker__busybox__exec() {
-  task_docker__start__temp || return $?
+  task_docker__start__temp
   subcmd_docker run --rm -it -v "$(pwd):/work" "$(subcmd_docker build --quiet --file busybox.Dockerfile .)" "$@"
 }
 
