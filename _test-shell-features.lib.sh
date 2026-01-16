@@ -119,3 +119,41 @@ test_trailing_empty_line() {
   )"
   assert_eq "foobarfoobazqux" "$s"
 }
+
+func_global_ifs() {
+  IFS="$newline_char"
+  assert_eq "$newline_char" "$IFS"
+  # shellcheck disable=SC2046
+  set -- $(printf "foo bar\nbar baz\nhoge fuga\n")
+  assert_eq $# 3
+}
+
+func_local_ifs() {
+  local IFS="$newline_char"
+  assert_eq "$newline_char" "$IFS"
+  # shellcheck disable=SC2046
+  set -- $(printf "foo bar\nbar baz\nhoge fuga\n")
+  assert_eq $# 3
+}
+
+# Test that IFS with local works and does not affects outer scope one.
+test_local_ifs() (
+  local original_ifs="$IFS"
+  
+  func_global_ifs
+  # IFS should still be changed after function returns
+  assert_eq "$newline_char" "$IFS"
+  
+  # Reset for next test
+  IFS="$original_ifs"
+  
+  # Test that local IFS is restored after function returns
+  
+  func_local_ifs
+  # IFS should be restored to original value
+  assert_eq "$original_ifs" "$IFS"
+
+  # shellcheck disable=SC2046
+  set -- $(printf "foo bar\nbar baz\nhoge fuga\n")
+  assert_eq $# 6
+)
