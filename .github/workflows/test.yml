@@ -17,6 +17,8 @@ jobs:
         run: uname -a
       - name: Environment Variables
         run: env
+      - name: Bash Version
+        run: bash --version
       - name: Run Test
         run: ./task --verbose test
   test-windows:
