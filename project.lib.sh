@@ -5,6 +5,7 @@ test "${sourced_89e137c-}" = true && return 0; sourced_89e137c=true
 # Evaluated in $TASKS_DIR.
 
 . ./task.sh
+. ./mdpp.lib.sh
 
 if ! test -L "$PROJECT_DIR"/symlinked-task-sh
 then
@@ -178,4 +179,12 @@ subcmd_wait_and_date() {
   sleep 1
   LC_ALL=C date
   echo "Done: $name" >&2
+}
+
+# Update documentation files.
+task_doc() {
+  mdpp --in-place --allow-remote \
+    DEVELOPMENT.md \
+    CLAUDE.md \
+    #nop
 }

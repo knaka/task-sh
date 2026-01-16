@@ -19,6 +19,7 @@
   - `before_foo__bar__baz` / `after_foo__bar__baz`
   - `before_foo__bar` / `after_foo__bar`  
   - `before_foo` / `after_foo`
+  - `before_` / `after_`
 * Hook functions receive the original function name as the first argument, followed by the task arguments.
 * Before hooks are called in order from most specific to least specific, then the task runs, then after hooks are called in the same order.
 * When `task_foo__bar__baz` is provided as a library function, `before_foo__bar__baz` would not be defined in the library. Users can create the before/after hooks to customize the function as project-specific.
@@ -34,6 +35,7 @@
 * The shell scripts should be executable with Bash, Dash, and BusyBox Ash.
 * Therefore, the shell scripts should only use POSIX shell features.
 * However, `local` variable declarations are not part of POSIX shell features, but they can be used as they are available in the shells listed above.
+* Special shell variables like `$IFS` can be overridden with `local` declarations, which limits their scope to the function and does not affect the outer scope.
 <!-- +END -->
 
 <!-- +INCLUDE: ./DEVELOPMENT.md -->
