@@ -9,16 +9,21 @@
 # 2026-01-22T10:11:14+0900: Dasel v3 was released in December 2025. The version drastically changed the language specifications and command system, and they do not seem mature yet. Keep using version "2" for now.
 
 # Releases · TomWright/dasel https://github.com/TomWright/dasel/releases
-dasel_version_12A6124="2.8.1"
+dasel_version_33421de="2.8.1"
 
 dasel() {
   # shellcheck disable=SC2016
   run_fetched_cmd \
     --name="dasel" \
-    --ver="$dasel_version_12A6124" \
+    --ver="$dasel_version_33421de" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
     --url-template='https://github.com/TomWright/dasel/releases/download/v${ver}/dasel_${os}_${arch}' \
     -- \
     "$@"
+}
+
+# dasel(1)
+subcmd_dasel() {
+  dasel "$@"
 }
