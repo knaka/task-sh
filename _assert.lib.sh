@@ -20,6 +20,12 @@ assert_neq() {
   return 1
 }
 
+assert() {
+  "$@" && return 0
+  printf "Failed: \"%s\" is not true\n" "$*"
+  return 1
+}
+
 assert_true() {
   "$@" && return 0
   printf "Failed: \"%s\" is not true\n" "$*"
