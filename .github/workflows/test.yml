@@ -32,6 +32,15 @@ jobs:
       - name: Environment Variables
         run: set
         shell: cmd
+      - name: Cache BusyBox
+        # actions/cache: Cache dependencies and build outputs in GitHub Actions https://github.com/actions/cache
+        uses: actions/cache@v4
+        with:
+          # “Please note that Windows environment variables (like %LocalAppData%) will NOT be expanded by this action. Instead, prefer using ~ in your paths which will expand to the HOME directory.”
+          path: ~\.cache\task-sh
+          key: busybox-${{ runner.os }}-${{ hashFiles('task.cmd') }}
+          restore-keys: |
+            busybox-${{ runner.os }}-
       - name: Load BusyBox
         run: .\task.cmd nop
       - name: Run Test
