@@ -110,3 +110,12 @@ subcmd_gofmt() {
   set_go_env
   invoke gofmt "$@"
 }
+
+# Run Go tests.
+subcmd_go__test() {
+  if test $# = 0
+  then
+    set -- ./...
+  fi
+  go test "$@"
+}

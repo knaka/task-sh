@@ -12,22 +12,14 @@ subcmd_go__embedded__sh__gen() {
   local template_sh=
   local out_sh=
   local url=
-
-  OPTIND=1; while getopts u:-: OPT
+  OPTIND=1; while getopts _-: OPT
   do
-    if test "$OPT" = "-"
-    then
-      OPT="${OPTARG%%=*}"
-      # shellcheck disable=SC2030
-      OPTARG="${OPTARG#"$OPT"}"
-      OPTARG="${OPTARG#=}"
-    fi
+    test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
-      (main-go) main_go="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (template-sh) template_sh="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (out-sh) out_sh="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (u|url) url="$(ensure_opt_arg "$OPT" "$OPTARG")";;
-      (\?) exit 1;;
+      (main-go) main_go="$OPTARG";;
+      (template-sh) template_sh="$OPTARG";;
+      (out-sh) out_sh="$OPTARG";;
+      (u|url) url="$OPTARG";;
       (*) echo "Unexpected option: $OPT" >&2; exit 1;;
     esac
   done
