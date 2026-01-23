@@ -138,7 +138,7 @@ func_local_ifs() {
 
 # Test that IFS with local works and does not affects outer scope one.
 test_local_ifs() (
-  local original_ifs="$IFS"
+  original_ifs="$IFS"
   
   func_global_ifs
   # IFS should still be changed after function returns
