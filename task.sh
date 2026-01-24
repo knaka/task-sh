@@ -316,6 +316,7 @@ invoke() {
   if is_windows
   then
     local ext
+    local IFS=" "
     for ext in $windows_exe_extensions
     do
       base="${base%"$ext"}"
