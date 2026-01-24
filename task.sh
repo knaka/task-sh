@@ -1617,7 +1617,7 @@ EOF
             if is_terminal
             then
               # Underline
-              local padding_len=$((max_name_len - ${#name}))
+              padding_len=$((max_name_len - ${#name}))
               printf "  \033[4m%s\033[0m%-${padding_len}s  %s\n" "$name" "" "$desc"
             else
               # Asterisk
