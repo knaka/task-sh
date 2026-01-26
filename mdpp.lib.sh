@@ -7,7 +7,7 @@
 . ./task.sh
 
 # Releases · knaka/mdpp https://github.com/knaka/mdpp/releases
-mdpp_version_91a5418=v0.9.13
+mdpp_version_91a5418=v0.9.14
 
 set_mdpp_version() {
   mdpp_version_91a5418="$1"
