@@ -26,6 +26,7 @@ if not exist !cmd_path! (
   echo Downloading BusyBox for Windows. >&2
   curl.exe --fail --location --output "!cmd_path!" https://frippery.org/files/busybox/!cmd_name! || exit /b !ERRORLEVEL!
 )
+@REM Shell-command ready (a5f342b)
 set "INITIAL_PWD=%CD%"
 set "ARG0=%~f0"
 set "ARG0BASE=%~n0"
