@@ -21,3 +21,8 @@ chezmoi() {
     -- \
     "$@"
 }
+
+# chezmoi(1)
+subcmd_chezmoi() {
+  chezmoi "$@"
+}
