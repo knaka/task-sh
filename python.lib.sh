@@ -7,7 +7,7 @@
 . ./task.sh
 
 # Releases · astral-sh/uv https://github.com/astral-sh/uv/releases
-uv_version_3c621e6=0.8.4
+uv_version_3c621e6=0.9.27
 
 set_uv_version() {
   uv_version_3c621e6="$1"
