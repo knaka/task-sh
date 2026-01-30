@@ -15,9 +15,12 @@ date_iso() {
   then
     # -I[SPEC]: Output ISO-8601 date / SPEC=date (default), hours, minutes, seconds or ns
     date -Iseconds | sed -E -e 's/([[:digit:]]{2}):([[:digit:]]{2})$/\1\2/'
-  else
+  elif is_macos
+  then
     # -j: Do not try to set the dates
     date -j +"$iso_date_format_590c473"
+  else
+    date +"$iso_date_format_590c473"
   fi
 }
 
