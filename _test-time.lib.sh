@@ -28,4 +28,12 @@ test_time() {
   set_last_mod_iso "$file" "2024-01-01T09:00:00+0900"
   assert_eq "$(TZ=UTC0 last_mod_iso "$file")" "2024-01-01T00:00:00+0000"
   assert_eq "$(TZ=Asia/Tokyo last_mod_iso "$file")" "2024-01-01T09:00:00+0900"
+
+  # Converts date to epoch.
+  assert_eq 1735732800 "$(iso_to_epoch "2025-01-01T12:00:00Z")"
+  assert_eq 1735700400 "$(iso_to_epoch "2025-01-01T12:00:00+0900")"
+
+  # Converts epoch to date.
+  assert_eq "2025-01-01T12:00:00+0000" "$(TZ=UTC0 epoch_to_iso 1735732800)"
+  assert_eq "2025-01-01T12:00:00+0900" "$(TZ=Asia/Tokyo epoch_to_iso 1735700400)"
 }

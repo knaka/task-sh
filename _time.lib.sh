@@ -21,6 +21,37 @@ date_iso() {
   fi
 }
 
+# Convert an ISO-8601 date string to UNIX epoch seconds.
+# Usage: iso_to_epoch <ISO_time>
+# Example: iso_to_epoch 2024-01-01T12:00:00+0900  # => 1704078000
+iso_to_epoch() {
+  local iso_date="$1"
+  if is_macos
+  then
+    local epoch
+    if ! epoch="$(date -j -f "$iso_date_format_590c473" "$iso_date" +%s 2>/dev/null)"
+    then
+      epoch="$(TZ=UTC0 date -j -f "$iso_date_format_utc_590c473" "$iso_date" +%s)"
+    fi
+    echo "$epoch"
+  else
+    date -d "$iso_date" +%s
+  fi
+}
+
+# Convert UNIX epoch seconds to an ISO-8601 date string.
+# Usage: epoch_to_iso <epoch>
+# Example: epoch_to_iso 1704078000  # => 2024-01-01T12:00:00+0900
+epoch_to_iso() {
+  local epoch="$1"
+  if is_macos
+  then
+    date -j -r "$epoch" +"$iso_date_format_590c473"
+  else
+    date -d @"$epoch" +"$iso_date_format_590c473"
+  fi
+}
+
 # Touch files with specified ISO-8601 time.
 # Usage: set_last_mod_iso <file> <ISO_time>
 # Example: set_last_mod_iso file.txt 2024-01-01T12:00:00Z
