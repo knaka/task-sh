@@ -9,18 +9,22 @@
 test_time() {
   local result
 
+  # Outputs current date and time in ISO-8601 format.
   result="$(date_iso)"
-  assert_match '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{4}' "$result"
+  assert_match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{4}$' "$result"
 
+  # Outputs current date and time in ISO-8601 format in UTC.
   result="$(TZ=UTC0 date_iso)"
-  assert_match '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+0000' "$result"
+  assert_match '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+0000$' "$result"
 
   local file="$TEMP_DIR"/file
 
+  # Sets timestamp with UTC date.
   set_last_mod_iso "$file" "2024-01-01T12:00:00Z"
   assert_eq "$(TZ=UTC0 last_mod_iso "$file")" "2024-01-01T12:00:00+0000"
   assert_eq "$(TZ=Asia/Tokyo last_mod_iso "$file")" "2024-01-01T21:00:00+0900"
 
+  # Sets timestamp with a date with timezone offset.
   set_last_mod_iso "$file" "2024-01-01T09:00:00+0900"
   assert_eq "$(TZ=UTC0 last_mod_iso "$file")" "2024-01-01T00:00:00+0000"
   assert_eq "$(TZ=Asia/Tokyo last_mod_iso "$file")" "2024-01-01T09:00:00+0900"
