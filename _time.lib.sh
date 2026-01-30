@@ -14,9 +14,9 @@ date_iso() {
   if is_windows
   then
     # -I[SPEC]: Output ISO-8601 date / SPEC=date (default), hours, minutes, seconds or ns
-    date -Iseconds
+    date -Iseconds | sed -E -e 's/([[:digit:]]{2}):([[:digit:]]{2})$/\1\2/'
   else
-    # -j: Do not try to set the date
+    # -j: Do not try to set the dates
     date -j +"$iso_date_format_590c473"
   fi
 }
@@ -34,6 +34,9 @@ iso_to_epoch() {
       epoch="$(TZ=UTC0 date -j -f "$iso_date_format_utc_590c473" "$iso_date" +%s)"
     fi
     echo "$epoch"
+  elif is_windows
+  then
+    pwsh.exe -NoProfile -Command "Get-Date \"$iso_date\" -UFormat %s"
   else
     date -d "$iso_date" +%s
   fi
@@ -90,7 +93,7 @@ last_mod_iso() {
   then
     local epoch
     epoch="$(stat -c "%Y" "$1")"
-    date -d @"$epoch" -Iseconds
+    date -d @"$epoch" -Iseconds | sed -E -e 's/([[:digit:]]{2}):([[:digit:]]{2})$/\1\2/'
   else
     date --date "$(stat --format "%y" "$1")" +"$iso_date_format_590c473"
   fi

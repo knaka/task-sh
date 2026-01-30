@@ -96,6 +96,10 @@ subcmd_task__test() {
     fi
     local saved_flags
     saved_flags="$(set +o)"
+    case $- in
+      (*e*) saved_flags="$saved_flags; set -e";;
+      (*) saved_flags="$saved_flags; set +e";;
+    esac
     # Do not exit when each test fails.
     set +o errexit
     # Run test in a subshell with errexit enabled. This allows the test to exit immediately on error while the parent shell continues to run subsequent tests.
