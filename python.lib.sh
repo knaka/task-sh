@@ -15,9 +15,16 @@ set_uv_version() {
 
 uv_run_cmd() {
   local cmd="$1"
-  shift 
+  shift
   # shellcheck disable=SC2016
-  set -- \
+  local rel_dir_template='uv-$arch-$os'
+  # Windows binaries are in the root.
+  if is_windows
+  then
+    rel_dir_template=.
+  fi
+  # shellcheck disable=SC2016
+  run_fetched_cmd \
     --name="uv" \
     --ver="$uv_version_3c621e6" \
     --cmd="$cmd" \
@@ -25,18 +32,9 @@ uv_run_cmd() {
     --arch-map="x86_64 x86_64 aarch64 aarch64 " \
     --ext-map="$archive_ext_map" \
     --url-template='https://github.com/astral-sh/uv/releases/download/$ver/uv-$arch-$os$ext' \
+    --rel-dir-template="$rel_dir_template" \
     -- \
     "$@"
-  # Windows binaries are in the root.
-  if ! is_windows
-  then
-    # shellcheck disable=SC2016
-    set -- \
-      --rel-dir-template='uv-$arch-$os' \
-      "$@"
-  fi
-  run_fetched_cmd "$@"
-
 }
 
 uv() {
