@@ -22,7 +22,7 @@ sqldef() {
     --ver="$sqldef_version_c9fe5d4" \
     --os-map="$goos_map" \
     --arch-map="$goarch_map" \
-    --ext=".zip" \
+    --ext-map="Linux .tar.gz Darwin .zip Windows .zip " \
     --url-template='https://github.com/sqldef/sqldef/releases/download/${ver}/${name}_${os}_${arch}${ext}' \
     -- \
     "$@"
