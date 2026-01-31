@@ -4,11 +4,11 @@
 
 . ./task.sh
 
-should_test_all=${SHOULD_TEST_ALL:-false}
+should_run_fulltest_80e79eb=false
 
-# Skip this test unless all tests are being run.
-skip_unless_all() {
-  if $should_test_all
+# Skip this test unless full test is being run.
+skip_unless_full() {
+  if $should_run_fulltest_80e79eb
   then
     return 0
   fi
@@ -32,7 +32,7 @@ subcmd_task__test() {
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
-      (a|all) should_test_all=true;;
+      (full) should_run_fulltest_80e79eb=true;;
       (*)
         echo "Unexpected option: $OPT" >&2
         exit 1
