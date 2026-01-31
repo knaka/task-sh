@@ -437,3 +437,4 @@ test_go_install() {
   goyacc --setup-path-only
   echo "$PATH" | grep -q "goyacc@"
 }
+

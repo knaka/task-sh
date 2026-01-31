@@ -16,16 +16,20 @@ items:
 EOF
 }
 
-test_yq() (
-  set -o errexit
+test_yq() {
+  # Fetches yq(1)
+  skip_unless_full
 
-  expected="$TEMP_DIR/0b5a56d.yaml"
+  local expected="$TEMP_DIR/0b5a56d.yaml"
   yq_expected >"$expected"
 
-  actual="$TEMP_DIR/af6de1c.yaml"
-  echo '{"user":{"name":"Alice","age":30},"items":["apple","banana"]}' | yq --input-format=json --output-format=yaml >"$actual"
+  local actual="$TEMP_DIR/af6de1c.yaml"
+  echo '{"user":{"name":"Alice","age":30},"items":["apple","banana"]}' \
+  | yq --input-format=json --output-format=yaml \
+  >"$actual"
 
   assert_eq \
+    -m "7f82a42" \
     "$(sha256sum "$expected" | field 1)" \
     "$(sha256sum "$actual" | field 1)"
-)
+}

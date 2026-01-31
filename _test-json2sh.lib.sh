@@ -15,6 +15,9 @@ EOF
 }
 
 test_json2sh() {
+  # Fetches jq(1)
+  skip_unless_full
+
   local expected="$TEMP_DIR/390f638.sh"
   json2sh_expected >"$expected"
 
