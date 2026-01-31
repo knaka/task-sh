@@ -18,9 +18,9 @@ echo_go_paths() (
     echo "$GOROOT"
   fi
   # `go` command
-  if type go > /dev/null 2>&1
+  if which go >/dev/null 2>&1
   then
-    go env GOROOT
+    command go env GOROOT
   fi
   # System-wide installation
   if is_windows
