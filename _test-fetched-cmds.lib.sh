@@ -3,6 +3,7 @@
 "${sourced_8219033-false}" && return 0; sourced_8219033=true
 
 . ./task.sh
+. ./test.lib.sh
 
 . ./caddy.lib.sh
 

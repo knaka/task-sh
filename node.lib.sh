@@ -12,7 +12,7 @@ set_volta_version() {
 }
 
 volta_dir_path() {
-  local saved_ifs="$IFS"; IFS=","
+  local IFS=","
   # shellcheck disable=SC2016
   run_fetched_cmd \
     --name="volta" \
@@ -22,7 +22,6 @@ volta_dir_path() {
     --ext-map="Linux,.tar.gz,Darwin,.tar.gz,Windows,.zip," \
     --url-template='https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os}${arch}${ext}' \
     --print-dir
-  IFS="$saved_ifs"
 }
 
 set_volta_env() {
