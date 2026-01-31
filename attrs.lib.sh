@@ -36,13 +36,11 @@ set_sync_ignored() {
     then
       continue
     fi
-    push_ifs
-    IFS='|'
+    local IFS='|'
     for file_sharing_ignorance_attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$file_sharing_ignorance_attribute" 1
     done
-    pop_ifs
   done
 }
 
@@ -56,13 +54,11 @@ mkdir_sync_ignored() {
       continue
     fi
     mkdir -p "$path"
-    push_ifs
-    IFS='|'
+    local IFS='|'
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    pop_ifs
   done
 }
 
@@ -71,12 +67,10 @@ force_sync_ignored() {
   local path
   for path in "$@"
   do
-    push_ifs
-    IFS='|'
+    local IFS='|'
     for attribute in $psv_file_sharing_ignorance_attributes
     do
       set_path_attr "$path" "$attribute" 1
     done
-    pop_ifs
   done
 }

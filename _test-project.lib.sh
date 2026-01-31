@@ -234,27 +234,8 @@ EOF
   assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
 }
 
-# Test IFS push/pop functions.
-test_ifs() {
-  unset IFS
-
-  push_ifs
-  IFS=,
-  assert_eq "," "$IFS"
-
-  push_ifs
-  IFS=:
-  assert_eq ":" "$IFS"
-
-  pop_ifs
-  assert_eq "," "$IFS"
-
-  pop_ifs
-  assert_true test "${IFS+set}" != set
-}
-
 test_extra() {
-  skip_unless_all
+  skip_unless_full
 
   echo "Executed extra test." >&2
 }
@@ -278,7 +259,7 @@ test_dumper() {
 }
 
 # test_killing() {
-#   skip_unless_all
+#   skip_unless_full
 #   invoke ./task killng_test
 # }
 
@@ -451,7 +432,7 @@ test_called_only_once() {
 . ./goyacc.lib.sh
 
 test_go_install() {
-  skip_unless_all
+  skip_unless_full
   echo "$PATH" | grep -q -v "goyacc@"
   goyacc --setup-path-only
   echo "$PATH" | grep -q "goyacc@"
