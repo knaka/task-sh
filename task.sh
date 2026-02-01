@@ -396,7 +396,6 @@ invoke() {
       command "$@" &
       ;;
     (standard)
-      echo 704ecb1 "$PATH" >&2
       command "$@"
       ;;
     (*)
