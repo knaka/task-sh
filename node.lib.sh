@@ -13,12 +13,18 @@ set_volta_version() {
 
 volta_dir_path() {
   local IFS=","
+  local arch_map="x86_64,,arm64,-arm,"
+  if is_macos
+  then
+    # Universal binary
+    arch_map="x86_64,,arm64,,"
+  fi
   # shellcheck disable=SC2016
   run_fetched_cmd \
     --name="volta" \
     --ver="$volta_version_c919009" \
     --os-map="Linux,linux,Darwin,macos,Windows,windows," \
-    --arch-map="x86_64,,arm64,-arm," \
+    --arch-map="$arch_map" \
     --ext-map="Linux,.tar.gz,Darwin,.tar.gz,Windows,.zip," \
     --url-template='https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os}${arch}${ext}' \
     --print-dir

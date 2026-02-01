@@ -103,20 +103,11 @@ subcmd_task__test() {
     # Do not exit when each test fails.
     set +o errexit
     # Run test in a subshell with errexit enabled. This allows the test to exit immediately on error while the parent shell continues to run subsequent tests.
-    # (
-    #   set -o errexit
-    #   "test_$test_name"
-    # ) >"$log_file_path" 2>&1
-    echo >"$log_file_path"
     (
       set -o errexit
-      echo 9cd68b9 >&2
-      type "test_$test_name" >&2
-      echo ec1f551 >&2
       "test_$test_name"
-    )
+    ) >"$log_file_path" 2>&1
     local rc=$?
-    echo "d090613" "$rc" >&2
     eval "$saved_flags"
     if test "$rc" -eq 0
     then

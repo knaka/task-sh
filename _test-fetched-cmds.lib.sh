@@ -50,11 +50,8 @@ test_fetched_uv() {
 . ./node.lib.sh
 
 test_fetched_volta() {
-  echo 5ad28c7 >&2
   skip_unless_full
-  echo f459105 >&2
   volta --help
-  echo 867f357 >&2
 }  
 
 . ./yj.lib.sh
