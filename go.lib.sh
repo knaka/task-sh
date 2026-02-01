@@ -109,8 +109,7 @@ set_go_env() {
 }
 
 go() {
-  set_go_env
-  invoke go "$@"
+  mise exec go -- go "$@"
 }
 
 # Run go command.

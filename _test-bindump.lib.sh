@@ -35,4 +35,7 @@ test_hexdump() {
   dumped_text="$(hex_dump "$plain_text")"
   assert_eq "$hex_text" "$dumped_text" "7b663d6"
   assert_eq "$plain_text" "$(hex_restore "$dumped_text")" "e08570f"
+
+  local utf8_text="こんにちは、ごきげんいかがですか？"
+  assert_eq "$utf8_text" "$(hex_restore "$(hex_dump "$utf8_text")")" "d1ced86"
 }

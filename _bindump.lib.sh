@@ -36,23 +36,13 @@ hex_dump() {
 }
 
 hex_restore() {
-  # shellcheck disable=SC2016
-  if test $# -eq 0
-  then
-    cat
-  else
-    printf "%s" "$@"
-  fi \
-  | xargs printf "%s\n" \
-  | (
-    set -- awk
-    if command -v mawk >/dev/null 2>&1
+  awk "BEGIN { printf \"$(
+    if test $# -eq 0
     then
-      set -- mawk
-    elif command -v gawk >/dev/null 2>&1
-    then
-      set -- gawk --non-decimal-data
-    fi
-    "$@" '{ printf("%c", int("0x" $1)) }'
-  )
+      cat
+    else
+      printf "%s" "$@"
+    fi \
+    | xargs printf "\\\x%s"
+  )\" }"
 }

@@ -37,6 +37,8 @@ test_fetched_sqlite3def() {
 
 test_fetched_terraform() {
   skip_unless_full
+  # Minimal Ubuntu missing unzip.
+  skip_unless has_external_command unzip
   terraform --help
 }  
 

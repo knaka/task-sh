@@ -23,7 +23,10 @@ skip_if() {
 }
 
 skip_unless() {
-  ! skip_if "$@"
+  if ! "$@"
+  then
+    return "$rc_test_skipped"
+  fi
 }
 
 # Run shell-based tests for tasks. If no test names are provided, all tests are run.
