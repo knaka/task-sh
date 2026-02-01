@@ -169,16 +169,37 @@ func_local_readonly_error() {
   xad7f9eb=789
 }
 
+# `local readonly ...` declares local variable `$readonly`.
+# `readonly local ...` declares readonly variable `$local`.
+
+# func_readonly_local_one_line() {
+#   local readonly xad7f9eb=123
+# }
+
+# func_readonly_local_one_line_error() {
+#   local readonly xad7f9eb=123
+#   xad7f9eb=789
+# }
+
 test_local_readonly() {
-  test "${xad7f9eb+set}" != set
+  assert -m "3270712" test "${xad7f9eb+set}" != set
   func_local_readonly
-  test "${xad7f9eb+set}" != set
-  
+  assert -m "043f28b" test "${xad7f9eb+set}" != set
+
+  # func_readonly_local_one_line
+  # assert -m "eb19375" test "${xad7f9eb+set}" != set
+
   if (func_local_readonly_error)
   then
-    echo Should raise readonly error. >&2
+    echo "Should raise readonly error (3f178e5)." >&2
     return 1
   fi
+
+  # if (func_readonly_local_one_line_error)
+  # then
+  #   echo "Should raise readonly error (6f3d57a)." >&2
+  #   return 1
+  # fi
 
   return 0
 }
