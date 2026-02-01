@@ -514,8 +514,8 @@ run_fetched_cmd() {
     mkdir -p "$work_dir_path"
     push_dir "$work_dir_path"
     case "$ext" in
-      (.zip) unzip "$out_file_path" ;;
-      (.tar.gz) tar -xf "$out_file_path" ;;
+      (.zip) unzip "$out_file_path" >&2 ;;
+      (.tar.gz) tar -xf "$out_file_path" >&2 ;;
       (*) ;;
     esac
     pop_dir
