@@ -441,3 +441,14 @@ test_go_install() {
   echo "$PATH" | grep -q "goyacc@"
 }
 
+test_has_external_command() {
+  if is_macos || is_linux
+  then
+    has_external_command bash
+  elif is_windows
+  then
+    has_external_command ssh
+  else
+    false
+  fi
+}

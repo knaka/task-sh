@@ -111,6 +111,10 @@ is_terminal() {
   test -t 1
 }
 
+has_external_command() {
+  test -x "$(command -v "$1" 2>/dev/null)"
+}
+
 #endregion
 
 # ==========================================================================
