@@ -111,10 +111,12 @@ subcmd_task__test() {
     (
       set -o errexit
       echo 9cd68b9 >&2
+      type "test_$test_name" >&2
+      echo ec1f551 >&2
       "test_$test_name"
     )
     local rc=$?
-    echo "d090613" "$rc"
+    echo "d090613" "$rc" >&2
     eval "$saved_flags"
     if test "$rc" -eq 0
     then
