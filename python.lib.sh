@@ -29,7 +29,7 @@ uv_run_cmd() {
     --ver="$uv_version_3c621e6" \
     --cmd="$cmd" \
     --os-map="Linux unknown-linux-gnu Darwin apple-darwin Windows pc-windows-msvc " \
-    --arch-map="x86_64 x86_64 aarch64 aarch64 " \
+    --arch-map="x86_64 x86_64 arm64 aarch64 " \
     --ext-map="$archive_ext_map" \
     --url-template='https://github.com/astral-sh/uv/releases/download/$ver/uv-$arch-$os$ext' \
     --rel-dir-template="$rel_dir_template" \

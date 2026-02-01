@@ -18,7 +18,7 @@ volta_dir_path() {
     --name="volta" \
     --ver="$volta_version_c919009" \
     --os-map="Linux,linux,Darwin,macos,Windows,windows," \
-    --arch-map="x86_64,,aarch64,-arm," \
+    --arch-map="x86_64,,arm64,-arm," \
     --ext-map="Linux,.tar.gz,Darwin,.tar.gz,Windows,.zip," \
     --url-template='https://github.com/volta-cli/volta/releases/download/v${ver}/volta-${ver}-${os}${arch}${ext}' \
     --print-dir
