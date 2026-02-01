@@ -387,7 +387,10 @@ test_memoize() {
 }
 
 test_task_sh_help() {
-  invoke ./task | grep -q 'Run curl'
+  # Actions seems to “ignore” SIGPIPE — GitHub Actions で CI したら Broken pipe や I/O Error がでるようになった話（または SIGPIPE の罠） #Bash - Qiita https://qiita.com/ko1nksm/items/ce38f521506aa0fb08af
+  # invoke ./task | grep -q 'Run curl'
+  invoke ./task >"$TEMP_DIR/f85073e"
+  grep -q 'Run curl' "$TEMP_DIR/f85073e"
 }
 
 test_escape_sequence() {
