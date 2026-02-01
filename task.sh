@@ -40,6 +40,11 @@ rc_test_skipped=10
 : "${CACHE_DIR:=$HOME/.cache/task-sh}"
 mkdir -p "$CACHE_DIR"
 
+if ! test -d /etc/ssl
+then
+  export SSL_CERT_FILE="$CACHE_DIR"/cacert.pem
+fi
+
 # For platforms other than Windows
 : "${LOCALAPPDATA:=/}"
 
@@ -809,7 +814,8 @@ b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
         return 1
       fi
     fi
-    set -- --cacert "$ca_cert_path" "$@"
+    # $SSL_CERT_FILE is set.
+    # set -- --cacert "$ca_cert_path" "$@"
   fi
   "$cmd_path" "$@"
 }
