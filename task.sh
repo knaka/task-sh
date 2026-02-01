@@ -40,6 +40,11 @@ rc_test_skipped=10
 : "${CACHE_DIR:=$HOME/.cache/task-sh}"
 mkdir -p "$CACHE_DIR"
 
+if ! test -d /etc/ssl
+then
+  export SSL_CERT_FILE="$CACHE_DIR"/cacert.pem
+fi
+
 # For platforms other than Windows
 : "${LOCALAPPDATA:=/}"
 
@@ -109,6 +114,10 @@ first_call() {
 
 is_terminal() {
   test -t 1
+}
+
+has_external_command() {
+  test -x "$(command -v "$1" 2>/dev/null)"
 }
 
 #endregion
@@ -513,8 +522,8 @@ run_fetched_cmd() {
     mkdir -p "$work_dir_path"
     push_dir "$work_dir_path"
     case "$ext" in
-      (.zip) unzip "$out_file_path" ;;
-      (.tar.gz) tar -xf "$out_file_path" ;;
+      (.zip) unzip "$out_file_path" >&2 ;;
+      (.tar.gz) tar -xf "$out_file_path" >&2 ;;
       (*) ;;
     esac
     pop_dir
@@ -705,15 +714,110 @@ task_devinstall() {
 #endregion
 
 # ==========================================================================
+#region Mise
+
+# Releases · jdx/mise https://github.com/jdx/mise/releases
+mise_version_adcf449="2026.1.12"
+
+set_mise_version() {
+  mise_version_adcf449="$1"
+}
+
+mise() {
+  # shellcheck disable=SC2016
+  run_fetched_cmd \
+    --name="mise" \
+    --ver="$mise_version_adcf449" \
+    --os-map="Linux linux Darwin macos Windows windows " \
+    --arch-map="x86_64 x64 arm64 arm64 " \
+    --ext-map="$archive_ext_map" \
+    --url-template='https://github.com/jdx/mise/releases/download/v${ver}/mise-v${ver}-${os}-${arch}${ext}' \
+    --rel-dir-template='mise/bin' \
+    -- \
+    "$@"
+}
+
+# Run mise(1)
+subcmd_mise() {
+  mise "$@"
+}
+
+#endregion
+
+# ==========================================================================
 #region curl(1) // curl https://curl.se/
 
-# curl(1) is available on macOS and Windows as default.
-require_pkg_cmd \
-  --deb-id=curl \
-  curl
+apt_helper_download() {
+  local url="$1"
+  local dest="$2"
+  local apt_conf_path="$TEMP_DIR"/apt.conf
+  printf "%s\n" \
+    'Acquire::https::Verify-Peer "false";' \
+    'Acquire::https::Verify-Host "false";' \
+  >"$apt_conf_path"
+  /usr/lib/apt/apt-helper -c "$apt_conf_path" download-file "$url" "$dest" 1>&2
+}
 
 curl() {
-  run_pkg_cmd curl "$@"
+  if has_external_command curl >/dev/null 2>&1
+  then
+    curl "$@"
+    return
+  fi
+  local cmd_path="$CACHE_DIR"/curl"$exe_ext"
+  if ! test -x "$cmd_path"
+  then
+    if is_linux && test -x /usr/lib/apt/apt-helper
+    then
+      # Release v8.11.0 · moparisthebest/static-curl https://github.com/moparisthebest/static-curl/releases/tag/v8.11.0
+      local curl_version=v8.11.0
+      # Copied from `sha256sum.txt`
+      local curl_sha256sums='
+d18aa1f4e03b50b649491ca2c401cd8c5e89e72be91ff758952ad2ab5a83135d  ./curl-amd64
+1a4747fd88b31b93bf48bcace9d1e3ebf348afbbf8c0a6f4e1751795ea6ff39b  ./curl-i386
+1b050abd1669f9a2ac29b34eb022cdeafb271dce5a4fb57d8ef8fadff6d7be1f  ./curl-aarch64
+779a1bd9f486fd5ff1da25d5e5bb99c58bc79ded22344f2b7ff366cf645a6630  ./curl-armv7
+b92dc31e0d614e04230591377837f44ff2c98430c821d93a5aaa0fae30c0fd1c  ./curl-armhf
+50be538158f06fa71a4751d9f3f06932dc90337d43768b4963af51e84ebb65ac  ./curl-ppc64le
+'
+      local arch
+      case "$(uname -m)" in
+        (x86_64) arch=amd64;;
+        (aarch64) arch=aarch64;;
+        (*) echo "Unsupported architecture: $(uname -m)" >&2; return 1;;
+      esac
+      local url="https://github.com/moparisthebest/static-curl/releases/download/$curl_version/curl-$arch"
+      apt_helper_download "$url" "$cmd_path"
+      if ! echo "$(echo "$curl_sha256sums" | grep "$(basename "$url")" | cut -d' ' -f1)" "$cmd_path" | sha256sum --check --status
+      then
+        echo "curl checksum mismatch." >&2
+        return 1
+      fi
+      chmod +x "$cmd_path"
+    else
+      echo "No way to download curl." >&2
+      return 1
+    fi
+  fi
+  if ! test -d /etc/ssl
+  then
+    local ca_cert_path="$CACHE_DIR"/cacert.pem
+    if ! test -r "$ca_cert_path"
+    then
+      # curl - Extract CA Certs from Mozilla https://curl.se/docs/caextract.html
+      local cacert_url="https://curl.se/ca/cacert-2025-12-02.pem"
+      local cacert_sha256sum="f1407d974c5ed87d544bd931a278232e13925177e239fca370619aba63c757b4"
+      "$cmd_path" --insecure --fail --location --output "$CACHE_DIR"/cacert.pem "$cacert_url"
+      if ! echo "$cacert_sha256sum" "$CACHE_DIR"/cacert.pem | sha256sum --check --status 1>&2
+      then
+        echo "cacert.pem checksum mismatch." >&2
+        return 1
+      fi
+    fi
+    # $SSL_CERT_FILE is set.
+    # set -- --cacert "$ca_cert_path" "$@"
+  fi
+  "$cmd_path" "$@"
 }
 
 # Run curl(1).

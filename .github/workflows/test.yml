@@ -1,8 +1,21 @@
+run-name: >-
+  ${{
+    github.event_name == 'schedule' && 'Scheduled Test 🗓️' ||
+    github.event_name == 'workflow_dispatch' && 'Manual Trigger 🚀' ||
+    github.event.head_commit.message
+  }}
 name: Tests
 on:
   push:
     branches:
       - main
+  # “The schedule event can be delayed during periods of high loads of GitHub Actions workflow runs.”
+  # “In a public repository, scheduled workflows are automatically disabled when no repository activity has occurred in 60 days. ”
+  #
+  # — Events that trigger workflows - GitHub Docs https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+  schedule:
+    - cron: '0 0 * * 6'
+  workflow_dispatch:
 jobs:
   test-unixy:
     runs-on: ${{ matrix.os }}
@@ -19,8 +32,12 @@ jobs:
         run: env
       - name: Bash Version
         run: bash --version
-      - name: Run Test
+      - name: Run Tests
+        if: ${{ github.event_name == 'push' }}
         run: ./task --verbose test
+      - name: Run All Tests
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' && github.event.schedule == '0 0 * * 6' }}
+        run: ./task --verbose test --full
   test-windows:
     runs-on: windows-latest
     steps:
@@ -43,5 +60,9 @@ jobs:
             busybox-${{ runner.os }}-
       - name: Load BusyBox
         run: .\task.cmd nop
-      - name: Run Test
+      - name: Run Tests
+        if: ${{ github.event_name == 'push' }}
         run: .\task.cmd --verbose test
+      - name: Run All Tests
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' && github.event.schedule == '0 0 * * 6' }}
+        run: .\task.cmd --verbose test --full

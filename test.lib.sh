@@ -4,11 +4,11 @@
 
 . ./task.sh
 
-should_test_all=${SHOULD_TEST_ALL:-false}
+should_run_fulltest_80e79eb=false
 
-# Skip this test unless all tests are being run.
-skip_unless_all() {
-  if $should_test_all
+# Skip this test unless full test is being run.
+skip_unless_full() {
+  if $should_run_fulltest_80e79eb
   then
     return 0
   fi
@@ -23,7 +23,10 @@ skip_if() {
 }
 
 skip_unless() {
-  ! skip_if "$@"
+  if ! "$@"
+  then
+    return "$rc_test_skipped"
+  fi
 }
 
 # Run shell-based tests for tasks. If no test names are provided, all tests are run.
@@ -32,7 +35,7 @@ subcmd_task__test() {
   do
     test "$OPT" = - && OPT="${OPTARG%%=*}" && OPTARG="${OPTARG#"$OPT"=}"
     case "$OPT" in
-      (a|all) should_test_all=true;;
+      (full) should_run_fulltest_80e79eb=true;;
       (*)
         echo "Unexpected option: $OPT" >&2
         exit 1
@@ -96,13 +99,17 @@ subcmd_task__test() {
     fi
     local saved_flags
     saved_flags="$(set +o)"
+    case $- in
+      (*e*) saved_flags="$saved_flags; set -e";;
+      (*) saved_flags="$saved_flags; set +e";;
+    esac
     # Do not exit when each test fails.
     set +o errexit
     # Run test in a subshell with errexit enabled. This allows the test to exit immediately on error while the parent shell continues to run subsequent tests.
     (
       set -o errexit
-      "test_$test_name" >"$log_file_path" 2>&1
-    )
+      "test_$test_name"
+    ) >"$log_file_path" 2>&1
     local rc=$?
     eval "$saved_flags"
     if test "$rc" -eq 0

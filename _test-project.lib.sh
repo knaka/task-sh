@@ -234,27 +234,8 @@ EOF
   assert_eq "$(shasum "$expected_path" | field 1)" "$(shasum "$output_path" | field 1)"
 }
 
-# Test IFS push/pop functions.
-test_ifs() {
-  unset IFS
-
-  push_ifs
-  IFS=,
-  assert_eq "," "$IFS"
-
-  push_ifs
-  IFS=:
-  assert_eq ":" "$IFS"
-
-  pop_ifs
-  assert_eq "," "$IFS"
-
-  pop_ifs
-  assert_true test "${IFS+set}" != set
-}
-
 test_extra() {
-  skip_unless_all
+  skip_unless_full
 
   echo "Executed extra test." >&2
 }
@@ -278,7 +259,7 @@ test_dumper() {
 }
 
 # test_killing() {
-#   skip_unless_all
+#   skip_unless_full
 #   invoke ./task killng_test
 # }
 
@@ -406,7 +387,10 @@ test_memoize() {
 }
 
 test_task_sh_help() {
-  invoke ./task | grep -q 'Run curl'
+  # Actions seems to “ignore” SIGPIPE — GitHub Actions で CI したら Broken pipe や I/O Error がでるようになった話（または SIGPIPE の罠） #Bash - Qiita https://qiita.com/ko1nksm/items/ce38f521506aa0fb08af
+  # invoke ./task | grep -q 'Run curl'
+  invoke ./task >"$TEMP_DIR/f85073e"
+  grep -q 'Run curl' "$TEMP_DIR/f85073e"
 }
 
 test_escape_sequence() {
@@ -451,8 +435,29 @@ test_called_only_once() {
 . ./goyacc.lib.sh
 
 test_go_install() {
-  skip_unless_all
+  skip_unless_full
   echo "$PATH" | grep -q -v "goyacc@"
   goyacc --setup-path-only
   echo "$PATH" | grep -q "goyacc@"
+}
+
+cmd_not_existing_1fee7de() {
+  :
+}
+
+alias cmd_not_existing_dd66a33='cat -n'
+
+test_has_external_command() {
+  if is_macos || is_linux
+  then
+    assert -m "05acd8f" has_external_command bash
+  elif is_windows
+  then
+    assert -m "912638d" has_external_command ssh
+    assert -m "aefd408" has_external_command ssh.exe
+  else
+    false
+  fi
+  assert_false -m "d2f5db2" has_external_command "cmd_not_existing_1fee7de"
+  assert_false -m "6ccbee3" has_external_command "cmd_not_existing_dd66a33"
 }

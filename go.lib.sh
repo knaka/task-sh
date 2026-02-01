@@ -5,22 +5,22 @@
 . ./task.sh
 
 # All releases - The Go Programming Language https://go.dev/dl/
-go_required_min_ver=go1.23.1
+go_required_min_ver_bb972aa=go1.23.1
 
 set_go_required_min_ver() {
-  go_required_min_ver="$1"
+  go_required_min_ver_bb972aa="$1"
 }
 
-echo_go_paths() (
+show_go_dir_paths() {
   # $GOROOT
   if test "${GOROOT+set}" = set
   then
     echo "$GOROOT"
   fi
-  # `go` command
-  if type go > /dev/null 2>&1
+  # `go` external command. Use `which` to search because `go` function exists.
+  if which go >/dev/null 2>&1
   then
-    go env GOROOT
+    command go env GOROOT
   fi
   # System-wide installation
   if is_windows
@@ -30,74 +30,86 @@ echo_go_paths() (
     echo "/usr/local/go"
   fi
   # Automatically installed SDKs
-  find "$HOME"/sdk -maxdepth 1 -type d -name 'go*' | sort -r
-)
+  find "$HOME"/sdk -maxdepth 1 -type d -name 'go*' 2>/dev/null | sort -r
+}
 
-# Returns the path to the Go root directory.
-goroot_path() (
-  goroot="$(
-    export GOTOOLCHAIN=local
-    echo_go_paths | while read -r go_dir_path
+find_sufficient_go_root() {
+  show_go_dir_paths \
+  | while read -r go_dir_path
     do
-      if type "$go_dir_path"/bin/go >/dev/null 2>&1 && version_ge "$("$go_dir_path"/bin/go env GOVERSION)" "$go_required_min_ver"
+      if command -v "$go_dir_path"/bin/go >/dev/null 2>&1
       then
-        echo "$go_dir_path"
-        break
+        if version_ge "$(GOTOOLCHAIN=local "$go_dir_path"/bin/go env GOVERSION)" "$go_required_min_ver_bb972aa"
+        then
+          echo "$go_dir_path"
+          break
+        fi
       fi
     done
-  )"
+}
+
+# Shows the path to the Go root directory.
+show_goroot_path() {
+  local goroot
+  goroot="$(find_sufficient_go_root)"
   if test -n "$goroot"
   then
     echo "$goroot"
-    return 0
+    return
   fi
 
   # If no Go installation is found, install the required version.
-  sdk_dir_path="$HOME"/sdk
-  goroot="$sdk_dir_path"/${go_required_min_ver}
+  local sdk_dir_path="$HOME"/sdk
+  goroot="$sdk_dir_path"/${go_required_min_ver_bb972aa}
+  local goos
   case "$(uname -s)" in
-    Linux) goos=linux;;
-    Darwin) goos=darwin;;
-    Windows_NT) goos=windows;;
-    *)
+    (Linux) goos=linux;;
+    (Darwin) goos=darwin;;
+    (Windows_NT) goos=windows;;
+    (*)
       echo "Unsupported OS: $(uname -s)" >&2
-      exit 1;;
+      return 1
+      ;;
   esac
+  local goarch
   case "$(uname -m)" in
-    arm64) goarch=arm64;;
-    x86_64) goarch=amd64;;
-    *)
+    (arm64) goarch=arm64;;
+    (x86_64) goarch=amd64;;
+    (*)
       echo "Unsupported architecture: $(uname -m)" >&2
-      exit 1;;
+      return 1
+      ;;
   esac
   mkdir -p "$sdk_dir_path"
   rm -fr "$sdk_dir_path"/go
   if is_windows
   then
     zip_path="$TEMP_DIR"/temp.zip
-    curl --location -o "$zip_path" "https://go.dev/dl/$go_required_min_ver.$goos-$goarch.zip"
+    curl --location -o "$zip_path" "https://go.dev/dl/$go_required_min_ver_bb972aa.$goos-$goarch.zip"
     (
       cd "$sdk_dir_path" || exit 1
       unzip -q "$zip_path" >&2
     )
   else
-    curl --location -o - "https://go.dev/dl/$go_required_min_ver.$goos-$goarch.tar.gz" | (cd "$sdk_dir_path" || exit 1; tar -xzf -)
+    curl --location -o - "https://go.dev/dl/$go_required_min_ver_bb972aa.$goos-$goarch.tar.gz" | (cd "$sdk_dir_path" || exit 1; tar -xzf -)
   fi
   mv "$sdk_dir_path"/go "$goroot"
   echo "$goroot"
-)
+}
 
 # Sets the Go environment. If CGO is required, call `set_unixy_dev_env` also.
 set_go_env() {
   first_call 1dc30dd || return 0
   unset GOROOT
-  echo Using Go toolchain in "$(goroot_path)" >&2
-  export PATH="$(goroot_path)"/bin:"$PATH"
+  local goroot_path
+  goroot_path="$(show_goroot_path)"
+  echo Using Go toolchain in "$goroot_path" >&2
+  PATH="$goroot_path/bin:$PATH"
+  export PATH
 }
 
 go() {
-  set_go_env
-  invoke go "$@"
+  mise exec go -- go "$@"
 }
 
 # Run go command.

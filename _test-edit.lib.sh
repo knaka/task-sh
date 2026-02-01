@@ -6,29 +6,29 @@
 . ./_edit.lib.sh
 . ./_assert.lib.sh
 
-expected_bbb4bff() {
-  cat <<EOF
+hello_sh_7dad95b=./testdata/hello.sh
+hello_txt_e48f9dc=./testdata/hello.txt
+
+test_edit() {
+  local function_text
+  function_text="$(extract_block "^hello()" "^}" "$hello_sh_7dad95b")"
+  assert_eq "$(cat <<EOF
 hello() {
   echo Hello
 }
 EOF
-}
+)" "$function_text"
 
-path_7dad95b=./testdata/hello.sh
-path_c8fe7b4=./testdata/hello.txt
-
-test_edit() {
-  local function function_line_num
-  function="$(extract_block "^hello()" "^}" "$path_7dad95b")"
-  assert_eq "$(expected_bbb4bff)" "$function"
-  function_line_num="$(echo "$function" | wc -l)"
+  local function_line_num
+  function_line_num="$(echo "$function_text" | wc -l)"
   assert test 3 -eq "$function_line_num"
 
-  local count_before count_after
-  count_before="$(wc -l <"$path_7dad95b")"
-  count_after="$(exclude_block "^hello()" "^}" "$path_7dad95b" | wc -l)"
+  local count_before
+  count_before="$(wc -l <"$hello_sh_7dad95b")"
+  local count_after
+  count_after="$(exclude_block "^hello()" "^}" "$hello_sh_7dad95b" | wc -l)"
   assert test $((count_before - function_line_num)) -eq "$count_after"
 
-  assert test 4 -eq "$(extract_before 881e6d7 "$path_c8fe7b4" | wc -l)"
-  assert test 5 -eq "$(extract_after 881e6d7 "$path_c8fe7b4" | wc -l)"
+  assert test 4 -eq "$(extract_before 881e6d7 "$hello_txt_e48f9dc" | wc -l)"
+  assert test 5 -eq "$(extract_after 881e6d7 "$hello_txt_e48f9dc" | wc -l)"
 }

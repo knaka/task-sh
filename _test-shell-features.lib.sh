@@ -56,7 +56,6 @@ test_indented_here_doc() (
   var=aaa
 
   output1_path="$TEMP_DIR"/output1.txt
-  # shellcheck disable=SC2016
   cat <<-EOF >"$output1_path"
 		foo
 		$var
@@ -76,7 +75,7 @@ EOF
   assert_eq "$(shasum "$output1_path" | field 1)" "$(shasum "$output3_path" | field 1)" 
 )
 
-# # dash annd ash does not support
+# # dash and ash does not support
 # test_for_loop() (
 #   set -o errexit
 # 
@@ -94,7 +93,7 @@ EOF
 #   false | true
 # )
 
-# Bash POSIX mode does not support `echo -n`. While ash, dash do.
+# Bash POSIX mode does not support `echo -n`. While ash, dash do. use printf instead.
 # test_echo_n() (
 #   set -o errexit
 # 
@@ -110,7 +109,8 @@ test_lineno() {
 }
 
 test_trailing_empty_line() {
-  local s="$(
+  local s
+  s="$(
     printf "foo%s" \
       "bar" \
       "baz" \
@@ -157,3 +157,28 @@ test_local_ifs() (
   set -- $(printf "foo bar\nbar baz\nhoge fuga\n")
   assert_eq $# 6
 )
+
+func_local_readonly() {
+  local xad7f9eb
+  readonly xad7f9eb=123
+}
+
+func_local_readonly_error() {
+  local xad7f9eb
+  readonly xad7f9eb=123
+  xad7f9eb=789
+}
+
+test_local_readonly() {
+  test "${xad7f9eb+set}" != set
+  func_local_readonly
+  test "${xad7f9eb+set}" != set
+  
+  if (func_local_readonly_error)
+  then
+    echo Should raise readonly error. >&2
+    return 1
+  fi
+
+  return 0
+}
