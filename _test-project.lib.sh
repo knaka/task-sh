@@ -441,14 +441,23 @@ test_go_install() {
   echo "$PATH" | grep -q "goyacc@"
 }
 
+cmd_not_existing_1fee7de() {
+  :
+}
+
+alias cmd_not_existing_dd66a33='cat -n'
+
 test_has_external_command() {
   if is_macos || is_linux
   then
-    has_external_command bash
+    assert -m "05acd8f" has_external_command bash
   elif is_windows
   then
-    has_external_command ssh
+    assert -m "912638d" has_external_command ssh
+    assert -m "aefd408" has_external_command ssh.exe
   else
     false
   fi
+  assert_false -m "d2f5db2" has_external_command "cmd_not_existing_1fee7de"
+  assert_false -m "6ccbee3" has_external_command "cmd_not_existing_dd66a33"
 }
