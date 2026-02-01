@@ -54,6 +54,11 @@ test_fetched_volta() {
   volta --help
 }  
 
+test_fetched_mise() {
+  skip_unless_full
+  mise --help
+}
+
 . ./yj.lib.sh
 
 test_fetched_yj() {

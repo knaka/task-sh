@@ -4,6 +4,32 @@
 
 . ./task.sh
 
+# Releases · jdx/mise https://github.com/jdx/mise/releases
+mise_version_adcf449="2026.1.12"
+
+set_mise_version() {
+  mise_version_adcf449="$1"
+}
+
+mise() {
+  # shellcheck disable=SC2016
+  run_fetched_cmd \
+    --name="mise" \
+    --ver="$mise_version_adcf449" \
+    --os-map="Linux linux Darwin macos Windows windows " \
+    --arch-map="x86_64 x64 arm64 arm64 " \
+    --ext-map="$archive_ext_map" \
+    --url-template='https://github.com/jdx/mise/releases/download/v${ver}/mise-v${ver}-${os}-${arch}${ext}' \
+    --rel-dir-template='mise/bin' \
+    -- \
+    "$@"
+}
+
+# Run mise(1)
+subcmd_mise() {
+  mise "$@"
+}
+
 # Releases · volta-cli/volta https://github.com/volta-cli/volta/releases
 volta_version_c919009=2.0.2
 
