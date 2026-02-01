@@ -11,7 +11,7 @@ set_go_required_min_ver() {
   go_required_min_ver_bb972aa="$1"
 }
 
-write_go_dir_paths() {
+show_go_dir_paths() {
   # $GOROOT
   if test "${GOROOT+set}" = set
   then
@@ -33,8 +33,8 @@ write_go_dir_paths() {
   find "$HOME"/sdk -maxdepth 1 -type d -name 'go*' 2>/dev/null | sort -r
 }
 
-search_sufficient_go_root() {
-  write_go_dir_paths \
+find_sufficient_go_root() {
+  show_go_dir_paths \
   | while read -r go_dir_path
     do
       if command -v "$go_dir_path"/bin/go >/dev/null 2>&1
@@ -48,10 +48,10 @@ search_sufficient_go_root() {
     done
 }
 
-# Returns the path to the Go root directory.
-write_goroot_path() {
+# Shows the path to the Go root directory.
+show_goroot_path() {
   local goroot
-  goroot="$(search_sufficient_go_root)"
+  goroot="$(find_sufficient_go_root)"
   if test -n "$goroot"
   then
     echo "$goroot"
@@ -101,8 +101,10 @@ write_goroot_path() {
 set_go_env() {
   first_call 1dc30dd || return 0
   unset GOROOT
-  echo Using Go toolchain in "$(write_goroot_path)" >&2
-  PATH="$(write_goroot_path)"/bin:"$PATH"
+  local goroot_path
+  goroot_path="$(show_goroot_path)"
+  echo Using Go toolchain in "$goroot_path" >&2
+  PATH="$goroot_path/bin:$PATH"
   export PATH
 }
 
