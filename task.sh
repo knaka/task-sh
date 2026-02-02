@@ -40,13 +40,13 @@ rc_test_skipped=10
 : "${CACHE_DIR:=$HOME/.cache/task-sh}"
 mkdir -p "$CACHE_DIR"
 
+# For platforms other than Windows
+: "${LOCALAPPDATA:=/}"
+
 if ! test -d /etc/ssl
 then
   export SSL_CERT_FILE="$CACHE_DIR"/cacert.pem
 fi
-
-# For platforms other than Windows
-: "${LOCALAPPDATA:=/}"
 
 #endregion
 
@@ -70,7 +70,7 @@ chaintrap() {
   local stmts_new="$1"
   shift 
   init_temp_dir || return $?
-  # Basename of the script file containing the statements to be called during finalization
+  # Base path of the file containing the statements to be called during finalization
   local stmts_file_base="$TEMP_DIR"/"$stmts_file_id"
   local stmts_old_file="$TEMP_DIR"/347803f
   local sigspec
@@ -112,10 +112,12 @@ first_call() {
   eval "called_$1=true"
 }
 
+# Check if stdout is tty.
 is_terminal() {
   test -t 1
 }
 
+# Check if external command exists in $PATH.
 has_external_command() {
   # test -x "$(command -v "$1" 2>/dev/null)"
   # command which "$1" >/dev/null # `command` does not ignore builtins
@@ -435,7 +437,7 @@ map_arch() {
 }
 
 # Fetch and run a command from a remote archive
-# Usage: fetch_cmd_run [OPTIONS] -- [COMMAND_ARGS...]
+# Usage: run_fetched_cmd [OPTIONS] -- [COMMAND_ARGS...]
 # Options:
 #   --name=NAME           Application name. Used as the directory name to store the command.
 #   --ver=VERSION         Application version
@@ -717,7 +719,7 @@ task_devinstall() {
 #endregion
 
 # ==========================================================================
-#region Mise
+#region Mise - Home | mise-en-place https://mise.jdx.dev/
 
 # Releases · jdx/mise https://github.com/jdx/mise/releases
 mise_version_adcf449="2026.1.12"
@@ -835,7 +837,7 @@ subcmd_curl() {
 
 jq_prefer_pkg_ec51165=false
 
-# Make use of jq(1) which is installed by platform-specific package manager rather than fetched binary.
+# Make use of jq(1) installed by a platform-specific package manager rather than the fetched binary.
 jq_prefer_pkg() {
   jq_prefer_pkg_ec51165=true
   require_pkg_cmd \
@@ -901,7 +903,7 @@ load_env_file() {
       continue
     fi
     value="$(eval "echo \"\${$key:=}\"")"
-    # Not to overwrite the existing, previously set value.
+    # Do not overwrite an existing, previously set value.
     if test -n "$value"
     then
       continue
@@ -963,6 +965,7 @@ wait_for_server() {
   done
 }
 
+# Convenient for cleaning logs.
 strip_escape_sequences() {
   # ANSI escape code - Wikipedia https://en.wikipedia.org/wiki/ANSI_escape_code
   # BusyBox sed(1) does not accept `\octal` or `\xhex`.
@@ -1100,7 +1103,7 @@ is_bash() {
   test "$(shell_name)" = "bash"
 }
 
-# Check if the file(s)/directory(s) are newer than the destination.
+# Check if the file(s)/directories are newer than the destination.
 newer() {
   local found_than=false
   local dest=
@@ -1152,7 +1155,7 @@ newer() {
   test -n "$(find "$@" -newer "$dest" 2>/dev/null)"
 }
 
-# Returns true if any source file is older than the destination file.
+# Returns true if no source file is newer than the destination file.
 older() {
   ! newer "$@"
 }
@@ -1239,7 +1242,7 @@ get_key() {
   echo "$key"
 }
 
-# Show a message and get an input from the user.
+# Show a message and get input from the user.
 prompt() {
   local message="${1:-Text}"
   local default="${2:-}"
@@ -1330,7 +1333,7 @@ emph() {
 
 # Sort version strings.
 # Version strings that are composed of three parts are sorted considering the third part as a patch version.
-# Long option `--version-sort` is specific to BSD sort(1).
+# Long option `--version-sort` is a GNU sort(1) extension.
 # shellcheck disable=SC2120
 sort_version() {
   sed -E -e '/-/! { s/^([^.]+(\.[^.]+){2})$/\1_/; }' -e 's/-patch/_patch/' | sort -V "$@" | sed -e 's/_$//' -e 's/_patch/-patch/'
@@ -1601,7 +1604,7 @@ subcmd_task__install() {
     printf "Downloading \"$name\" ... " >&2
     if test "$name" = "task.sh"
     then
-      "$VERBOSE" && Lazily replacing "$file.new" to "$file".
+      "$VERBOSE" && echo "Lazily replacing \"$file.new\" with \"$file\"." >&2
       chaintrap "mv \"$file.new\" \"$file\"" EXIT
       local file="$file.new"
     fi
@@ -1763,7 +1766,7 @@ subcmd_task__exec() {
 
 usv_called_task_7ef15a7="$us"
 
-# Call the task/subcommand. If the unique task (including the arguments) is already called before, this returns immediately. Calls before/after hooks accordingly.
+# Call the task/subcommand. If the same task (including the arguments) has already been called, this returns immediately. Calls before/after hooks accordingly.
 call_task() {
   local func_name="$1"
   shift
@@ -1843,7 +1846,7 @@ tasksh_main() {
     return 0
   fi
 
-  # Load all task files in the tasks directory. All task files are sourced in the $TASKS directory context.
+  # Load all task files in the tasks directory. All task files are sourced in the $TASKS_DIR directory context.
   push_dir "$TASKS_DIR"
   local path
   for path in "$TASKS_DIR"/task.sh "$TASKS_DIR"/*.lib.sh
