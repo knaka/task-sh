@@ -117,7 +117,10 @@ is_terminal() {
 }
 
 has_external_command() {
-  test -x "$(command -v "$1" 2>/dev/null)"
+  # test -x "$(command -v "$1" 2>/dev/null)"
+  # command which "$1" >/dev/null # `command` does not ignore builtins
+  # env which "$1" >/dev/null
+  which "$1" >/dev/null
 }
 
 #endregion
@@ -761,7 +764,7 @@ apt_helper_download() {
 curl() {
   if has_external_command curl >/dev/null 2>&1
   then
-    curl "$@"
+    invoke curl "$@"
     return
   fi
   local cmd_path="$CACHE_DIR"/curl"$exe_ext"
@@ -1818,10 +1821,14 @@ call_task() {
   done
 }
 
+defer_child_cleanup() {
+  chaintrap kill_child_processes EXIT TERM INT
+}
+
 tasksh_main() {
   set -o nounset -o errexit
 
-  chaintrap kill_child_processes EXIT TERM INT
+  defer_child_cleanup
 
   PROJECT_DIR="$(realpath "$PROJECT_DIR")"
   export PROJECT_DIR
