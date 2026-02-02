@@ -447,14 +447,28 @@ cmd_not_existing_1fee7de() {
 
 alias cmd_not_existing_dd66a33='cat -n'
 
+if is_macos || is_linux
+then
+  top() {
+    :
+  }
+fi
+
+if is_windows
+then
+  xcopy() {
+    :
+  }
+fi
+
 test_has_external_command() {
   if is_macos || is_linux
   then
-    assert -m "05acd8f" has_external_command bash
+    assert -m "05acd8f" has_external_command top
   elif is_windows
   then
-    assert -m "912638d" has_external_command ssh
-    assert -m "aefd408" has_external_command ssh.exe
+    assert -m "912638d" has_external_command xcopy
+    assert -m "aefd408" has_external_command xcopy.exe
   else
     false
   fi
