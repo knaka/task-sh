@@ -496,13 +496,16 @@ test_root_dir() {
     assert -m "abbc48a" is_root_dir //
   fi
 
+  local temp_dir
+  # $TEMP_DIR can be under symlink
+  temp_dir="$(canon_path "$TEMP_DIR")"
   local test_root
-  test_root="$TEMP_DIR"/foo
+  test_root="$temp_dir"/foo
   test_target="$test_root"/bar/baz
   mkdir -p "$test_target"
   echo hello >"$test_target"/hello.txt
 
   assert_eq -m "cb11a7a" \
-    "$TEMP_DIR"/foo/bar/baz/hello.txt \
-    "$(canon_path "$TEMP_DIR"//foo/bar////../bar/baz/../baz/hello.txt)"
+    "$temp_dir"/foo/bar/baz/hello.txt \
+    "$(canon_path "$temp_dir"//foo/bar////../bar/baz/../baz/hello.txt)"
 }
