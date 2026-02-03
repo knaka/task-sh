@@ -939,6 +939,34 @@ load_env() {
 # ==========================================================================
 #region Misc
 
+# Canonicalize path
+canon_path() {
+  local target="$1"
+  target="$(echo "$target" | sed -E -e 's|[/\\]+|/|g')"
+  if test -d "$target"
+  then
+    # -P: Handle the operand dot-dot physically
+    (
+      cd -P -- "$target"
+      echo "$PWD"
+    )
+  else
+    (
+      cd -P -- "$(dirname -- "$target")"
+      printf "%s/%s\n" "$PWD" "$(basename -- "$target")"
+    )
+  fi
+}
+
+# Check if root directory
+is_root_dir() {
+  local dir="$1"
+  dir="$(canon_path "$dir")"
+  local parent_dir
+  parent_dir="$(dirname "$dir")"
+  test "$dir" = "$parent_dir"
+}
+
 # Run command after globbing arguments. For Windows environment.s
 glob_and_run() {
   local cmd="$1"

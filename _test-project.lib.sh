@@ -475,3 +475,34 @@ test_has_external_command() {
   assert_false -m "d2f5db2" has_external_command "cmd_not_existing_1fee7de"
   assert_false -m "6ccbee3" has_external_command "cmd_not_existing_dd66a33"
 }
+
+test_root_dir() {
+  if is_windows
+  then
+    assert_eq -m "e4832e9" "C:/" "$(canon_path /)"
+    assert_eq -m "54c7b69" "C:/" "$(canon_path //)"
+    assert_eq -m "557afed" "C:/" "$(canon_path /\\)"
+    assert_eq -m "43489c0" "C:/" "$(canon_path /\\/)"
+
+    assert -m "81c5d05" is_root_dir c:/
+    assert -m "d70101b" is_root_dir c://
+    assert -m "9150a22" is_root_dir C:\\
+    assert -m "127d73e" is_root_dir C:\\\\
+  else
+    assert_eq -m "e5779b3" "/" "$(canon_path /)"
+    assert_eq -m "7acba43" "/" "$(canon_path //)"
+
+    assert -m "69d6fab" is_root_dir /
+    assert -m "abbc48a" is_root_dir //
+  fi
+
+  local test_root
+  test_root="$TEMP_DIR"/foo
+  test_target="$test_root"/bar/baz
+  mkdir -p "$test_target"
+  echo hello >"$test_target"/hello.txt
+
+  assert_eq -m "cb11a7a" \
+    "$TEMP_DIR"/foo/bar/baz/hello.txt \
+    "$(canon_path "$TEMP_DIR"//foo/bar////../bar/baz/../baz/hello.txt)"
+}
