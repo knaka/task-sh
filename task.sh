@@ -955,6 +955,7 @@ glob_and_run() {
           set -- "$@" "$arg"
           continue
         fi
+        arg="$(echo "$arg" | sed -e 's|\\|/|g')"
         for arg2 in $arg
         do
           set -- "$@" "$arg2"
