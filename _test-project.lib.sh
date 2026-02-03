@@ -476,18 +476,19 @@ test_has_external_command() {
   assert_false -m "6ccbee3" has_external_command "cmd_not_existing_dd66a33"
 }
 
+# shellcheck disable=SC1003
 test_root_dir() {
   if is_windows
   then
     assert_match -m "e4832e9" "[A-Z]:/" "$(canon_path /)"
     assert_match -m "54c7b69" "[A-Z]:/" "$(canon_path //)"
-    assert_match -m "557afed" "[A-Z]:/" "$(canon_path /\\)"
-    assert_match -m "43489c0" "[A-Z]:/" "$(canon_path /\\/)"
+    assert_match -m "557afed" "[A-Z]:/" "$(canon_path '/\\')"
+    assert_match -m "43489c0" "[A-Z]:/" "$(canon_path '/\\/')"
 
     assert -m "81c5d05" is_root_dir c:/
     assert -m "d70101b" is_root_dir c://
-    assert -m "9150a22" is_root_dir C:\\
-    assert -m "127d73e" is_root_dir C:\\\\
+    assert -m "9150a22" is_root_dir 'C:\\'
+    assert -m "127d73e" is_root_dir 'C:\\\\'
   else
     assert_eq -m "e5779b3" "/" "$(canon_path /)"
     assert_eq -m "7acba43" "/" "$(canon_path //)"
