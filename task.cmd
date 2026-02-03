@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 @REM BusyBox for Windows https://frippery.org/busybox/index.html
 @REM Release Notes https://frippery.org/busybox/release-notes/index.html
 @REM Index of /files/busybox https://frippery.org/files/busybox/?C=M;O=D
-set ver=FRP-5579-g5749feb35
+set ver=FRP-5857-g3681e397f
 if "%PROCESSOR_ARCHITECTURE%" == "x86" (
   echo WARNING: Your environment is 32-bit. Not all features are supported. >&2
   set arch=32
