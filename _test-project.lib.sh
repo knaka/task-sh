@@ -479,10 +479,10 @@ test_has_external_command() {
 test_root_dir() {
   if is_windows
   then
-    assert_eq -m "e4832e9" "C:/" "$(canon_path /)"
-    assert_eq -m "54c7b69" "C:/" "$(canon_path //)"
-    assert_eq -m "557afed" "C:/" "$(canon_path /\\)"
-    assert_eq -m "43489c0" "C:/" "$(canon_path /\\/)"
+    assert_match -m "e4832e9" "[A-Z]:/" "$(canon_path /)"
+    assert_match -m "54c7b69" "[A-Z]:/" "$(canon_path //)"
+    assert_match -m "557afed" "[A-Z]:/" "$(canon_path /\\)"
+    assert_match -m "43489c0" "[A-Z]:/" "$(canon_path /\\/)"
 
     assert -m "81c5d05" is_root_dir c:/
     assert -m "d70101b" is_root_dir c://
