@@ -478,25 +478,6 @@ test_has_external_command() {
 
 # shellcheck disable=SC1003
 test_root_dir() {
-  if is_windows
-  then
-    assert_match -m "e4832e9" "[A-Z]:/" "$(canon_path /)"
-    assert_match -m "54c7b69" "[A-Z]:/" "$(canon_path //)"
-    assert_match -m "557afed" "[A-Z]:/" "$(canon_path '/\\')"
-    assert_match -m "43489c0" "[A-Z]:/" "$(canon_path '/\\/')"
-
-    assert -m "81c5d05" is_root_dir c:/
-    assert -m "d70101b" is_root_dir c://
-    assert -m "9150a22" is_root_dir 'C:\\'
-    assert -m "127d73e" is_root_dir 'C:\\\\'
-  else
-    assert_eq -m "e5779b3" "/" "$(canon_path /)"
-    assert_eq -m "7acba43" "/" "$(canon_path //)"
-
-    assert -m "69d6fab" is_root_dir /
-    assert -m "abbc48a" is_root_dir //
-  fi
-
   local temp_dir
   # $TEMP_DIR can be under symlink
   temp_dir="$(canon_path "$TEMP_DIR")"
@@ -509,4 +490,29 @@ test_root_dir() {
   assert_eq -m "cb11a7a" \
     "$temp_dir"/foo/bar/baz/hello.txt \
     "$(canon_path "$temp_dir"//foo/bar////../bar/baz/../baz/hello.txt)"
+
+  if is_windows
+  then
+      assert_eq -m "c894af8" \
+      "$temp_dir"/foo/bar/baz/hello.txt \
+      "$(canon_path "$temp_dir"\\\\foo/bar\\\\\\\\..\\bar/baz\\..\\baz\\hello.txt)"
+
+    assert_match -m "e4832e9" "^[A-Z]:/$" "$(canon_path /)"
+    assert_match -m "54c7b69" "^[A-Z]:/$" "$(canon_path //)"
+    assert_match -m "557afed" "^[A-Z]:/$" "$(canon_path '/\\')"
+    assert_match -m "43489c0" "^[A-Z]:/$" "$(canon_path '/\\/')"
+
+    assert -m "81c5d05" is_root_dir c:/
+    assert -m "d70101b" is_root_dir c://
+    assert -m "9150a22" is_root_dir 'C:\\'
+    assert -m "127d73e" is_root_dir 'C:\\\\'
+
+
+  else
+    assert_eq -m "e5779b3" "/" "$(canon_path /)"
+    assert_eq -m "7acba43" "/" "$(canon_path //)"
+
+    assert -m "69d6fab" is_root_dir /
+    assert -m "abbc48a" is_root_dir //
+  fi
 }
