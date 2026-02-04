@@ -939,6 +939,62 @@ load_env() {
 # ==========================================================================
 #region Misc
 
+# Canonicalize path
+canon_path() {
+  local target="$1"
+  target="$(echo "$target" | sed -E -e 's|[/\\]+|/|g')"
+  if test -d "$target"
+  then
+    # -P: Handle the operand dot-dot physically
+    (
+      cd -P -- "$target"
+      echo "$PWD"
+    )
+  else
+    (
+      cd -P -- "$(dirname -- "$target")"
+      printf "%s/%s\n" "$PWD" "$(basename -- "$target")"
+    )
+  fi
+}
+
+# Check if root directory
+is_root_dir() {
+  local dir="$1"
+  dir="$(canon_path "$dir")"
+  local parent_dir
+  parent_dir="$(dirname "$dir")"
+  test "$dir" = "$parent_dir"
+}
+
+# Run command after globbing arguments. For Windows environment.s
+glob_and_run() {
+  local cmd="$1"
+  shift
+  local arg
+  for arg in "$@"
+  do
+    shift
+    case "$arg" in
+      (-*) set -- "$@" "$arg" ;;
+      (*\?*|*\**)
+        if test -e "$arg"
+        then
+          set -- "$@" "$arg"
+          continue
+        fi
+        arg="$(echo "$arg" | sed -e 's|\\|/|g')"
+        for arg2 in $arg
+        do
+          set -- "$@" "$arg2"
+        done
+        ;;
+      (*) set -- "$@" "$arg" ;;
+    esac
+  done
+  command $cmd "$@"
+}
+
 # Wait for one or more servers to respond with HTTP 200. Checks each URL sequentially with a 60-second timeout per URL.
 wait_for_server() {
   local url
