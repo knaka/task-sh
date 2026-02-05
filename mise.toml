@@ -1,5 +1,7 @@
 settings.use_file_shell_for_executable_tasks = true
 settings.windows_executable_extensions = [ "sh" ]
+settings.unix_default_file_shell_args = "sh"
+settings.unix_default_inline_shell_args = "sh -c -o errexit"
 settings.windows_default_file_shell_args = "sh.exe"
 settings.windows_default_inline_shell_args = "sh.exe -c -o errexit"
 
