@@ -35,15 +35,22 @@ if not exist "!PROJECT_DIR!" (
   set "PROJECT_DIR=%CD%"
 )
 set TASKS_DIR=
+set EXT=
 if exist "!PROJECT_DIR!\!ARG0BASE!.sh" (
   set TASKS_DIR=!PROJECT_DIR!
+  set EXT=.sh
+) else if exist "!PROJECT_DIR!\!ARG0BASE!" (
+  set TASKS_DIR=!PROJECT_DIR!
 ) else if exist "!PROJECT_DIR!tasks\!ARG0BASE!.sh" (
+  set TASKS_DIR=!PROJECT_DIR!tasks
+  set EXT=.sh
+) else if exist "!PROJECT_DIR!tasks\!ARG0BASE!" (
   set TASKS_DIR=!PROJECT_DIR!tasks
 ) else (
   echo Cannot find script file for !ARG0! >&2
   exit /b 1
 )
-set "script_file_path=!TASKS_DIR!\!ARG0BASE!.sh"
+set "script_file_path=!TASKS_DIR!\!ARG0BASE!!EXT!"
 set BB_GLOBBING=0
 @REM Virtual shell path of BusyBox Ash
 set SH=/bin/sh

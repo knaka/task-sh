@@ -1,0 +1,13 @@
+settings.use_file_shell_for_executable_tasks = true
+settings.windows_executable_extensions = [ "sh" ]
+settings.windows_default_file_shell_args = "sh.exe"
+settings.windows_default_inline_shell_args = "sh.exe -c -o errexit"
+
+[tasks.inlined]
+description = "Inlined task."
+run = """
+true
+printf "e91516c %s\n" $((100 + 100))
+false
+echo 0adb078
+"""
