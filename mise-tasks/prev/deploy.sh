@@ -5,5 +5,9 @@
 
 #MISE description="Deploy preview environment."
 
-echo Deploy preview environment.
+set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" 2>/dev/null || :; fi
+. ./_foo.sh
+. ../_bar.sh
+cd "$1" || exit 1; shift 2
 
+echo Deploy preview environment.
