@@ -1,4 +1,3 @@
-@REM Executes the shell script with the same name but with a `.sh` extension instead of `.cmd` extension in the same directory or in the `.\tasks\` directory using BusyBox which is installed if it does not exist.
 @echo off
 setlocal enabledelayedexpansion
 
@@ -29,34 +28,28 @@ if not exist !cmd_path! (
 if not exist !cache_dir_path!\sh.exe (
   !cmd_path! --install !cache_dir_path!
 )
-
 @REM Shell-command ready (a5f342b)
-set "INITIAL_PWD=%CD%"
-set "ARG0=%~f0"
-set "ARG0BASE=%~n0"
-set "PROJECT_DIR=%~dp0"
-if not exist "!PROJECT_DIR!" (
-  set "PROJECT_DIR=%CD%"
+
+@REM Prepend path
+set PATH=!cache_dir_path!;%PATH%s
+
+@REM Releases · jdx/mise https://github.com/jdx/mise/releases
+set ver=2026.1.12
+set cache_dir_path=%USERPROFILE%\.cache\task-sh\mise@%ver%
+if not exist !cache_dir_path! (
+  mkdir "!cache_dir_path!"
 )
-set TASKS_DIR=
-set EXT=
-if exist "!PROJECT_DIR!\!ARG0BASE!.sh" (
-  set TASKS_DIR=!PROJECT_DIR!
-  set EXT=.sh
-) else if exist "!PROJECT_DIR!\!ARG0BASE!" (
-  set TASKS_DIR=!PROJECT_DIR!
-) else if exist "!PROJECT_DIR!tasks\!ARG0BASE!.sh" (
-  set TASKS_DIR=!PROJECT_DIR!tasks
-  set EXT=.sh
-) else if exist "!PROJECT_DIR!tasks\!ARG0BASE!" (
-  set TASKS_DIR=!PROJECT_DIR!tasks
-) else (
-  echo Cannot find script file for !ARG0! >&2
-  exit /b 1
+set cmd_name=mise.exe
+set cmd_path=!cache_dir_path!\!cmd_name!
+if not exist !cmd_path! (
+  echo Downloading Mise for Windows. >&2
+  set zip_path=!cache_dir_path!\mise.zip
+  curl.exe --fail --location --output "!zip_path!" https://github.com/jdx/mise/releases/download/v!ver!/mise-v!ver!-windows-x64.zip || exit /b !ERRORLEVEL!
+  unzip.exe "!zip_path!" -d !cache_dir_path!\work || exit /b !ERRORLEVEL!
+  mv.exe -f !cache_dir_path!\work\mise\bin\mise.exe "!cache_dir_path!"
+  rm.exe -f "!zip_path!"
+  rm.exe -fr !cache_dir_path!\work
 )
-set "script_file_path=!TASKS_DIR!\!ARG0BASE!!EXT!"
-set BB_GLOBBING=0
-@REM Virtual shell path of BusyBox Ash
-set SH=/bin/sh
-!cmd_path! sh "!script_file_path!" %* || exit /b !ERRORLEVEL!
+!cmd_path! %* || exit /b !ERRORLEVEL!
+
 endlocal
