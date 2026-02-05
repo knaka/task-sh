@@ -1,5 +1,5 @@
 settings.use_file_shell_for_executable_tasks = true
-settings.windows_executable_extensions = [ "sh" ]
+settings.windows_executable_extensions = [ "sh", "ps1" ]
 settings.unix_default_file_shell_args = "env"
 settings.unix_default_inline_shell_args = "sh -c -o errexit"
 settings.windows_default_file_shell_args = "env.exe"
