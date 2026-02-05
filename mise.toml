@@ -17,5 +17,6 @@ echo 0adb078
 
 [task_config]
 includes = [
-  "mise-sub.toml"
+  "mise-sub.toml",
+  "mise-tasks"
 ]
