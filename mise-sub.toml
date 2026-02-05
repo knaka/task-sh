@@ -1,0 +1,3 @@
+[sub]
+description = "sub"
+run = "echo foo"
