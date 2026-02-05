@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 # vim: set filetype=sh tabstop=2 shiftwidth=2 expandtab :
 # shellcheck shell=sh
-"${sourced_ee9c49b-false}" && return 0; sourced_af2e88f=true
+"${sourced_eba2d9a-false}" && return 0; sourced_eba2d9a=true
+
+# jdx/mise: dev tools, env vars, task runner https://github.com/jdx/mise
 
 # Releases · jdx/mise https://github.com/jdx/mise/releases
 ver="2026.1.12"
