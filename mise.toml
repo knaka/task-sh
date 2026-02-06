@@ -62,7 +62,7 @@ mise_sh_tasks_dir="$usage_sh_tasks_dir"
 
 # Parse shell task files and extract task/subcmd information with their metadata.
 # Outputs lines in format: "<type> <name> <func_name> <basename> <body>"
-show_task_info() {
+extract_task_info() {
   awk -f - "$@" <<'EOF'
 BEGIN {
   desc = ""
@@ -187,5 +187,5 @@ then
 fi
 cd "$MISE_PROJECT_ROOT"/"$mise_sh_tasks_dir"
 rm -f gen-*.toml
-show_task_info *.lib.sh | generate_task_tomls
+extract_task_info *.lib.sh | generate_task_tomls
 '''
