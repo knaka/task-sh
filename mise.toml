@@ -7,7 +7,7 @@ windows_default_file_shell_args = "env.exe"
 windows_default_inline_shell_args = "sh.exe -c -o errexit"
 
 [env]
-THE_VALUE = "mise-sh-tasks"
+MISE_SH_TASKS_DIR = "./mise-sh-tasks/"
 
 [tasks.inlined]
 description = "Inlined task."
@@ -54,6 +54,7 @@ flag "--sh-tasks-dir <dir>" {
   env "MISE_SH_TASKS_DIR"
 }
 '''
+tools = {jq = "1", yj = "5"}
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
