@@ -19,6 +19,18 @@ false
 echo 0adb078
 """
 
+[tasks."prev:doit2"]
+run = '''
+#!/usr/bin/env sh
+. "$MISE_PROJECT_ROOT"/lib.sh/min.lib.sh
+before_source "$MISE_PROJECT_ROOT"/lib.sh
+. "$MISE_PROJECT_ROOT"/lib.sh/doit.lib.sh
+after_source
+cd "$1" || exit 1; shift 2
+
+doit_sub2
+'''
+
 [task_config]
 includes = [
   "mise-sub.toml",

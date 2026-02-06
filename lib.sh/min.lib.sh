@@ -7,7 +7,10 @@
 # Call before relative path sourcing.
 before_source() {
   cd "${psv_dirs_6b8d832%%|*}" || exit 1
-  psv_dirs_6b8d832="$PWD/$1|$psv_dirs_6b8d832"
+  case "$1" in
+    (/*|?:*) psv_dirs_6b8d832="$1|$psv_dirs_6b8d832";;
+    (*) psv_dirs_6b8d832="$PWD/$1|$psv_dirs_6b8d832";;
+  esac
 }
 
 # Call after relative path sourcing.
