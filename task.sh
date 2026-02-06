@@ -15,8 +15,13 @@ rc_test_skipped=10
 # ==========================================================================
 #region Environment variables. If not set by the caller, they are set later in `tasksh_main`
 
-# The initial working directory when the script was started.
-: "${INITIAL_PWD:=$PWD}"
+# The original working directory when the script was started.
+: "${ORIGINAL_CWD=}"
+: "${ORIGINAL_CWD:=${MISE_ORIGINAL_CWD:-}}"
+: "${ORIGINAL_CWD:=$PWD}"
+# Aliases
+: "${ORIGINAL_PWD:=${ORIGINAL_CWD}}"
+: "${INITIAL_PWD:=${ORIGINAL_CWD}}"
 
 # The path to the shell executable which is running this script.
 : "${SH:=/bin/sh}"

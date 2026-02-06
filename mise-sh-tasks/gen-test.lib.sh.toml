@@ -1,0 +1,13 @@
+# Generated
+
+["foo:bar"]
+description = "This is foo:bar test."
+run = """
+#!/usr/bin/env sh
+set -- "$PWD" "$@"
+cd "$MISE_PROJECT_ROOT"/mise-sh-tasks
+. "test.lib.sh"
+cd "$1"
+shift
+"task_foo__bar" "$@"
+"""
