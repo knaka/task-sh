@@ -6,7 +6,7 @@
 #MISE description="Deploy preview environment."
 
 set -- "$PWD" "${0%/*}" "$@"; if test "$2" != "$0"; then cd "$2" || exit 1; fi
-. .lib/boot.lib.sh
+. .lib/min.lib.sh
 before_source .lib
 . .lib/utils.lib.sh
 after_source

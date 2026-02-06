@@ -4,11 +4,13 @@
 
 : "${psv_dirs_6b8d832="$PWD"|}"
 
+# Call before relative path sourcing.
 before_source() {
   cd "${psv_dirs_6b8d832%%|*}" || exit 1
   psv_dirs_6b8d832="$PWD/$1|$psv_dirs_6b8d832"
 }
 
+# Call after relative path sourcing.
 after_source() {
   psv_dirs_6b8d832="${psv_dirs_6b8d832#*|}"
   cd "${psv_dirs_6b8d832%%|*}" || exit 1
