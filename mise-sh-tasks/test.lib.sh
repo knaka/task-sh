@@ -4,10 +4,16 @@
 
 . ./utils.lib.sh
 
-# This is foo:bar test.
+# This is foo:bar.
+#MISE tools={jq="latest"}
 task_foo__bar() {
   push_dir "$ORIGINAL_CWD"
   pwd
   echo "foo bar test" "$@" "ef846c7"
   pop_dir
+}
+
+# This is bar:baz.
+task_bar__baz() {
+  echo bar:baz
 }

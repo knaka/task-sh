@@ -1,13 +1,9 @@
-# Generated
-
 ["foo:bar"]
-description = "This is foo:bar test."
-run = """
-#!/usr/bin/env sh
-set -- "$PWD" "$@"
-cd "$MISE_PROJECT_ROOT"/mise-sh-tasks
-. "test.lib.sh"
-cd "$1"
-shift
-"task_foo__bar" "$@"
-"""
+description = "This is foo:bar."
+run = "#!/usr/bin/env sh\n\nset -- \"$PWD\" \"$@\"\ncd \"$MISE_PROJECT_ROOT\"/\"./mise-sh-tasks/\"\n. \"test.lib.sh\"\ncd \"$1\"\nshift\n\"task_foo__bar\" \"$@\""
+["foo:bar".tools]
+jq = "latest"
+
+["bar:baz"]
+description = "This is bar:baz."
+run = "#!/usr/bin/env sh\n\nset -- \"$PWD\" \"$@\"\ncd \"$MISE_PROJECT_ROOT\"/\"./mise-sh-tasks/\"\n. \"test.lib.sh\"\ncd \"$1\"\nshift\n\"task_bar__baz\" \"$@\""
