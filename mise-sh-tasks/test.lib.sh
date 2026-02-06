@@ -2,7 +2,7 @@
 # shellcheck shell=sh
 "${sourced_09e936b-false}" && return 0; sourced_09e936b=true
 
-. ./task.sh
+. ./utils.lib.sh
 
 # This is foo:bar test.
 task_foo__bar() {
