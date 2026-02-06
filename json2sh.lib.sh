@@ -37,13 +37,19 @@ json2sh() {
   done
   shift $((OPTIND-1))
 
-  # grep -v -e '^ *#' -e '^$' json2sh.jq
-  # shellcheck disable=SC2016
-  jq -r \
+  set -- -r \
     --arg prefix "$prefix" \
     --arg local_decl "$local_decl" \
     --arg delim "$delim" \
-    '
+    #nop
+
+  if test -r "json2sh.jq"
+  then
+    set -- "$@" --from-file "json2sh.jq"
+  else
+    # grep -v -e '^ *#' -e '^$' json2sh.jq
+    # shellcheck disable=SC2016
+    set -- '
       def to_sh(prefix):
         to_entries[]
         | $ARGS.named.delim // "__" as $delim
@@ -65,6 +71,8 @@ json2sh() {
       | $ARGS.named.prefix // "json__" as $prefix
       | to_sh($prefix)
     '
+  fi
+  jq "$@"
 }
 
 # Convert JSON object to shell variable assignment expressions.

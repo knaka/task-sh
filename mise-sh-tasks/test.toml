@@ -2,7 +2,7 @@
 description = "Generate task-sh interface."
 run = '''
 #!/usr/bin/env sh
-cd ./mise-sh-tasks
+cd "$MISE_PROJECT_ROOT"/mise-sh-tasks
 rm -f gen-*.toml
 awk \
   '

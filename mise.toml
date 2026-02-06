@@ -37,3 +37,9 @@ includes = [
   "mise-sh-tasks/*.toml",
   "mise-tasks"
 ]
+
+[tasks."gen"]
+description = "Generate."
+depends = [
+  "task-sh:gen",
+]
