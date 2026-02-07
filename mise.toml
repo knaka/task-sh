@@ -37,7 +37,6 @@ doit_sub2
 includes = [
   "mise-tasks",
   "mise-sh/*.toml",
-  "mise-sh.toml",
 ]
 
 [tasks."gen"]
