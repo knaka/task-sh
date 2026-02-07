@@ -24,6 +24,14 @@
 TEMP_DIR=; unset TEMP_DIR
 
 # Create a temporary directory and assign $TEMP_DIR env var
+register_temp_cleanup() {
+  test "${TEMP_DIR+set}" = set && return 0
+  TEMP_DIR="$(mktemp -d)"
+  # shellcheck disable=SC2064
+  trap "rm -fr '$TEMP_DIR'" EXIT
+}
+
+# Create a temporary directory and assign $TEMP_DIR env var. Obsolete: use register_temp_cleanup instead.
 init_temp_dir() {
   test "${TEMP_DIR+set}" = set && return 0
   TEMP_DIR="$(mktemp -d)"
@@ -606,6 +614,16 @@ kill_child_processes() {
     echo "kill_child_processes: Unsupported platform or shell." >&2
     exit 1
   fi
+}
+
+# Register child-proceses cleanup trap handler.
+register_child_cleanup() {
+  chaintrap kill_child_processes EXIT TERM INT
+}
+
+# Obsolete: use `register_child_cleanup`.
+defer_child_cleanup() {
+  chaintrap kill_child_processes EXIT TERM INT
 }
 
 # Open the URL in the browser.

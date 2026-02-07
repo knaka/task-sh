@@ -1069,10 +1069,6 @@ call_task() {
   done
 }
 
-defer_child_cleanup() {
-  chaintrap kill_child_processes EXIT TERM INT
-}
-
 tasksh_main() {
   set -o nounset -o errexit
 
