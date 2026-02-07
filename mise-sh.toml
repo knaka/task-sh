@@ -20,6 +20,8 @@ tools = { "jq" = "1.8", "gh" = "2" }
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
+cd "$MISE_TASK_DIR" || exit 1
+
 tasks_dir="$MISE_TASK_DIR"/"$usage_sh_tasks_dir"
 
 temp_dir="$(mktemp -d)"
@@ -224,6 +226,8 @@ description = "Update task-sh files."
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
+cd "$MISE_TASK_DIR" || exit 1
+
 tasks_dir="$MISE_TASK_DIR"/mise-sh
 
 update() {
@@ -265,6 +269,8 @@ flag "--sh-tasks-dir <dir>" {
 tools = { "jq" = "1.8", "yj" = "5" }
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
+
+cd "$MISE_TASK_DIR" || exit 1
 
 mise_sh_tasks_dir="$usage_sh_tasks_dir"
 
