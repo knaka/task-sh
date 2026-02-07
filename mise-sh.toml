@@ -9,11 +9,18 @@
 
 ["task-sh:install"]
 description = '[<name>...] Install task-sh files. If no name is specified, lists available files.'
+usage = '''
+flag "--sh-tasks-dir <dir>" {
+  help "Shell tasks directory path"
+  default "./mise-sh/"
+  env "MISE_SH_TASKS_DIR"
+}
+'''
 tools = { "jq" = "1.8", "gh" = "2" }
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
-tasks_dir="$MISE_PROJECT_ROOT"/"${MISE_SH_TASKS_DIR-./mise-sh/}"
+tasks_dir="$MISE_TASK_DIR"/"$usage_sh_tasks_dir"
 
 temp_dir="$(mktemp -d)"
 # shellcheck disable=SC2064
@@ -115,7 +122,7 @@ github_raw_fetch() {
   curl --fail --silent "$url"
 }
 
-state_path="$MISE_PROJECT_ROOT/.task-sh-state.json"
+state_path="$MISE_TASK_DIR/.task-sh-state.json"
 
 # [<name>...] Install task-sh files. If no name is specified, lists available files.
 install() {
@@ -217,7 +224,7 @@ description = "Update task-sh files."
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
-tasks_dir="$MISE_PROJECT_ROOT"/mise-sh
+tasks_dir="$MISE_TASK_DIR"/mise-sh
 
 update() {
   local file
@@ -237,9 +244,9 @@ update() {
     set -- "$@" "$file"
   done
   mise run task-sh:install \
-    "$MISE_PROJECT_ROOT"/mise \
-    "$MISE_PROJECT_ROOT"/mise.cmd \
-    "$MISE_PROJECT_ROOT"/mise-sh.toml \
+    "$MISE_TASK_DIR"/mise \
+    "$MISE_TASK_DIR"/mise.cmd \
+    "$MISE_TASK_DIR"/mise-sh.toml \
     "$@"
 }
 
