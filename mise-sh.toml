@@ -9,20 +9,13 @@
 
 ["task-sh:install"]
 description = '[<name>...] Install task-sh files. If no name is specified, lists available files.'
-usage = '''
-flag "--sh-tasks-dir <dir>" {
-  help "Shell tasks directory path"
-  default "./mise-sh/"
-  env "MISE_SH_TASKS_DIR"
-}
-'''
 tools = { "jq" = "1.8", "gh" = "2" }
 run = '''
 #!/usr/bin/env sh -o nounset -o errexit
 
 cd "$MISE_TASK_DIR" || exit 1
 
-tasks_dir="$MISE_TASK_DIR"/"$usage_sh_tasks_dir"
+tasks_dir="$MISE_TASK_DIR"/"${MISE_SH_TASKS_DIR-./task-sh/}"
 
 temp_dir="$(mktemp -d)"
 # shellcheck disable=SC2064
@@ -247,7 +240,7 @@ update() {
     esac
     set -- "$@" "$file"
   done
-  mise run task-sh:install \
+  mise run "task-sh:install" -- \
     "$MISE_TASK_DIR"/mise \
     "$MISE_TASK_DIR"/mise.cmd \
     "$MISE_TASK_DIR"/mise-sh.toml \
