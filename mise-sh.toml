@@ -236,7 +236,11 @@ update() {
     esac
     set -- "$@" "$file"
   done
-  mise run task-sh:install "$MISE_PROJECT_ROOT"/mise "$MISE_PROJECT_ROOT"/mise.cmd "$@"
+  mise run task-sh:install \
+    "$MISE_PROJECT_ROOT"/mise \
+    "$MISE_PROJECT_ROOT"/mise.cmd \
+    "$MISE_PROJECT_ROOT"/mise-sh.toml \
+    "$@"
 }
 
 update "$@"
