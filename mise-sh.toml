@@ -21,7 +21,7 @@ trap "rm -fr '$temp_dir'" EXIT
 
 verbose=true
 
-# Guard against multiple calls. $1 is a unique ID
+# Guard against multiple calls. $1 is a unique ID.
 first_call() {
   eval "\${called_$1-false}" && return 1
   eval "called_$1=true"
@@ -38,7 +38,7 @@ github_prepare_token() {
   then
     if gh auth status >/dev/null
     then
-      echo "Using GitHub token gh(1) provides." >&2
+      echo "Using GitHub token provided by gh(1)." >&2
       GITHUB_TOKEN="$(gh auth token)"
       return 0
     fi
@@ -177,7 +177,7 @@ install() {
     node="$(echo "$resp" | jq -c --arg name "$name" '.tree[] | select(.path == $name)')"
     if test -z "$node"
     then
-      echo "\"$name\" does not exist in the remote repository."
+      echo "\"$name\" does not exist in the remote repository." >&2
       rc=1
       continue
     fi
